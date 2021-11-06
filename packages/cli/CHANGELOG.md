@@ -1,5 +1,11 @@
 # @backstage/cli
 
+## 0.8.2
+
+### Patch Changes
+
+- dd355bca46: Switched to dynamically determining the packages that are unsafe to repack when executing the CLI within the Backstage main repo.
+
 ## 0.8.1
 
 ### Patch Changes
