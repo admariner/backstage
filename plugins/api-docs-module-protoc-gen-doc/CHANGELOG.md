@@ -1,5 +1,43 @@
 # @backstage/plugin-api-docs-module-protoc-gen-doc
 
+## 0.1.8
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+
+## 0.1.8-next.0
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+
+## 0.1.7
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+
+## 0.1.7-next.0
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+
+## 0.1.6
+
+### Patch Changes
+
+- 9aac2b0: Use `--cwd` as the first `yarn` argument
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+
+## 0.1.6-next.0
+
+### Patch Changes
+
+- 9aac2b0: Use `--cwd` as the first `yarn` argument
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+
 ## 0.1.5
 
 ### Patch Changes

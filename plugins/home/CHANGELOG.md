@@ -1,5 +1,1118 @@
 # @backstage/plugin-home
 
+## 0.8.5-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.9.5-next.0
+  - @backstage/catalog-client@1.9.1
+  - @backstage/catalog-model@1.7.3
+  - @backstage/config@1.3.2
+  - @backstage/core-app-api@1.15.4
+  - @backstage/core-compat-api@0.3.6-next.0
+  - @backstage/core-components@0.16.3
+  - @backstage/core-plugin-api@1.10.3
+  - @backstage/theme@0.6.3
+  - @backstage/plugin-catalog-react@1.15.2-next.0
+  - @backstage/plugin-home-react@0.1.22
+
+## 0.8.4
+
+### Patch Changes
+
+- 7932f1e: Exported `QuickStartCard` component.
+- d8f9079: Updated dependency `@rjsf/utils` to `5.23.2`.
+  Updated dependency `@rjsf/core` to `5.23.2`.
+  Updated dependency `@rjsf/material-ui` to `5.23.2`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.23.2`.
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.15.1
+  - @backstage/frontend-plugin-api@0.9.4
+  - @backstage/core-plugin-api@1.10.3
+  - @backstage/core-components@0.16.3
+  - @backstage/plugin-home-react@0.1.22
+  - @backstage/catalog-client@1.9.1
+  - @backstage/catalog-model@1.7.3
+  - @backstage/config@1.3.2
+  - @backstage/core-app-api@1.15.4
+  - @backstage/core-compat-api@0.3.5
+  - @backstage/theme@0.6.3
+
+## 0.8.4-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.9.4-next.0
+  - @backstage/core-plugin-api@1.10.3-next.0
+  - @backstage/core-compat-api@0.3.5-next.0
+  - @backstage/plugin-catalog-react@1.15.1-next.1
+  - @backstage/core-app-api@1.15.4-next.0
+  - @backstage/core-components@0.16.3-next.0
+  - @backstage/plugin-home-react@0.1.22-next.1
+  - @backstage/catalog-model@1.7.3-next.0
+  - @backstage/config@1.3.2-next.0
+  - @backstage/catalog-client@1.9.1-next.0
+  - @backstage/theme@0.6.3
+
+## 0.8.4-next.1
+
+### Patch Changes
+
+- d8f9079: Updated dependency `@rjsf/utils` to `5.23.2`.
+  Updated dependency `@rjsf/core` to `5.23.2`.
+  Updated dependency `@rjsf/material-ui` to `5.23.2`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.23.2`.
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.15.1-next.0
+  - @backstage/plugin-home-react@0.1.22-next.0
+  - @backstage/core-compat-api@0.3.4
+
+## 0.8.4-next.0
+
+### Patch Changes
+
+- 7932f1e: Exported `QuickStartCard` component.
+- Updated dependencies
+  - @backstage/catalog-client@1.9.0
+  - @backstage/catalog-model@1.7.2
+  - @backstage/config@1.3.1
+  - @backstage/core-app-api@1.15.3
+  - @backstage/core-compat-api@0.3.4
+  - @backstage/core-components@0.16.2
+  - @backstage/core-plugin-api@1.10.2
+  - @backstage/frontend-plugin-api@0.9.3
+  - @backstage/theme@0.6.3
+  - @backstage/plugin-catalog-react@1.15.0
+  - @backstage/plugin-home-react@0.1.21
+
+## 0.8.3
+
+### Patch Changes
+
+- 7248f3b: Added a new Quick Start Card to `plugin-home`, which can display basic info to get users the info they need to onboard to the Catalog.
+
+  ```
+  import { QuickStartCard } from '@backstage/plugin-home';
+  <QuickStartCard
+    title="Onboarding to the Catalog"
+    modalTitle="Onboarding Quick Start"
+    docsLinkTitle="Learn more with getting started docs"
+    docsLink="https://backstage.io/docs/getting-started"
+    image={
+      <img
+        src={ContentImage}
+        alt="quick start"
+        width="100%"
+        height="100%"
+      />
+    }
+    cardDescription="Backstage system model will help you create new entities"
+    video={
+      <video
+        controls
+        preload="auto"
+        poster={"./videoPoster.png"}
+      >
+        <source src={"OnboardingDemo.mp4"} type="video/mp4" />
+      </video>
+    }
+    downloadImage={
+      <Button
+        href={QuickStartPDF}
+        target={'_blank'}
+        download={true}
+      >
+        Download infographic button
+      </Button>
+    }
+  />
+  ```
+
+  See the [storybook examples](https://backstage.io/storybook/?path=/story/plugins-home-components-quickstartcard--default)
+
+- 9951ba4: Updated dependency `@rjsf/utils` to `5.23.1`.
+  Updated dependency `@rjsf/core` to `5.23.1`.
+  Updated dependency `@rjsf/material-ui` to `5.23.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.23.1`.
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.15.0
+  - @backstage/core-app-api@1.15.3
+  - @backstage/catalog-client@1.9.0
+  - @backstage/plugin-home-react@0.1.21
+  - @backstage/core-compat-api@0.3.4
+  - @backstage/frontend-plugin-api@0.9.3
+  - @backstage/theme@0.6.3
+  - @backstage/core-components@0.16.2
+  - @backstage/catalog-model@1.7.2
+  - @backstage/config@1.3.1
+  - @backstage/core-plugin-api@1.10.2
+
+## 0.8.3-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-compat-api@0.3.4-next.2
+  - @backstage/plugin-catalog-react@1.14.3-next.2
+  - @backstage/catalog-client@1.9.0-next.2
+  - @backstage/catalog-model@1.7.2-next.0
+  - @backstage/config@1.3.1-next.0
+  - @backstage/core-app-api@1.15.3-next.1
+  - @backstage/core-components@0.16.2-next.2
+  - @backstage/core-plugin-api@1.10.2-next.0
+  - @backstage/frontend-plugin-api@0.9.3-next.2
+  - @backstage/theme@0.6.3-next.0
+  - @backstage/plugin-home-react@0.1.21-next.2
+
+## 0.8.3-next.1
+
+### Patch Changes
+
+- 7248f3b: Added a new Quick Start Card to `plugin-home`, which can display basic info to get users the info they need to onboard to the Catalog.
+
+  ```
+  import { QuickStartCard } from '@backstage/plugin-home';
+  <QuickStartCard
+    title="Onboarding to the Catalog"
+    modalTitle="Onboarding Quick Start"
+    docsLinkTitle="Learn more with getting started docs"
+    docsLink="https://backstage.io/docs/getting-started"
+    image={
+      <img
+        src={ContentImage}
+        alt="quick start"
+        width="100%"
+        height="100%"
+      />
+    }
+    cardDescription="Backstage system model will help you create new entities"
+    video={
+      <video
+        controls
+        preload="auto"
+        poster={"./videoPoster.png"}
+      >
+        <source src={"OnboardingDemo.mp4"} type="video/mp4" />
+      </video>
+    }
+    downloadImage={
+      <Button
+        href={QuickStartPDF}
+        target={'_blank'}
+        download={true}
+      >
+        Download infographic button
+      </Button>
+    }
+  />
+  ```
+
+  See the [storybook examples](https://backstage.io/storybook/?path=/story/plugins-home-components-quickstartcard--default)
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.14.3-next.1
+  - @backstage/catalog-client@1.9.0-next.1
+  - @backstage/core-components@0.16.2-next.1
+  - @backstage/catalog-model@1.7.1
+  - @backstage/config@1.3.0
+  - @backstage/core-app-api@1.15.3-next.0
+  - @backstage/core-compat-api@0.3.4-next.1
+  - @backstage/core-plugin-api@1.10.1
+  - @backstage/frontend-plugin-api@0.9.3-next.1
+  - @backstage/theme@0.6.3-next.0
+  - @backstage/plugin-home-react@0.1.21-next.1
+
+## 0.8.3-next.0
+
+### Patch Changes
+
+- 9951ba4: Updated dependency `@rjsf/utils` to `5.23.1`.
+  Updated dependency `@rjsf/core` to `5.23.1`.
+  Updated dependency `@rjsf/material-ui` to `5.23.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.23.1`.
+- Updated dependencies
+  - @backstage/core-app-api@1.15.3-next.0
+  - @backstage/plugin-catalog-react@1.14.3-next.0
+  - @backstage/plugin-home-react@0.1.21-next.0
+  - @backstage/frontend-plugin-api@0.9.3-next.0
+  - @backstage/theme@0.6.3-next.0
+  - @backstage/catalog-client@1.8.1-next.0
+  - @backstage/catalog-model@1.7.1
+  - @backstage/config@1.3.0
+  - @backstage/core-compat-api@0.3.4-next.0
+  - @backstage/core-components@0.16.2-next.0
+  - @backstage/core-plugin-api@1.10.1
+
+## 0.8.1
+
+### Patch Changes
+
+- 8b1b2cf: Improve Starred Entities UI to reduce whitespace and provide more context on the entities:
+
+  - Use the Entity Presentation API (via `<EntityDisplayName>`) to display the entity's name
+  - Component's `kind` and `spec.type` are displayed as a secondary text
+  - List items are condensed to reduce unnecessary spacing
+
+- Updated dependencies
+  - @backstage/catalog-client@1.8.0
+  - @backstage/config@1.3.0
+  - @backstage/theme@0.6.1
+  - @backstage/plugin-catalog-react@1.14.1
+  - @backstage/core-components@0.16.0
+  - @backstage/core-app-api@1.15.2
+  - @backstage/catalog-model@1.7.1
+  - @backstage/core-compat-api@0.3.2
+  - @backstage/core-plugin-api@1.10.1
+  - @backstage/frontend-plugin-api@0.9.1
+  - @backstage/plugin-home-react@0.1.19
+
+## 0.8.1-next.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.16.0-next.2
+  - @backstage/plugin-catalog-react@1.14.1-next.3
+  - @backstage/core-compat-api@0.3.2-next.2
+  - @backstage/catalog-client@1.8.0-next.1
+  - @backstage/catalog-model@1.7.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.15.1
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/frontend-plugin-api@0.9.1-next.2
+  - @backstage/theme@0.6.1-next.0
+  - @backstage/plugin-home-react@0.1.19-next.2
+
+## 0.8.1-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-client@1.8.0-next.1
+  - @backstage/plugin-catalog-react@1.14.1-next.2
+  - @backstage/catalog-model@1.7.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.15.1
+  - @backstage/core-compat-api@0.3.2-next.1
+  - @backstage/core-components@0.16.0-next.1
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/frontend-plugin-api@0.9.1-next.1
+  - @backstage/theme@0.6.1-next.0
+  - @backstage/plugin-home-react@0.1.19-next.1
+
+## 0.8.1-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/theme@0.6.1-next.0
+  - @backstage/catalog-client@1.8.0-next.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.15.1
+  - @backstage/core-compat-api@0.3.2-next.1
+  - @backstage/core-components@0.16.0-next.1
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/frontend-plugin-api@0.9.1-next.1
+  - @backstage/plugin-catalog-react@1.14.1-next.1
+  - @backstage/plugin-home-react@0.1.19-next.1
+
+## 0.8.1-next.0
+
+### Patch Changes
+
+- 8b1b2cf: Improve Starred Entities UI to reduce whitespace and provide more context on the entities:
+
+  - Use the Entity Presentation API (via `<EntityDisplayName>`) to display the entity's name
+  - Component's `kind` and `spec.type` are displayed as a secondary text
+  - List items are condensed to reduce unnecessary spacing
+
+- Updated dependencies
+  - @backstage/core-components@0.16.0-next.0
+  - @backstage/catalog-client@1.8.0-next.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.15.1
+  - @backstage/core-compat-api@0.3.2-next.0
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/frontend-plugin-api@0.9.1-next.0
+  - @backstage/theme@0.6.0
+  - @backstage/plugin-catalog-react@1.14.1-next.0
+  - @backstage/plugin-home-react@0.1.19-next.0
+
+## 0.8.0
+
+### Minor Changes
+
+- 9893bb5: **BREAKING** Implement usage of unused `limit` query parameter in visits API `.list()` function
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+- e698470: Updated dependency `@rjsf/utils` to `5.21.2`.
+  Updated dependency `@rjsf/core` to `5.21.2`.
+  Updated dependency `@rjsf/material-ui` to `5.21.2`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.21.2`.
+- Updated dependencies
+  - @backstage/core-components@0.15.1
+  - @backstage/frontend-plugin-api@0.9.0
+  - @backstage/core-compat-api@0.3.1
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/core-app-api@1.15.1
+  - @backstage/plugin-catalog-react@1.14.0
+  - @backstage/plugin-home-react@0.1.18
+  - @backstage/theme@0.6.0
+  - @backstage/catalog-client@1.7.1
+  - @backstage/catalog-model@1.7.0
+  - @backstage/config@1.2.0
+
+## 0.8.0-next.2
+
+### Minor Changes
+
+- 9893bb5: **BREAKING** Implement usage of unused `limit` query parameter in visits API `.list()` function
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.14.0-next.2
+  - @backstage/theme@0.6.0-next.1
+  - @backstage/catalog-client@1.7.1-next.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.15.1-next.1
+  - @backstage/core-compat-api@0.3.1-next.2
+  - @backstage/core-components@0.15.1-next.2
+  - @backstage/core-plugin-api@1.10.0-next.1
+  - @backstage/frontend-plugin-api@0.9.0-next.2
+  - @backstage/plugin-home-react@0.1.18-next.2
+
+## 0.7.12-next.1
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+- Updated dependencies
+  - @backstage/core-components@0.15.1-next.1
+  - @backstage/frontend-plugin-api@0.9.0-next.1
+  - @backstage/core-compat-api@0.3.1-next.1
+  - @backstage/core-plugin-api@1.10.0-next.1
+  - @backstage/core-app-api@1.15.1-next.1
+  - @backstage/plugin-catalog-react@1.14.0-next.1
+  - @backstage/plugin-home-react@0.1.18-next.1
+  - @backstage/theme@0.5.8-next.0
+  - @backstage/catalog-client@1.7.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/config@1.2.0
+
+## 0.7.11-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.9.0-next.0
+  - @backstage/core-compat-api@0.3.1-next.0
+  - @backstage/core-components@0.15.1-next.0
+  - @backstage/core-plugin-api@1.10.0-next.0
+  - @backstage/plugin-catalog-react@1.13.1-next.0
+  - @backstage/catalog-client@1.7.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.15.1-next.0
+  - @backstage/theme@0.5.7
+  - @backstage/plugin-home-react@0.1.18-next.0
+
+## 0.7.10
+
+### Patch Changes
+
+- c891b69: Add `FavoriteToggle` in `core-components` to standardise favorite marking
+- fec8b57: Updated exports to use the new type parameters for extensions and extension blueprints.
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+- 0a50d44: Updated dependency `@rjsf/utils` to `5.21.1`.
+  Updated dependency `@rjsf/core` to `5.21.1`.
+  Updated dependency `@rjsf/material-ui` to `5.21.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.21.1`.
+- fa9d8da: Updated dependency `@rjsf/utils` to `5.20.1`.
+  Updated dependency `@rjsf/core` to `5.20.1`.
+  Updated dependency `@rjsf/material-ui` to `5.20.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.20.1`.
+- a159180: Added missing items to `overridableComponents`
+- Updated dependencies
+  - @backstage/core-components@0.15.0
+  - @backstage/plugin-catalog-react@1.13.0
+  - @backstage/frontend-plugin-api@0.8.0
+  - @backstage/core-app-api@1.15.0
+  - @backstage/core-compat-api@0.3.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/catalog-client@1.7.0
+  - @backstage/core-plugin-api@1.9.4
+  - @backstage/theme@0.5.7
+  - @backstage/plugin-home-react@0.1.17
+  - @backstage/config@1.2.0
+
+## 0.7.10-next.2
+
+### Patch Changes
+
+- c891b69: Add `FavoriteToggle` in `core-components` to standardise favorite marking
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+- fa9d8da: Updated dependency `@rjsf/utils` to `5.20.1`.
+  Updated dependency `@rjsf/core` to `5.20.1`.
+  Updated dependency `@rjsf/material-ui` to `5.20.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.20.1`.
+- Updated dependencies
+  - @backstage/core-components@0.14.11-next.1
+  - @backstage/plugin-catalog-react@1.13.0-next.2
+  - @backstage/core-app-api@1.14.3-next.0
+  - @backstage/catalog-client@1.7.0-next.1
+  - @backstage/core-compat-api@0.3.0-next.2
+  - @backstage/core-plugin-api@1.9.4-next.0
+  - @backstage/frontend-plugin-api@0.8.0-next.2
+  - @backstage/theme@0.5.7-next.0
+  - @backstage/plugin-home-react@0.1.17-next.1
+  - @backstage/catalog-model@1.6.0
+  - @backstage/config@1.2.0
+
+## 0.7.10-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.8.0-next.1
+  - @backstage/core-compat-api@0.3.0-next.1
+  - @backstage/catalog-client@1.6.7-next.0
+  - @backstage/core-components@0.14.11-next.0
+  - @backstage/plugin-catalog-react@1.12.4-next.1
+  - @backstage/catalog-model@1.6.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.14.2
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+  - @backstage/plugin-home-react@0.1.17-next.0
+
+## 0.7.10-next.0
+
+### Patch Changes
+
+- fec8b57: Updated exports to use the new type parameters for extensions and extension blueprints.
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.8.0-next.0
+  - @backstage/core-compat-api@0.2.9-next.0
+  - @backstage/plugin-catalog-react@1.12.4-next.0
+  - @backstage/catalog-client@1.6.6
+  - @backstage/catalog-model@1.6.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.14.2
+  - @backstage/core-components@0.14.10
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+  - @backstage/plugin-home-react@0.1.16
+
+## 0.7.9
+
+### Patch Changes
+
+- 31bfc44: Updated alpha definitions of extension data references.
+- fe1fbb2: Migrating usages of the deprecated `createExtension` `v1` format to the newer `v2` format, and old `create*Extension` extension creators to blueprints.
+- fdcc059: Fixed a bug on the WelcomeTitle component where the welcome message wasn't correct when the language was set to Spanish
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.7.0
+  - @backstage/plugin-catalog-react@1.12.3
+  - @backstage/core-components@0.14.10
+  - @backstage/core-compat-api@0.2.8
+  - @backstage/core-app-api@1.14.2
+  - @backstage/catalog-model@1.6.0
+  - @backstage/catalog-client@1.6.6
+  - @backstage/config@1.2.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+  - @backstage/plugin-home-react@0.1.16
+
+## 0.7.9-next.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.7.0-next.3
+  - @backstage/catalog-model@1.6.0-next.0
+  - @backstage/core-compat-api@0.2.8-next.3
+  - @backstage/plugin-catalog-react@1.12.3-next.3
+  - @backstage/catalog-client@1.6.6-next.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.14.2-next.0
+  - @backstage/core-components@0.14.10-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+  - @backstage/plugin-home-react@0.1.16-next.0
+
+## 0.7.9-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.7.0-next.2
+  - @backstage/core-compat-api@0.2.8-next.2
+  - @backstage/plugin-catalog-react@1.12.3-next.2
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.14.2-next.0
+  - @backstage/core-components@0.14.10-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+  - @backstage/plugin-home-react@0.1.16-next.0
+
+## 0.7.9-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.12.3-next.1
+  - @backstage/frontend-plugin-api@0.6.8-next.1
+  - @backstage/core-compat-api@0.2.8-next.1
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.14.2-next.0
+  - @backstage/core-components@0.14.10-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+  - @backstage/plugin-home-react@0.1.16-next.0
+
+## 0.7.8-next.0
+
+### Patch Changes
+
+- 31bfc44: Updated alpha definitions of extension data references.
+- fdcc059: Fixed a bug on the WelcomeTitle component where the welcome message wasn't correct when the language was set to Spanish
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.6.8-next.0
+  - @backstage/plugin-catalog-react@1.12.3-next.0
+  - @backstage/core-components@0.14.10-next.0
+  - @backstage/core-app-api@1.14.1-next.0
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/core-compat-api@0.2.8-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+  - @backstage/plugin-home-react@0.1.16-next.0
+
+## 0.7.7
+
+### Patch Changes
+
+- cc81579: Updated dependency `@rjsf/utils` to `5.18.5`.
+  Updated dependency `@rjsf/core` to `5.18.5`.
+  Updated dependency `@rjsf/material-ui` to `5.18.5`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.18.5`.
+- Updated dependencies
+  - @backstage/core-components@0.14.9
+  - @backstage/core-app-api@1.14.0
+  - @backstage/plugin-catalog-react@1.12.2
+  - @backstage/plugin-home-react@0.1.15
+  - @backstage/frontend-plugin-api@0.6.7
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/core-compat-api@0.2.7
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+
+## 0.7.7-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.9-next.1
+  - @backstage/frontend-plugin-api@0.6.7-next.1
+  - @backstage/plugin-catalog-react@1.12.2-next.2
+  - @backstage/plugin-home-react@0.1.15-next.2
+  - @backstage/core-compat-api@0.2.7-next.1
+
+## 0.7.7-next.1
+
+### Patch Changes
+
+- cc81579: Updated dependency `@rjsf/utils` to `5.18.5`.
+  Updated dependency `@rjsf/core` to `5.18.5`.
+  Updated dependency `@rjsf/material-ui` to `5.18.5`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.18.5`.
+- Updated dependencies
+  - @backstage/core-app-api@1.13.1-next.1
+  - @backstage/plugin-catalog-react@1.12.2-next.1
+  - @backstage/plugin-home-react@0.1.15-next.1
+  - @backstage/core-compat-api@0.2.7-next.0
+  - @backstage/core-components@0.14.9-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/frontend-plugin-api@0.6.7-next.0
+  - @backstage/theme@0.5.6
+
+## 0.7.6-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.9-next.0
+  - @backstage/core-app-api@1.13.0-next.0
+  - @backstage/plugin-catalog-react@1.12.2-next.0
+  - @backstage/frontend-plugin-api@0.6.7-next.0
+  - @backstage/plugin-home-react@0.1.15-next.0
+  - @backstage/core-compat-api@0.2.7-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/theme@0.5.6
+
+## 0.7.5
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+- 6cb4886: Updated dependency `@rjsf/utils` to `5.18.4`.
+  Updated dependency `@rjsf/core` to `5.18.4`.
+  Updated dependency `@rjsf/material-ui` to `5.18.4`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.18.4`.
+- Updated dependencies
+  - @backstage/core-components@0.14.8
+  - @backstage/core-compat-api@0.2.6
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/theme@0.5.6
+  - @backstage/plugin-catalog-react@1.12.1
+  - @backstage/plugin-home-react@0.1.14
+  - @backstage/core-app-api@1.12.6
+  - @backstage/frontend-plugin-api@0.6.6
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+
+## 0.7.5-next.2
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+- Updated dependencies
+  - @backstage/core-components@0.14.8-next.2
+  - @backstage/plugin-catalog-react@1.12.1-next.2
+  - @backstage/plugin-home-react@0.1.14-next.2
+  - @backstage/frontend-plugin-api@0.6.6-next.2
+  - @backstage/core-compat-api@0.2.6-next.2
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.12.6-next.0
+  - @backstage/core-plugin-api@1.9.3-next.0
+  - @backstage/theme@0.5.6-next.0
+
+## 0.7.5-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.8-next.1
+  - @backstage/core-compat-api@0.2.6-next.1
+  - @backstage/core-plugin-api@1.9.3-next.0
+  - @backstage/core-app-api@1.12.6-next.0
+  - @backstage/frontend-plugin-api@0.6.6-next.1
+  - @backstage/plugin-catalog-react@1.12.1-next.1
+  - @backstage/plugin-home-react@0.1.14-next.1
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/theme@0.5.6-next.0
+
+## 0.7.5-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/theme@0.5.6-next.0
+  - @backstage/core-components@0.14.8-next.0
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.12.5
+  - @backstage/core-compat-api@0.2.6-next.0
+  - @backstage/core-plugin-api@1.9.2
+  - @backstage/frontend-plugin-api@0.6.6-next.0
+  - @backstage/plugin-catalog-react@1.12.1-next.0
+  - @backstage/plugin-home-react@0.1.14-next.0
+
+## 0.7.4
+
+### Patch Changes
+
+- 2196d3e: Use relative time when displaying visits from the same day
+- 0040ec2: Updated dependency `@rjsf/utils` to `5.18.2`.
+  Updated dependency `@rjsf/core` to `5.18.2`.
+  Updated dependency `@rjsf/material-ui` to `5.18.2`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.18.2`.
+- Updated dependencies
+  - @backstage/core-compat-api@0.2.5
+  - @backstage/core-components@0.14.7
+  - @backstage/catalog-model@1.5.0
+  - @backstage/plugin-catalog-react@1.12.0
+  - @backstage/theme@0.5.4
+  - @backstage/plugin-home-react@0.1.13
+  - @backstage/core-app-api@1.12.5
+  - @backstage/catalog-client@1.6.5
+  - @backstage/frontend-plugin-api@0.6.5
+
+## 0.7.4-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.12.0-next.2
+  - @backstage/core-components@0.14.7-next.2
+  - @backstage/core-compat-api@0.2.5-next.1
+  - @backstage/frontend-plugin-api@0.6.5-next.1
+
+## 0.7.4-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.6-next.1
+  - @backstage/plugin-catalog-react@1.11.4-next.1
+  - @backstage/frontend-plugin-api@0.6.5-next.1
+  - @backstage/plugin-home-react@0.1.13-next.1
+  - @backstage/core-compat-api@0.2.5-next.1
+
+## 0.7.4-next.0
+
+### Patch Changes
+
+- 2196d3e: Use relative time when displaying visits from the same day
+- 0040ec2: Updated dependency `@rjsf/utils` to `5.18.2`.
+  Updated dependency `@rjsf/core` to `5.18.2`.
+  Updated dependency `@rjsf/material-ui` to `5.18.2`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.18.2`.
+- Updated dependencies
+  - @backstage/core-compat-api@0.2.5-next.0
+  - @backstage/catalog-model@1.5.0-next.0
+  - @backstage/theme@0.5.4-next.0
+  - @backstage/core-components@0.14.5-next.0
+  - @backstage/plugin-home-react@0.1.13-next.0
+  - @backstage/catalog-client@1.6.5-next.0
+  - @backstage/plugin-catalog-react@1.11.4-next.0
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.12.4
+  - @backstage/core-plugin-api@1.9.2
+  - @backstage/frontend-plugin-api@0.6.5-next.0
+
+## 0.7.3
+
+### Patch Changes
+
+- abfbcfc: Updated dependency `@testing-library/react` to `^15.0.0`.
+- cb1e3b0: Updated dependency `@testing-library/dom` to `^10.0.0`.
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.11.3
+  - @backstage/plugin-home-react@0.1.12
+  - @backstage/core-compat-api@0.2.4
+  - @backstage/core-components@0.14.4
+  - @backstage/core-app-api@1.12.4
+  - @backstage/core-plugin-api@1.9.2
+  - @backstage/frontend-plugin-api@0.6.4
+  - @backstage/theme@0.5.3
+  - @backstage/catalog-client@1.6.4
+  - @backstage/catalog-model@1.4.5
+  - @backstage/config@1.2.0
+
+## 0.7.3-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-app-api@1.12.4-next.0
+  - @backstage/catalog-client@1.6.4-next.0
+  - @backstage/frontend-plugin-api@0.6.4-next.1
+  - @backstage/core-compat-api@0.2.4-next.1
+  - @backstage/catalog-model@1.4.5
+  - @backstage/config@1.2.0
+  - @backstage/core-components@0.14.4-next.0
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/theme@0.5.2
+  - @backstage/plugin-catalog-react@1.11.3-next.1
+  - @backstage/plugin-home-react@0.1.12-next.0
+
+## 0.7.3-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.4-next.0
+  - @backstage/catalog-client@1.6.3
+  - @backstage/catalog-model@1.4.5
+  - @backstage/config@1.2.0
+  - @backstage/core-app-api@1.12.3
+  - @backstage/core-compat-api@0.2.4-next.0
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/frontend-plugin-api@0.6.4-next.0
+  - @backstage/theme@0.5.2
+  - @backstage/plugin-catalog-react@1.11.3-next.0
+  - @backstage/plugin-home-react@0.1.12-next.0
+
+## 0.7.2
+
+### Patch Changes
+
+- e8f026a: Use ESM exports of react-use library
+- Updated dependencies
+  - @backstage/catalog-client@1.6.3
+  - @backstage/core-components@0.14.3
+  - @backstage/core-app-api@1.12.3
+  - @backstage/plugin-catalog-react@1.11.2
+  - @backstage/frontend-plugin-api@0.6.3
+  - @backstage/plugin-home-react@0.1.11
+  - @backstage/core-compat-api@0.2.3
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/catalog-model@1.4.5
+  - @backstage/config@1.2.0
+  - @backstage/theme@0.5.2
+
+## 0.7.1
+
+### Patch Changes
+
+- e8f026a: Use ESM exports of react-use library
+- Updated dependencies
+  - @backstage/catalog-client@1.6.2
+  - @backstage/core-components@0.14.2
+  - @backstage/core-app-api@1.12.2
+  - @backstage/plugin-catalog-react@1.11.1
+  - @backstage/frontend-plugin-api@0.6.2
+  - @backstage/plugin-home-react@0.1.10
+  - @backstage/core-compat-api@0.2.2
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/catalog-model@1.4.5
+  - @backstage/config@1.2.0
+  - @backstage/theme@0.5.2
+
+## 0.7.0
+
+### Minor Changes
+
+- 8807d2a: Resolved styling inconsistencies and title visibility issues in Top Visited and Recently Visited cards
+
+### Patch Changes
+
+- 0cecb09: Updated dependency `@rjsf/utils` to `5.17.1`.
+  Updated dependency `@rjsf/core` to `5.17.1`.
+  Updated dependency `@rjsf/material-ui` to `5.17.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.17.1`.
+- 2e17681: Added the `no-top-level-material-ui-4-imports` ESLint rule to aid with the migration to Material UI v5
+- Updated dependencies
+  - @backstage/config@1.2.0
+  - @backstage/core-components@0.14.1
+  - @backstage/theme@0.5.2
+  - @backstage/plugin-catalog-react@1.11.0
+  - @backstage/catalog-client@1.6.1
+  - @backstage/plugin-home-react@0.1.9
+  - @backstage/catalog-model@1.4.5
+  - @backstage/core-app-api@1.12.1
+  - @backstage/core-compat-api@0.2.1
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/frontend-plugin-api@0.6.1
+
+## 0.7.0-next.2
+
+### Minor Changes
+
+- 8807d2a: Resolved styling inconsistencies and title visibility issues in Top Visited and Recently Visited cards
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.1-next.2
+  - @backstage/plugin-catalog-react@1.11.0-next.2
+  - @backstage/catalog-client@1.6.1-next.1
+  - @backstage/frontend-plugin-api@0.6.1-next.2
+  - @backstage/plugin-home-react@0.1.9-next.2
+  - @backstage/core-compat-api@0.2.1-next.2
+  - @backstage/catalog-model@1.4.5-next.0
+  - @backstage/config@1.2.0-next.1
+  - @backstage/core-app-api@1.12.1-next.1
+  - @backstage/core-plugin-api@1.9.1-next.1
+  - @backstage/theme@0.5.2-next.0
+
+## 0.6.3-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.2.0-next.1
+  - @backstage/core-components@0.14.1-next.1
+  - @backstage/plugin-catalog-react@1.10.1-next.1
+  - @backstage/core-app-api@1.12.1-next.1
+  - @backstage/core-plugin-api@1.9.1-next.1
+  - @backstage/frontend-plugin-api@0.6.1-next.1
+  - @backstage/plugin-home-react@0.1.9-next.1
+  - @backstage/catalog-client@1.6.1-next.0
+  - @backstage/catalog-model@1.4.5-next.0
+  - @backstage/core-compat-api@0.2.1-next.1
+  - @backstage/theme@0.5.2-next.0
+
+## 0.6.3-next.0
+
+### Patch Changes
+
+- 0cecb09: Updated dependency `@rjsf/utils` to `5.17.1`.
+  Updated dependency `@rjsf/core` to `5.17.1`.
+  Updated dependency `@rjsf/material-ui` to `5.17.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.17.1`.
+- Updated dependencies
+  - @backstage/theme@0.5.2-next.0
+  - @backstage/core-components@0.14.1-next.0
+  - @backstage/plugin-catalog-react@1.10.1-next.0
+  - @backstage/plugin-home-react@0.1.9-next.0
+  - @backstage/catalog-client@1.6.1-next.0
+  - @backstage/catalog-model@1.4.5-next.0
+  - @backstage/config@1.1.2-next.0
+  - @backstage/core-plugin-api@1.9.1-next.0
+  - @backstage/frontend-plugin-api@0.6.1-next.0
+  - @backstage/core-app-api@1.12.1-next.0
+  - @backstage/core-compat-api@0.2.1-next.0
+
+## 0.6.2
+
+### Patch Changes
+
+- 9aac2b0: Use `--cwd` as the first `yarn` argument
+- dc7ae8b: Use EntityDisplayName JSX element entity information directly for FeaturedDocsCard.
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+- e6f0831: Updated dependency `@rjsf/utils` to `5.17.0`.
+  Updated dependency `@rjsf/core` to `5.17.0`.
+  Updated dependency `@rjsf/material-ui` to `5.17.0`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.17.0`.
+- 6a74ffd: Updated dependency `@rjsf/utils` to `5.16.1`.
+  Updated dependency `@rjsf/core` to `5.16.1`.
+  Updated dependency `@rjsf/material-ui` to `5.16.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.16.1`.
+- e9cdfd3: Fix typo in VisitsStorageApi
+- 384c132: Added filter support for HomePageVisitedByType in order to enable filtering entities from the list
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.6.0
+  - @backstage/core-compat-api@0.2.0
+  - @backstage/plugin-catalog-react@1.10.0
+  - @backstage/core-components@0.14.0
+  - @backstage/core-app-api@1.12.0
+  - @backstage/catalog-model@1.4.4
+  - @backstage/theme@0.5.1
+  - @backstage/core-plugin-api@1.9.0
+  - @backstage/catalog-client@1.6.0
+  - @backstage/plugin-home-react@0.1.8
+  - @backstage/config@1.1.1
+
+## 0.6.2-next.3
+
+### Patch Changes
+
+- e6f0831: Updated dependency `@rjsf/utils` to `5.17.0`.
+  Updated dependency `@rjsf/core` to `5.17.0`.
+  Updated dependency `@rjsf/material-ui` to `5.17.0`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.17.0`.
+- Updated dependencies
+  - @backstage/theme@0.5.1-next.1
+  - @backstage/core-components@0.14.0-next.2
+  - @backstage/plugin-catalog-react@1.10.0-next.3
+  - @backstage/plugin-home-react@0.1.8-next.3
+  - @backstage/catalog-client@1.6.0-next.1
+  - @backstage/catalog-model@1.4.4-next.0
+  - @backstage/config@1.1.1
+  - @backstage/core-app-api@1.12.0-next.1
+  - @backstage/core-compat-api@0.2.0-next.3
+  - @backstage/core-plugin-api@1.9.0-next.1
+  - @backstage/frontend-plugin-api@0.6.0-next.3
+
+## 0.6.2-next.2
+
+### Patch Changes
+
+- 9aac2b0: Use `--cwd` as the first `yarn` argument
+- dc7ae8b: Use EntityDisplayName JSX element entity information directly for FeaturedDocsCard.
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+- Updated dependencies
+  - @backstage/core-components@0.14.0-next.1
+  - @backstage/core-app-api@1.12.0-next.1
+  - @backstage/core-plugin-api@1.9.0-next.1
+  - @backstage/frontend-plugin-api@0.6.0-next.2
+  - @backstage/plugin-catalog-react@1.10.0-next.2
+  - @backstage/theme@0.5.1-next.0
+  - @backstage/plugin-home-react@0.1.8-next.2
+  - @backstage/core-compat-api@0.2.0-next.2
+  - @backstage/config@1.1.1
+  - @backstage/catalog-client@1.6.0-next.1
+  - @backstage/catalog-model@1.4.4-next.0
+
+## 0.6.2-next.1
+
+### Patch Changes
+
+- 384c132: Added filter support for HomePageVisitedByType in order to enable filtering entities from the list
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.6.0-next.1
+  - @backstage/core-compat-api@0.2.0-next.1
+  - @backstage/core-components@0.14.0-next.0
+  - @backstage/catalog-model@1.4.4-next.0
+  - @backstage/catalog-client@1.6.0-next.1
+  - @backstage/core-plugin-api@1.8.3-next.0
+  - @backstage/core-app-api@1.11.4-next.0
+  - @backstage/plugin-catalog-react@1.9.4-next.1
+  - @backstage/plugin-home-react@0.1.8-next.1
+  - @backstage/config@1.1.1
+  - @backstage/theme@0.5.0
+
+## 0.6.2-next.0
+
+### Patch Changes
+
+- 6a74ffd: Updated dependency `@rjsf/utils` to `5.16.1`.
+  Updated dependency `@rjsf/core` to `5.16.1`.
+  Updated dependency `@rjsf/material-ui` to `5.16.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.16.1`.
+- e9cdfd3: Fix typo in VisitsStorageApi
+- Updated dependencies
+  - @backstage/core-compat-api@0.1.2-next.0
+  - @backstage/plugin-catalog-react@1.9.4-next.0
+  - @backstage/frontend-plugin-api@0.5.1-next.0
+  - @backstage/catalog-client@1.6.0-next.0
+  - @backstage/plugin-home-react@0.1.8-next.0
+  - @backstage/core-components@0.13.10
+  - @backstage/catalog-model@1.4.3
+  - @backstage/core-app-api@1.11.3
+  - @backstage/core-plugin-api@1.8.2
+  - @backstage/theme@0.5.0
+
+## 0.6.1
+
+### Patch Changes
+
+- 98ac5ab: Updated dependency `@rjsf/utils` to `5.15.1`.
+  Updated dependency `@rjsf/core` to `5.15.1`.
+  Updated dependency `@rjsf/material-ui` to `5.15.1`.
+  Updated dependency `@rjsf/validator-ajv8` to `5.15.1`.
+- 4016f21: Remove some unused dependencies
+- Updated dependencies
+  - @backstage/core-compat-api@0.1.1
+  - @backstage/frontend-plugin-api@0.5.0
+  - @backstage/core-components@0.13.10
+  - @backstage/core-plugin-api@1.8.2
+  - @backstage/catalog-client@1.5.2
+  - @backstage/plugin-home-react@0.1.7
+  - @backstage/plugin-catalog-react@1.9.3
+  - @backstage/catalog-model@1.4.3
+  - @backstage/core-app-api@1.11.3
+  - @backstage/theme@0.5.0
+
 ## 0.6.1-next.2
 
 ### Patch Changes

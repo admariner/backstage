@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { PluginEndpointDiscovery } from '@backstage/backend-common';
 import {
   DEFAULT_NAMESPACE,
   Entity,
@@ -28,7 +27,6 @@ import {
   PreparerBuilder,
   PublisherBase,
 } from '@backstage/plugin-techdocs-node';
-import fetch from 'node-fetch';
 import pLimit, { Limit } from 'p-limit';
 import { PassThrough } from 'stream';
 import * as winston from 'winston';
@@ -38,6 +36,7 @@ import {
   DocsBuilder,
   shouldCheckForUpdate,
 } from '../DocsBuilder';
+import { DiscoveryService } from '@backstage/backend-plugin-api';
 
 export type DocsSynchronizerSyncOpts = {
   log: (message: string) => void;
@@ -189,7 +188,7 @@ export class DocsSynchronizer {
     entity,
   }: {
     responseHandler: DocsSynchronizerSyncOpts;
-    discovery: PluginEndpointDiscovery;
+    discovery: DiscoveryService;
     token: string | undefined;
     entity: Entity;
   }) {

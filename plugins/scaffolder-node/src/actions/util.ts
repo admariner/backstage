@@ -15,7 +15,7 @@
  */
 
 import { InputError } from '@backstage/errors';
-import { isChildPath } from '@backstage/backend-common';
+import { isChildPath } from '@backstage/backend-plugin-api';
 import { join as joinPath, normalize as normalizePath } from 'path';
 import { ScmIntegrationRegistry } from '@backstage/integration';
 
@@ -85,11 +85,19 @@ export const parseRepoUrl = (
       checkRequiredParams(parsed, 'project', 'repo');
       break;
     }
+    case 'azure': {
+      checkRequiredParams(parsed, 'project', 'repo');
+      break;
+    }
     case 'gitlab': {
       // project is the projectID, and if defined, owner and repo won't be needed.
       if (!project) {
         checkRequiredParams(parsed, 'owner', 'repo');
       }
+      break;
+    }
+    case 'gitea': {
+      checkRequiredParams(parsed, 'repo');
       break;
     }
     case 'gerrit': {

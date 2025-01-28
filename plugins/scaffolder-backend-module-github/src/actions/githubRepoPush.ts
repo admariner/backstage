@@ -75,6 +75,8 @@ export function createGithubRepoPushAction(options: {
     sourcePath?: string;
     token?: string;
     requiredCommitSigning?: boolean;
+    requiredLinearHistory?: boolean;
+    requireLastPushApproval?: boolean;
   }>({
     id: 'github:repo:push',
     description:
@@ -95,6 +97,7 @@ export function createGithubRepoPushAction(options: {
           requireBranchesToBeUpToDate: inputProps.requireBranchesToBeUpToDate,
           requiredConversationResolution:
             inputProps.requiredConversationResolution,
+          requireLastPushApproval: inputProps.requireLastPushApproval,
           defaultBranch: inputProps.defaultBranch,
           protectDefaultBranch: inputProps.protectDefaultBranch,
           protectEnforceAdmins: inputProps.protectEnforceAdmins,
@@ -104,6 +107,7 @@ export function createGithubRepoPushAction(options: {
           sourcePath: inputProps.sourcePath,
           token: inputProps.token,
           requiredCommitSigning: inputProps.requiredCommitSigning,
+          requiredLinearHistory: inputProps.requiredLinearHistory,
         },
       },
       output: {
@@ -132,8 +136,10 @@ export function createGithubRepoPushAction(options: {
         requiredStatusCheckContexts = [],
         requireBranchesToBeUpToDate = true,
         requiredConversationResolution = false,
+        requireLastPushApproval = false,
         token: providedToken,
         requiredCommitSigning = false,
+        requiredLinearHistory = false,
       } = ctx.input;
 
       const { owner, repo } = parseRepoUrl(repoUrl, integrations);
@@ -174,6 +180,7 @@ export function createGithubRepoPushAction(options: {
         requiredStatusCheckContexts,
         requireBranchesToBeUpToDate,
         requiredConversationResolution,
+        requireLastPushApproval,
         config,
         ctx.logger,
         gitCommitMessage,
@@ -181,6 +188,7 @@ export function createGithubRepoPushAction(options: {
         gitAuthorEmail,
         dismissStaleReviews,
         requiredCommitSigning,
+        requiredLinearHistory,
       );
 
       ctx.output('remoteUrl', remoteUrl);

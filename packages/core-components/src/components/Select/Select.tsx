@@ -55,7 +55,6 @@ const BootstrapInput = withStyles(
         fontSize: theme.typography.body1.fontSize,
         padding: theme.spacing(1.25, 3.25, 1.25, 1.5),
         transition: theme.transitions.create(['border-color', 'box-shadow']),
-        fontFamily: 'Helvetica Neue',
         '&:focus': {
           background: theme.palette.background.paper,
           borderRadius: theme.shape.borderRadius,
@@ -79,7 +78,6 @@ const useStyles = makeStyles(
     createStyles({
       formControl: {
         margin: theme.spacing(1, 0),
-        maxWidth: 300,
       },
       label: {
         transform: 'initial',
@@ -138,6 +136,7 @@ export type SelectProps = {
   native?: boolean;
   disabled?: boolean;
   margin?: 'dense' | 'none';
+  'data-testid'?: string;
 };
 
 /** @public */
@@ -153,6 +152,7 @@ export function SelectComponent(props: SelectProps) {
     native = false,
     disabled = false,
     margin,
+    'data-testid': dataTestId = 'select',
   } = props;
   const classes = useStyles();
   const [value, setValue] = useState<SelectedItems>(
@@ -205,7 +205,7 @@ export function SelectComponent(props: SelectProps) {
           value={value}
           native={native}
           disabled={disabled}
-          data-testid="select"
+          data-testid={dataTestId}
           displayEmpty
           multiple={multiple}
           margin={margin}
@@ -256,7 +256,7 @@ export function SelectComponent(props: SelectProps) {
             getContentAnchorEl: null,
           }}
         >
-          {placeholder && !multiple && (
+          {!!placeholder && !multiple && (
             <MenuItem value={[]}>{placeholder}</MenuItem>
           )}
           {native

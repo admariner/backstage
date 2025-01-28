@@ -26,9 +26,9 @@ import {
   useEntity,
   entityRouteRef,
 } from '@backstage/plugin-catalog-react';
-import { makeStyles, Theme } from '@material-ui/core';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import qs from 'qs';
-import React, { MouseEvent, useCallback } from 'react';
+import React, { MouseEvent, ReactNode, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { catalogGraphRouteRef } from '../../routes';
 import {
@@ -38,6 +38,9 @@ import {
   EntityRelationsGraph,
 } from '../EntityRelationsGraph';
 import { EntityRelationsGraphProps } from '../EntityRelationsGraph';
+
+/** @public */
+export type CatalogGraphCardClassKey = 'card' | 'graph';
 
 const useStyles = makeStyles<Theme, { height: number | undefined }>(
   {
@@ -60,6 +63,7 @@ export const CatalogGraphCard = (
     variant?: InfoCardVariants;
     height?: number;
     title?: string;
+    action?: ReactNode;
   },
 ) => {
   const {
@@ -71,8 +75,10 @@ export const CatalogGraphCard = (
     direction = Direction.LEFT_RIGHT,
     kinds,
     relations,
+    entityFilter,
     height,
     className,
+    action,
     rootEntityNames,
     onNodeClick,
     title = 'Relations',
@@ -122,6 +128,7 @@ export const CatalogGraphCard = (
   return (
     <InfoCard
       title={title}
+      action={action}
       cardClassName={classes.card}
       variant={variant}
       noPadding
@@ -140,6 +147,7 @@ export const CatalogGraphCard = (
         mergeRelations={mergeRelations}
         direction={direction}
         relationPairs={relationPairs}
+        entityFilter={entityFilter}
         zoom={zoom}
       />
     </InfoCard>

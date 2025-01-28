@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useApp } from '@backstage/core-plugin-api';
+import { configApiRef, useApi, useApp } from '@backstage/core-plugin-api';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -31,6 +31,8 @@ import React, { MouseEventHandler, useState } from 'react';
 import { SupportItem, SupportItemLink, useSupportConfig } from '../../hooks';
 import { HelpIcon } from '../../icons';
 import { Link } from '../Link';
+import { coreComponentsTranslationRef } from '../../translation';
+import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 
 type SupportButtonProps = {
   title?: string;
@@ -65,7 +67,7 @@ const SupportLink = ({ link }: { link: SupportItemLink }) => (
 
 const SupportListItem = ({ item }: { item: SupportItem }) => {
   return (
-    <MenuItem>
+    <MenuItem button={false}>
       <ListItemIcon>
         <SupportIcon icon={item.icon} />
       </ListItemIcon>
@@ -85,12 +87,14 @@ const SupportListItem = ({ item }: { item: SupportItem }) => {
 };
 
 export function SupportButton(props: SupportButtonProps) {
+  const { t } = useTranslationRef(coreComponentsTranslationRef);
   const { title, items, children } = props;
   const { items: configItems } = useSupportConfig();
 
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
   const classes = useStyles();
+  const supportConfig = useApi(configApiRef).getOptionalConfig('app.support');
   const isSmallScreen = useMediaQuery<Theme>(theme =>
     theme.breakpoints.down('sm'),
   );
@@ -103,6 +107,10 @@ export function SupportButton(props: SupportButtonProps) {
   const popoverCloseHandler = () => {
     setPopoverOpen(false);
   };
+
+  if (!supportConfig) {
+    return null;
+  }
 
   return (
     <>
@@ -125,7 +133,7 @@ export function SupportButton(props: SupportButtonProps) {
             onClick={onClickHandler}
             startIcon={<HelpIcon />}
           >
-            Support
+            {t('supportButton.title')}
           </Button>
         )}
       </Box>
@@ -148,12 +156,17 @@ export function SupportButton(props: SupportButtonProps) {
           autoFocusItem={Boolean(anchorEl)}
         >
           {title && (
-            <MenuItem alignItems="flex-start" className={classes.menuItem}>
+            <MenuItem
+              button={false}
+              alignItems="flex-start"
+              className={classes.menuItem}
+            >
               <Typography variant="subtitle1">{title}</Typography>
             </MenuItem>
           )}
           {React.Children.map(children, (child, i) => (
             <MenuItem
+              button={false}
               alignItems="flex-start"
               key={`child-${i}`}
               className={classes.menuItem}
@@ -171,7 +184,7 @@ export function SupportButton(props: SupportButtonProps) {
             onClick={popoverCloseHandler}
             aria-label="Close"
           >
-            Close
+            {t('supportButton.close')}
           </Button>
         </DialogActions>
       </Popover>

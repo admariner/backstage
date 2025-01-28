@@ -20,7 +20,7 @@ import yaml from 'yaml';
 export const examples: TemplateExample[] = [
   {
     description:
-      'Initializes a git repository of the content in the workspace, and publishes it to Azure.',
+      'Initializes a git repository with the content in the workspace, and publishes it to Azure DevOps with the default configuration.',
     example: yaml.stringify({
       steps: [
         {
@@ -29,14 +29,14 @@ export const examples: TemplateExample[] = [
           name: 'Publish to Azure',
           input: {
             repoUrl:
-              'dev.azure.com?organization=organization&owner=project&repo=repo',
+              'dev.azure.com?organization=organization&project=project&repo=repo',
           },
         },
       ],
     }),
   },
   {
-    description: 'Add a description.',
+    description: 'Initializes an Azure DevOps repository with a description.',
     example: yaml.stringify({
       steps: [
         {
@@ -45,7 +45,7 @@ export const examples: TemplateExample[] = [
           name: 'Publish to Azure',
           input: {
             repoUrl:
-              'dev.azure.com?organization=organization&owner=project&repo=repo',
+              'dev.azure.com?organization=organization&project=project&repo=repo',
             description: 'Initialize a git repository',
           },
         },
@@ -53,7 +53,8 @@ export const examples: TemplateExample[] = [
     }),
   },
   {
-    description: 'Change the default branch.',
+    description:
+      'Initializes an Azure DevOps repository with a default branch, if not set defaults to master',
     example: yaml.stringify({
       steps: [
         {
@@ -62,9 +63,98 @@ export const examples: TemplateExample[] = [
           name: 'Publish to Azure',
           input: {
             repoUrl:
-              'dev.azure.com?organization=organization&owner=project&repo=repo',
-            description: 'Initialize a git repository',
+              'dev.azure.com?organization=organization&project=project&repo=repo',
             defaultBranch: 'main',
+          },
+        },
+      ],
+    }),
+  },
+  {
+    description:
+      'Initializes an Azure DevOps repository with a custom commit message',
+    example: yaml.stringify({
+      steps: [
+        {
+          id: 'publish',
+          action: 'publish:azure',
+          name: 'Publish to Azure',
+          input: {
+            repoUrl:
+              'dev.azure.com?organization=organization&project=project&repo=repo',
+            gitCommitMessage: 'Initial setup and configuration',
+          },
+        },
+      ],
+    }),
+  },
+  {
+    description:
+      'Initializes an Azure DevOps repository with a custom author name and email',
+    example: yaml.stringify({
+      steps: [
+        {
+          id: 'publish',
+          action: 'publish:azure',
+          name: 'Publish to Azure',
+          input: {
+            repoUrl:
+              'dev.azure.com?organization=organization&project=project&repo=repo',
+            gitAuthorName: 'John Doe',
+            gitAuthorEmail: 'john.doe@example.com',
+          },
+        },
+      ],
+    }),
+  },
+  {
+    description:
+      'Initializes an Azure DevOps repository using a specific source path',
+    example: yaml.stringify({
+      steps: [
+        {
+          id: 'publish',
+          action: 'publish:azure',
+          name: 'Publish to Azure',
+          input: {
+            repoUrl:
+              'dev.azure.com?organization=organization&project=project&repo=repo',
+            sourcePath: 'path/to/source',
+          },
+        },
+      ],
+    }),
+  },
+  {
+    description:
+      'Initializes an Azure DevOps repository using an authentication token',
+    example: yaml.stringify({
+      steps: [
+        {
+          id: 'publish',
+          action: 'publish:azure',
+          name: 'Publish to Azure',
+          input: {
+            repoUrl:
+              'dev.azure.com?organization=organization&project=project&repo=repo',
+            token: 'personal-access-token',
+          },
+        },
+      ],
+    }),
+  },
+  {
+    description:
+      'Initializes an Azure DevOps repository using an custom repo url',
+    example: yaml.stringify({
+      steps: [
+        {
+          id: 'publish',
+          action: 'publish:azure',
+          name: 'Publish to Azure',
+          input: {
+            repoUrl:
+              'test.azure.com?organization=organization&project=project&repo=repo',
           },
         },
       ],

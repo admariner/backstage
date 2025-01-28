@@ -24,9 +24,8 @@ jest.mock('@backstage/plugin-scaffolder-node', () => {
 import { createPublishGerritReviewAction } from './gerritReview';
 import { ScmIntegrations } from '@backstage/integration';
 import { ConfigReader } from '@backstage/config';
-import { getVoidLogger } from '@backstage/backend-common';
-import { PassThrough } from 'stream';
 import { commitAndPushRepo } from '@backstage/plugin-scaffolder-node';
+import { createMockActionContext } from '@backstage/plugin-scaffolder-node-test-utils';
 
 describe('publish:gerrit:review', () => {
   const config = new ConfigReader({
@@ -34,6 +33,7 @@ describe('publish:gerrit:review', () => {
       gerrit: [
         {
           host: 'gerrithost.org',
+          gitilesBaseUrl: 'https://gerrithost.org/gitiles',
           username: 'gerrituser',
           password: 'usertoken',
         },
@@ -43,18 +43,13 @@ describe('publish:gerrit:review', () => {
 
   const integrations = ScmIntegrations.fromConfig(config);
   const action = createPublishGerritReviewAction({ integrations, config });
-  const mockContext = {
+  const mockContext = createMockActionContext({
     input: {
       repoUrl:
         'gerrithost.org?owner=owner&workspace=parent&project=project&repo=repo',
       gitCommitMessage: 'Review from backstage',
     },
-    workspacePath: 'workspace',
-    logger: getVoidLogger(),
-    logStream: new PassThrough(),
-    output: jest.fn(),
-    createTemporaryDirectory: jest.fn(),
-  };
+  });
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -110,7 +105,7 @@ describe('publish:gerrit:review', () => {
 
     expect(mockContext.output).toHaveBeenCalledWith(
       'repoContentsUrl',
-      'https://gerrithost.org/repo/+/refs/heads/master',
+      'https://gerrithost.org/gitiles/repo/+/refs/heads/master',
     );
     expect(mockContext.output).toHaveBeenCalledWith(
       'reviewUrl',

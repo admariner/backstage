@@ -15,14 +15,13 @@
  */
 
 import { TemplateAction } from '@backstage/plugin-scaffolder-node';
-import { getVoidLogger } from '@backstage/backend-common';
 import { ConfigReader } from '@backstage/config';
 import {
   DefaultGithubCredentialsProvider,
   GithubCredentialsProvider,
   ScmIntegrations,
 } from '@backstage/integration';
-import { PassThrough } from 'stream';
+import { createMockActionContext } from '@backstage/plugin-scaffolder-node-test-utils';
 import { createPublishGithubPullRequestAction } from './githubPullRequest';
 import yaml from 'yaml';
 import { examples } from './githubPullRequest.examples';
@@ -57,13 +56,7 @@ describe('publish:github:pull-request examples', () => {
   let githubCredentialsProvider: GithubCredentialsProvider;
   let action: TemplateAction<any>;
 
-  const mockContext = {
-    workspacePath: 'lol',
-    logger: getVoidLogger(),
-    logStream: new PassThrough(),
-    output: jest.fn(),
-    createTemporaryDirectory: jest.fn(),
-  };
+  const mockContext = createMockActionContext();
   let fakeClient: {
     createPullRequest: jest.Mock;
     rest: {
@@ -110,6 +103,7 @@ describe('publish:github:pull-request examples', () => {
       integrations,
       githubCredentialsProvider,
       clientFactory,
+      config,
     });
   });
 
@@ -491,6 +485,138 @@ describe('publish:github:pull-request examples', () => {
     expect(mockContext.output).toHaveBeenCalledWith('pullRequestNumber', 123);
   });
 
+  it('Create a pull request with a git author name and email', async () => {
+    const input = yaml.parse(examples[9].example).steps[0].input;
+
+    await action.handler({
+      ...mockContext,
+      workspacePath,
+      input,
+    });
+
+    expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      title: 'Create my new app',
+      body: 'This PR is really good',
+      head: 'new-app',
+      draft: undefined,
+      changes: [
+        {
+          commit: 'Create my new app',
+          files: {
+            'file.txt': {
+              content: Buffer.from('Hello there!').toString('base64'),
+              encoding: 'base64',
+              mode: '100644',
+            },
+          },
+          author: {
+            email: 'foo@bar.example',
+            name: 'Foo Bar',
+          },
+        },
+      ],
+    });
+
+    expect(fakeClient.rest.pulls.requestReviewers).not.toHaveBeenCalled();
+    expect(mockContext.output).toHaveBeenCalledTimes(3);
+    expect(mockContext.output).toHaveBeenCalledWith('targetBranchName', 'main');
+    expect(mockContext.output).toHaveBeenCalledWith(
+      'remoteUrl',
+      'https://github.com/myorg/myrepo/pull/123',
+    );
+    expect(mockContext.output).toHaveBeenCalledWith('pullRequestNumber', 123);
+  });
+
+  it('Create a pull request with a git author name', async () => {
+    const input = yaml.parse(examples[10].example).steps[0].input;
+
+    await action.handler({
+      ...mockContext,
+      workspacePath,
+      input,
+    });
+
+    expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      title: 'Create my new app',
+      body: 'This PR is really good',
+      head: 'new-app',
+      draft: undefined,
+      changes: [
+        {
+          commit: 'Create my new app',
+          files: {
+            'file.txt': {
+              content: Buffer.from('Hello there!').toString('base64'),
+              encoding: 'base64',
+              mode: '100644',
+            },
+          },
+          author: {
+            email: 'scaffolder@backstage.io',
+            name: 'Foo Bar',
+          },
+        },
+      ],
+    });
+
+    expect(fakeClient.rest.pulls.requestReviewers).not.toHaveBeenCalled();
+    expect(mockContext.output).toHaveBeenCalledTimes(3);
+    expect(mockContext.output).toHaveBeenCalledWith('targetBranchName', 'main');
+    expect(mockContext.output).toHaveBeenCalledWith(
+      'remoteUrl',
+      'https://github.com/myorg/myrepo/pull/123',
+    );
+    expect(mockContext.output).toHaveBeenCalledWith('pullRequestNumber', 123);
+  });
+
+  it('Create a pull request with a git author email', async () => {
+    const input = yaml.parse(examples[11].example).steps[0].input;
+
+    await action.handler({
+      ...mockContext,
+      workspacePath,
+      input,
+    });
+
+    expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      title: 'Create my new app',
+      body: 'This PR is really good',
+      head: 'new-app',
+      draft: undefined,
+      changes: [
+        {
+          commit: 'Create my new app',
+          files: {
+            'file.txt': {
+              content: Buffer.from('Hello there!').toString('base64'),
+              encoding: 'base64',
+              mode: '100644',
+            },
+          },
+          author: {
+            email: 'foo@bar.example',
+            name: 'Scaffolder',
+          },
+        },
+      ],
+    });
+
+    expect(fakeClient.rest.pulls.requestReviewers).not.toHaveBeenCalled();
+    expect(mockContext.output).toHaveBeenCalledTimes(3);
+    expect(mockContext.output).toHaveBeenCalledWith('targetBranchName', 'main');
+    expect(mockContext.output).toHaveBeenCalledWith(
+      'remoteUrl',
+      'https://github.com/myorg/myrepo/pull/123',
+    );
+    expect(mockContext.output).toHaveBeenCalledWith('pullRequestNumber', 123);
+  });
+
   it('Create a pull request with all parameters', async () => {
     mockDir.setContent({
       [workspacePath]: {
@@ -498,7 +624,7 @@ describe('publish:github:pull-request examples', () => {
         irrelevant: { 'bar.txt': 'Nothing to see here' },
       },
     });
-    const input = yaml.parse(examples[9].example).steps[0].input;
+    const input = yaml.parse(examples[12].example).steps[0].input;
 
     await action.handler({
       ...mockContext,
@@ -523,6 +649,10 @@ describe('publish:github:pull-request examples', () => {
               encoding: 'base64',
               mode: '100644',
             },
+          },
+          author: {
+            email: 'foo@bar.example',
+            name: 'Foo Bar',
           },
         },
       ],

@@ -19,6 +19,9 @@ import React from 'react';
 import { EntityEdgeData } from './types';
 import classNames from 'classnames';
 
+/** @public */
+export type CustomLabelClassKey = 'text' | 'secondary';
+
 const useStyles = makeStyles(
   theme => ({
     text: {
@@ -38,7 +41,7 @@ export function DefaultRenderLabel({
   return (
     <text className={classes.text} textAnchor="middle">
       {relations.map((r, i) => (
-        <tspan key={r} className={classNames(i > 0 && classes.secondary)}>
+        <tspan key={r} className={classNames(i % 2 !== 0 && classes.secondary)}>
           {i > 0 && <tspan> / </tspan>}
           {r}
         </tspan>

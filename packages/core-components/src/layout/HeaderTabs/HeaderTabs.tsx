@@ -109,13 +109,13 @@ export function HeaderTabs(props: HeaderTabsProps) {
       >
         {tabs.map((tab, index) => (
           <TabUI
-            {...tab.tabProps}
             data-testid={`header-tab-${index}`}
             label={tab.label}
             key={tab.id}
             value={index}
             className={styles.defaultTab}
             classes={{ selected: styles.selected, root: styles.tabRoot }}
+            {...tab.tabProps}
           />
         ))}
       </Tabs>

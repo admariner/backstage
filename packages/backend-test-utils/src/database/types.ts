@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-import { DatabaseManager } from '@backstage/backend-common';
 import { Knex } from 'knex';
 import { getDockerImageForName } from '../util/getDockerImageForName';
+
+export interface Engine {
+  createDatabaseInstance(): Promise<Knex>;
+  shutdown(): Promise<void>;
+}
 
 /**
  * The possible databases to test against.
@@ -39,12 +43,6 @@ export type TestDatabaseProperties = {
   driver: string;
   dockerImageName?: string;
   connectionStringEnvironmentVariableName?: string;
-};
-
-export type Instance = {
-  stopContainer?: () => Promise<void>;
-  databaseManager: DatabaseManager;
-  connections: Array<Knex>;
 };
 
 export const allDatabases: Record<TestDatabaseId, TestDatabaseProperties> =
@@ -110,3 +108,10 @@ export const allDatabases: Record<TestDatabaseId, TestDatabaseProperties> =
       driver: 'better-sqlite3',
     },
   });
+
+export const LARGER_POOL_CONFIG = {
+  pool: {
+    min: 0,
+    max: 50,
+  },
+};

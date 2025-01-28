@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-import { Config, ConfigReader } from '@backstage/config';
-import { CatalogApi } from '@backstage/catalog-client';
-import { ANNOTATION_KUBERNETES_AUTH_PROVIDER } from '@backstage/plugin-kubernetes-common';
+import {
+  ANNOTATION_KUBERNETES_API_SERVER,
+  ANNOTATION_KUBERNETES_API_SERVER_CA,
+  ANNOTATION_KUBERNETES_AUTH_PROVIDER,
+} from '@backstage/plugin-kubernetes-common';
 import { getCombinedClusterSupplier } from './index';
 import { ClusterDetails } from '../types/types';
 import { AuthenticationStrategy, DispatchStrategy } from '../auth';
+import { mockCredentials, mockServices } from '@backstage/backend-test-utils';
+import { catalogServiceMock } from '@backstage/plugin-catalog-node/testUtils';
 
 describe('getCombinedClusterSupplier', () => {
-  let catalogApi: CatalogApi;
-
   it('should retrieve cluster details from config', async () => {
-    const config: Config = new ConfigReader(
-      {
+    const config = mockServices.rootConfig({
+      data: {
         kubernetes: {
           clusterLocatorMethods: [
             {
@@ -48,19 +50,25 @@ describe('getCombinedClusterSupplier', () => {
           ],
         },
       },
-      'ctx',
-    );
+    });
     const mockStrategy: jest.Mocked<AuthenticationStrategy> = {
       getCredential: jest.fn(),
       validateCluster: jest.fn().mockReturnValue([]),
+      presentAuthMetadata: jest.fn(),
     };
+
+    const auth = mockServices.auth();
+    const credentials = mockCredentials.user();
 
     const clusterSupplier = getCombinedClusterSupplier(
       config,
-      catalogApi,
+      catalogServiceMock.mock(),
       mockStrategy,
+      mockServices.logger.mock(),
+      undefined,
+      auth,
     );
-    const result = await clusterSupplier.getClusters();
+    const result = await clusterSupplier.getClusters({ credentials });
 
     expect(result).toStrictEqual<ClusterDetails[]>([
       {
@@ -88,19 +96,81 @@ describe('getCombinedClusterSupplier', () => {
   });
 
   it('throws an error when using an unsupported cluster locator', async () => {
-    const config: Config = new ConfigReader(
-      { kubernetes: { clusterLocatorMethods: [{ type: 'magic' }] } },
-      'ctx',
-    );
+    const config = mockServices.rootConfig({
+      data: { kubernetes: { clusterLocatorMethods: [{ type: 'magic' }] } },
+    });
+
+    const auth = mockServices.auth();
 
     expect(() =>
       getCombinedClusterSupplier(
         config,
-        catalogApi,
+        catalogServiceMock(),
         new DispatchStrategy({ authStrategyMap: {} }),
+        mockServices.logger.mock(),
+        undefined,
+        auth,
       ),
     ).toThrow(
       new Error('Unsupported kubernetes.clusterLocatorMethods: "magic"'),
     );
+  });
+
+  it('logs a warning when two clusters have the same name', async () => {
+    const logger = mockServices.logger.mock();
+    const warn = jest.spyOn(logger, 'warn');
+    const config = mockServices.rootConfig({
+      data: {
+        kubernetes: {
+          clusterLocatorMethods: [
+            {
+              type: 'config',
+              clusters: [
+                { name: 'cluster', url: 'url', authProvider: 'authProvider' },
+              ],
+            },
+            { type: 'catalog' },
+          ],
+        },
+      },
+    });
+    const mockStrategy: jest.Mocked<AuthenticationStrategy> = {
+      getCredential: jest.fn(),
+      validateCluster: jest.fn().mockReturnValue([]),
+      presentAuthMetadata: jest.fn(),
+    };
+
+    const auth = mockServices.auth();
+    const credentials = mockCredentials.user();
+
+    const clusterSupplier = getCombinedClusterSupplier(
+      config,
+      catalogServiceMock({
+        entities: [
+          {
+            kind: 'Resource',
+            metadata: {
+              name: 'cluster',
+              annotations: {
+                [ANNOTATION_KUBERNETES_API_SERVER]: 'mock',
+                [ANNOTATION_KUBERNETES_API_SERVER_CA]: 'mock',
+                [ANNOTATION_KUBERNETES_AUTH_PROVIDER]: 'mock',
+              },
+            },
+            spec: {
+              type: 'kubernetes-cluster',
+            },
+          } as any,
+        ],
+      }),
+      mockStrategy,
+      logger,
+      undefined,
+      auth,
+    );
+
+    await clusterSupplier.getClusters({ credentials });
+
+    expect(warn).toHaveBeenCalledWith(`Duplicate cluster name 'cluster'`);
   });
 });

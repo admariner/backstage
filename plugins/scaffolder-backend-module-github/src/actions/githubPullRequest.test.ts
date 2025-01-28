@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { createRootLogger, getRootLogger } from '@backstage/backend-common';
-import { ConfigReader } from '@backstage/config';
+import { createRootLogger } from '@backstage/backend-common';
+import { Config, ConfigReader } from '@backstage/config';
 import {
   GithubCredentialsProvider,
   ScmIntegrations,
@@ -25,9 +25,9 @@ import {
   TemplateAction,
 } from '@backstage/plugin-scaffolder-node';
 import fs from 'fs-extra';
-import { Writable } from 'stream';
 import { createPublishGithubPullRequestAction } from './githubPullRequest';
 import { createMockDirectory } from '@backstage/backend-test-utils';
+import { createMockActionContext } from '@backstage/plugin-scaffolder-node-test-utils';
 
 // Make sure root logger is initialized ahead of FS mock
 createRootLogger();
@@ -46,6 +46,8 @@ describe('createPublishGithubPullRequestAction', () => {
       pulls: { requestReviewers: jest.Mock };
     };
   };
+  let config: Config;
+  let integrations: ScmIntegrations;
 
   const mockDir = createMockDirectory();
   const workspacePath = mockDir.resolve('workspace');
@@ -53,7 +55,8 @@ describe('createPublishGithubPullRequestAction', () => {
   beforeEach(() => {
     mockDir.clear();
 
-    const integrations = ScmIntegrations.fromConfig(new ConfigReader({}));
+    config = new ConfigReader({});
+    integrations = ScmIntegrations.fromConfig(config);
     fakeClient = {
       createPullRequest: jest.fn(async (_: any) => {
         return {
@@ -84,6 +87,7 @@ describe('createPublishGithubPullRequestAction', () => {
       integrations,
       githubCredentialsProvider,
       clientFactory,
+      config,
     });
   });
 
@@ -131,14 +135,7 @@ describe('createPublishGithubPullRequestAction', () => {
         [workspacePath]: { 'file.txt': 'Hello there!' },
       });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
 
     it('creates a pull request', async () => {
@@ -196,14 +193,7 @@ describe('createPublishGithubPullRequestAction', () => {
         [workspacePath]: { 'file.txt': 'Hello there!' },
       });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
 
     it('creates a pull request', async () => {
@@ -241,6 +231,18 @@ describe('createPublishGithubPullRequestAction', () => {
       );
       expect(ctx.output).toHaveBeenCalledWith('pullRequestNumber', 123);
     });
+
+    it('sets correct outputs during dry run', async () => {
+      ctx.isDryRun = true;
+      await instance.handler(ctx);
+
+      expect(ctx.output).toHaveBeenCalledWith('targetBranchName', 'new-app');
+      expect(ctx.output).toHaveBeenCalledWith(
+        'remoteUrl',
+        'github.com?owner=myorg&repo=myrepo',
+      );
+      expect(ctx.output).toHaveBeenCalledWith('pullRequestNumber', 43);
+    });
   });
 
   describe('with sourcePath', () => {
@@ -263,14 +265,7 @@ describe('createPublishGithubPullRequestAction', () => {
         },
       });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
 
     it('creates a pull request with only relevant files', async () => {
@@ -322,14 +317,7 @@ describe('createPublishGithubPullRequestAction', () => {
         [workspacePath]: { 'file.txt': 'Hello there!' },
       });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
     it('creates a pull request', async () => {
       await instance.handler(ctx);
@@ -377,19 +365,12 @@ describe('createPublishGithubPullRequestAction', () => {
         branchName: 'new-app',
         description: 'This PR is really good',
         reviewers: ['foobar'],
-        teamReviewers: ['team-foo'],
+        teamReviewers: ['team-foo', 'team-foo', 'team-bar'],
       };
 
       mockDir.setContent({ [workspacePath]: {} });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
 
     it('creates a pull request and requests a review from the given reviewers', async () => {
@@ -401,7 +382,7 @@ describe('createPublishGithubPullRequestAction', () => {
         repo: 'myrepo',
         pull_number: 123,
         reviewers: ['foobar'],
-        team_reviewers: ['team-foo'],
+        team_reviewers: ['team-foo', 'team-bar'],
       });
     });
 
@@ -434,14 +415,7 @@ describe('createPublishGithubPullRequestAction', () => {
 
       mockDir.setContent({ [workspacePath]: {} });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
 
     it('does not call the API endpoint for requesting reviewers', async () => {
@@ -470,14 +444,7 @@ describe('createPublishGithubPullRequestAction', () => {
         },
       });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
     it('creates a pull request', async () => {
       await instance.handler(ctx);
@@ -526,14 +493,7 @@ describe('createPublishGithubPullRequestAction', () => {
         },
       });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
     it('creates a pull request', async () => {
       await instance.handler(ctx);
@@ -592,14 +552,7 @@ describe('createPublishGithubPullRequestAction', () => {
         },
       });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
     it('creates a pull request', async () => {
       await instance.handler(ctx);
@@ -653,14 +606,7 @@ describe('createPublishGithubPullRequestAction', () => {
         [workspacePath]: { 'file.txt': 'Hello there!' },
       });
 
-      ctx = {
-        createTemporaryDirectory: jest.fn(),
-        output: jest.fn(),
-        logger: getRootLogger(),
-        logStream: new Writable(),
-        input,
-        workspacePath,
-      };
+      ctx = createMockActionContext({ input, workspacePath });
     });
 
     it('creates a pull request', async () => {
@@ -675,6 +621,435 @@ describe('createPublishGithubPullRequestAction', () => {
         changes: [
           {
             commit: 'Create my new app, but in the commit message',
+            files: {
+              'file.txt': {
+                content: Buffer.from('Hello there!').toString('base64'),
+                encoding: 'base64',
+                mode: '100644',
+              },
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  describe('with force fork', () => {
+    let input: GithubPullRequestActionInput;
+    let ctx: ActionContext<GithubPullRequestActionInput>;
+
+    beforeEach(() => {
+      input = {
+        repoUrl: 'github.com?owner=myorg&repo=myrepo',
+        title: 'Create my new app',
+        branchName: 'new-app',
+        description: 'This PR is really good',
+        forceFork: true,
+      };
+
+      mockDir.setContent({
+        [workspacePath]: { 'file.txt': 'Hello there!' },
+      });
+
+      ctx = createMockActionContext({ input, workspacePath });
+    });
+
+    it('creates a pull request', async () => {
+      await instance.handler(ctx);
+
+      expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+        owner: 'myorg',
+        repo: 'myrepo',
+        title: 'Create my new app',
+        head: 'new-app',
+        body: 'This PR is really good',
+        changes: [
+          {
+            commit: 'Create my new app',
+            files: {
+              'file.txt': {
+                content: Buffer.from('Hello there!').toString('base64'),
+                encoding: 'base64',
+                mode: '100644',
+              },
+            },
+          },
+        ],
+        forceFork: true,
+      });
+    });
+  });
+
+  describe('with author name and email', () => {
+    let input: GithubPullRequestActionInput;
+    let ctx: ActionContext<GithubPullRequestActionInput>;
+
+    beforeEach(() => {
+      input = {
+        repoUrl: 'github.com?owner=myorg&repo=myrepo',
+        title: 'Create my new app',
+        branchName: 'new-app',
+        description: 'This PR is really good',
+        gitAuthorEmail: 'foo@bar.example',
+        gitAuthorName: 'Foo Bar',
+      };
+
+      mockDir.setContent({
+        [workspacePath]: { 'file.txt': 'Hello there!' },
+      });
+
+      ctx = createMockActionContext({ input, workspacePath });
+    });
+
+    it('creates a pull request', async () => {
+      await instance.handler(ctx);
+
+      expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+        owner: 'myorg',
+        repo: 'myrepo',
+        title: 'Create my new app',
+        head: 'new-app',
+        body: 'This PR is really good',
+        changes: [
+          {
+            commit: 'Create my new app',
+            files: {
+              'file.txt': {
+                content: Buffer.from('Hello there!').toString('base64'),
+                encoding: 'base64',
+                mode: '100644',
+              },
+            },
+            author: {
+              email: 'foo@bar.example',
+              name: 'Foo Bar',
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  describe('with author name', () => {
+    let input: GithubPullRequestActionInput;
+    let ctx: ActionContext<GithubPullRequestActionInput>;
+
+    beforeEach(() => {
+      input = {
+        repoUrl: 'github.com?owner=myorg&repo=myrepo',
+        title: 'Create my new app',
+        branchName: 'new-app',
+        description: 'This PR is really good',
+        gitAuthorName: 'Foo Bar',
+      };
+
+      mockDir.setContent({
+        [workspacePath]: { 'file.txt': 'Hello there!' },
+      });
+
+      ctx = createMockActionContext({ input, workspacePath });
+    });
+
+    it('creates a pull request', async () => {
+      await instance.handler(ctx);
+
+      expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+        owner: 'myorg',
+        repo: 'myrepo',
+        title: 'Create my new app',
+        head: 'new-app',
+        body: 'This PR is really good',
+        changes: [
+          {
+            commit: 'Create my new app',
+            files: {
+              'file.txt': {
+                content: Buffer.from('Hello there!').toString('base64'),
+                encoding: 'base64',
+                mode: '100644',
+              },
+            },
+            author: {
+              email: 'scaffolder@backstage.io',
+              name: 'Foo Bar',
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  describe('with author email', () => {
+    let input: GithubPullRequestActionInput;
+    let ctx: ActionContext<GithubPullRequestActionInput>;
+
+    beforeEach(() => {
+      input = {
+        repoUrl: 'github.com?owner=myorg&repo=myrepo',
+        title: 'Create my new app',
+        branchName: 'new-app',
+        description: 'This PR is really good',
+        gitAuthorEmail: 'foo@bar.example',
+      };
+
+      mockDir.setContent({
+        [workspacePath]: { 'file.txt': 'Hello there!' },
+      });
+
+      ctx = createMockActionContext({ input, workspacePath });
+    });
+
+    it('creates a pull request', async () => {
+      await instance.handler(ctx);
+
+      expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+        owner: 'myorg',
+        repo: 'myrepo',
+        title: 'Create my new app',
+        head: 'new-app',
+        body: 'This PR is really good',
+        changes: [
+          {
+            commit: 'Create my new app',
+            files: {
+              'file.txt': {
+                content: Buffer.from('Hello there!').toString('base64'),
+                encoding: 'base64',
+                mode: '100644',
+              },
+            },
+            author: {
+              email: 'foo@bar.example',
+              name: 'Scaffolder',
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  describe('with author from config file', () => {
+    let input: GithubPullRequestActionInput;
+    let ctx: ActionContext<GithubPullRequestActionInput>;
+
+    beforeEach(() => {
+      input = {
+        repoUrl: 'github.com?owner=myorg&repo=myrepo',
+        title: 'Create my new app',
+        branchName: 'new-app',
+        description: 'This PR is really good',
+      };
+
+      mockDir.setContent({
+        [workspacePath]: { 'file.txt': 'Hello there!' },
+      });
+
+      ctx = createMockActionContext({ input, workspacePath });
+    });
+
+    it('creates a pull request with default config attributes', async () => {
+      config = new ConfigReader({
+        scaffolder: {
+          defaultAuthor: {
+            name: 'Config',
+            email: 'config@file.example',
+          },
+        },
+      });
+
+      const clientFactory = jest.fn(async () => fakeClient as any);
+      const githubCredentialsProvider: GithubCredentialsProvider = {
+        getCredentials: jest.fn(),
+      };
+
+      const instanceWithConfig = createPublishGithubPullRequestAction({
+        integrations,
+        githubCredentialsProvider,
+        clientFactory,
+        config,
+      });
+
+      await instanceWithConfig.handler(ctx);
+
+      expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+        owner: 'myorg',
+        repo: 'myrepo',
+        title: 'Create my new app',
+        head: 'new-app',
+        body: 'This PR is really good',
+        changes: [
+          {
+            commit: 'Create my new app',
+            files: {
+              'file.txt': {
+                content: Buffer.from('Hello there!').toString('base64'),
+                encoding: 'base64',
+                mode: '100644',
+              },
+            },
+            author: {
+              email: 'config@file.example',
+              name: 'Config',
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  describe('with author attributes and config file', () => {
+    let input: GithubPullRequestActionInput;
+    let ctx: ActionContext<GithubPullRequestActionInput>;
+
+    beforeEach(() => {
+      input = {
+        repoUrl: 'github.com?owner=myorg&repo=myrepo',
+        title: 'Create my new app',
+        branchName: 'new-app',
+        description: 'This PR is really good',
+        gitAuthorEmail: 'foo@bar.example',
+        gitAuthorName: 'Foo Bar',
+      };
+
+      mockDir.setContent({
+        [workspacePath]: { 'file.txt': 'Hello there!' },
+      });
+
+      ctx = createMockActionContext({ input, workspacePath });
+    });
+
+    it('creates a pull request with using author name and email from input', async () => {
+      config = new ConfigReader({
+        scaffolder: {
+          defaultAuthor: {
+            name: 'Config',
+            email: 'config@file.example',
+          },
+        },
+      });
+
+      const clientFactory = jest.fn(async () => fakeClient as any);
+      const githubCredentialsProvider: GithubCredentialsProvider = {
+        getCredentials: jest.fn(),
+      };
+
+      const instanceWithConfig = createPublishGithubPullRequestAction({
+        integrations,
+        githubCredentialsProvider,
+        clientFactory,
+        config,
+      });
+
+      await instanceWithConfig.handler(ctx);
+
+      expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+        owner: 'myorg',
+        repo: 'myrepo',
+        title: 'Create my new app',
+        head: 'new-app',
+        body: 'This PR is really good',
+        changes: [
+          {
+            commit: 'Create my new app',
+            files: {
+              'file.txt': {
+                content: Buffer.from('Hello there!').toString('base64'),
+                encoding: 'base64',
+                mode: '100644',
+              },
+            },
+            author: {
+              email: 'foo@bar.example',
+              name: 'Foo Bar',
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  describe('with author fallback and no config', () => {
+    let input: GithubPullRequestActionInput;
+    let ctx: ActionContext<GithubPullRequestActionInput>;
+
+    beforeEach(() => {
+      input = {
+        repoUrl: 'github.com?owner=myorg&repo=myrepo',
+        title: 'Create my new app',
+        branchName: 'new-app',
+        description: 'This PR is really good',
+        gitAuthorName: 'Foo Bar',
+      };
+
+      mockDir.setContent({
+        [workspacePath]: { 'file.txt': 'Hello there!' },
+      });
+
+      ctx = createMockActionContext({ input, workspacePath });
+    });
+
+    it('creates a pull request with using author name and email fallback when have no config', async () => {
+      const clientFactory = jest.fn(async () => fakeClient as any);
+      const githubCredentialsProvider: GithubCredentialsProvider = {
+        getCredentials: jest.fn(),
+      };
+
+      const instanceWithConfig = createPublishGithubPullRequestAction({
+        integrations,
+        githubCredentialsProvider,
+        clientFactory,
+      });
+
+      await instanceWithConfig.handler(ctx);
+
+      expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+        owner: 'myorg',
+        repo: 'myrepo',
+        title: 'Create my new app',
+        head: 'new-app',
+        body: 'This PR is really good',
+        changes: [
+          {
+            commit: 'Create my new app',
+            files: {
+              'file.txt': {
+                content: Buffer.from('Hello there!').toString('base64'),
+                encoding: 'base64',
+                mode: '100644',
+              },
+            },
+            author: {
+              email: 'scaffolder@backstage.io',
+              name: 'Foo Bar',
+            },
+          },
+        ],
+      });
+    });
+    it('discards author name and email if forceEmptyGitAuthor is set', async () => {
+      input.forceEmptyGitAuthor = true;
+      const clientFactory = jest.fn(async () => fakeClient as any);
+      const githubCredentialsProvider: GithubCredentialsProvider = {
+        getCredentials: jest.fn(),
+      };
+
+      const instanceWithConfig = createPublishGithubPullRequestAction({
+        integrations,
+        githubCredentialsProvider,
+        clientFactory,
+      });
+
+      await instanceWithConfig.handler(ctx);
+
+      expect(fakeClient.createPullRequest).toHaveBeenCalledWith({
+        owner: 'myorg',
+        repo: 'myrepo',
+        title: 'Create my new app',
+        head: 'new-app',
+        body: 'This PR is really good',
+        changes: [
+          {
+            commit: 'Create my new app',
             files: {
               'file.txt': {
                 content: Buffer.from('Hello there!').toString('base64'),

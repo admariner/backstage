@@ -14,23 +14,31 @@
  * limitations under the License.
  */
 
-import { Strategy as AtlassianStrategy } from 'passport-atlassian-oauth2';
 import {
   createOAuthAuthenticator,
   PassportOAuthAuthenticatorHelper,
   PassportOAuthDoneCallback,
   PassportProfile,
 } from '@backstage/plugin-auth-node';
+import AtlassianStrategy from 'passport-atlassian-oauth2';
 
 /** @public */
 export const atlassianAuthenticator = createOAuthAuthenticator({
   defaultProfileTransform:
     PassportOAuthAuthenticatorHelper.defaultProfileTransform,
+  scopes: {
+    required: ['offline_access', 'read:me', 'read:jira-work', 'read:jira-user'],
+  },
   initialize({ callbackUrl, config }) {
     const clientId = config.getString('clientId');
     const clientSecret = config.getString('clientSecret');
-    const baseUrl =
-      config.getOptionalString('audience') || 'https://atlassian.com';
+    const baseUrl = 'https://auth.atlassian.com';
+
+    if (config.has('scope') || config.has('scopes')) {
+      throw new Error(
+        'The atlassian provider no longer supports the "scope" or "scopes" configuration options. Please use the "additionalScopes" option instead.',
+      );
+    }
 
     return PassportOAuthAuthenticatorHelper.from(
       new AtlassianStrategy(
@@ -39,9 +47,10 @@ export const atlassianAuthenticator = createOAuthAuthenticator({
           clientSecret: clientSecret,
           callbackURL: callbackUrl,
           baseURL: baseUrl,
-          authorizationURL: `${baseUrl}/oauth/authorize`,
+          authorizationURL: `${baseUrl}/authorize`,
           tokenURL: `${baseUrl}/oauth/token`,
-          profileURL: `${baseUrl}/api/v4/user`,
+          profileURL: 'https://api.atlassian.com/me',
+          scope: [], // the Atlassian strategy requires a scope, but Backstage passes the right set of scopes when calling OAuth2Strategy.prototype.authenticate
         },
         (
           accessToken: string,

@@ -22,7 +22,9 @@ import {
   TableColumn,
 } from '@backstage/core-components';
 import { INode } from 'kubernetes-models/v1';
-import { Grid, Typography, makeStyles } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 import { useKubernetesClusterError } from '../KubernetesClusterErrorContext/KubernetesClusterErrorContext';
 import { KubernetesDrawer } from '@backstage/plugin-kubernetes-react';
 
@@ -48,7 +50,10 @@ const defaultColumns: TableColumn<INode>[] = [
           <Grid container>
             <Grid item xs={12}>
               <Typography variant="h5">Node Info</Typography>
-              <StructuredMetadataTable metadata={node.status?.nodeInfo ?? {}} />
+              <StructuredMetadataTable
+                metadata={node.status?.nodeInfo ?? {}}
+                options={{ nestedValuesAsYaml: true }}
+              />
             </Grid>
             <Grid item xs={12}>
               <Typography variant="h5">Addresses</Typography>
@@ -59,6 +64,7 @@ const defaultColumns: TableColumn<INode>[] = [
                     return accum;
                   }, {} as any) ?? {}
                 }
+                options={{ nestedValuesAsYaml: true }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -70,6 +76,7 @@ const defaultColumns: TableColumn<INode>[] = [
                     return accum;
                   }, {} as any) ?? {}
                 }
+                options={{ nestedValuesAsYaml: true }}
               />
             </Grid>
           </Grid>

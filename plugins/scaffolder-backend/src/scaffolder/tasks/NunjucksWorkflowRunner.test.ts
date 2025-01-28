@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { getVoidLogger } from '@backstage/backend-common';
 import { NunjucksWorkflowRunner } from './NunjucksWorkflowRunner';
 import { TemplateActionRegistry } from '../actions';
 import { ScmIntegrations } from '@backstage/integration';
+import { JsonObject } from '@backstage/types';
 import { ConfigReader } from '@backstage/config';
-import { TaskContext } from './types';
 import { TaskSpec } from '@backstage/plugin-scaffolder-common';
 import {
   createTemplateAction,
   TaskSecrets,
   TemplateAction,
+  TaskContext,
 } from '@backstage/plugin-scaffolder-node';
 import { UserEntity } from '@backstage/catalog-model';
 import { z } from 'zod';
@@ -33,15 +33,21 @@ import {
   PermissionEvaluator,
 } from '@backstage/plugin-permission-common';
 import { RESOURCE_TYPE_SCAFFOLDER_ACTION } from '@backstage/plugin-scaffolder-common/alpha';
-import { createMockDirectory } from '@backstage/backend-test-utils';
-import stripAnsi from 'strip-ansi';
+import {
+  createMockDirectory,
+  mockCredentials,
+  mockServices,
+} from '@backstage/backend-test-utils';
+import { loggerToWinstonLogger } from '@backstage/backend-common';
+import { LoggerService } from '@backstage/backend-plugin-api';
 
 describe('NunjucksWorkflowRunner', () => {
-  const logger = getVoidLogger();
+  let logger: LoggerService;
   let actionRegistry = new TemplateActionRegistry();
   let runner: NunjucksWorkflowRunner;
   let fakeActionHandler: jest.Mock;
   let fakeTaskLog: jest.Mock;
+  let stripAnsi: typeof import('strip-ansi').default;
 
   const mockDir = createMockDirectory();
 
@@ -57,6 +63,13 @@ describe('NunjucksWorkflowRunner', () => {
     }),
   );
 
+  const credentials = mockCredentials.user();
+
+  const token = mockCredentials.service.token({
+    onBehalfOf: credentials,
+    targetPluginId: 'catalog',
+  });
+
   const createMockTaskWithSpec = (
     spec: TaskSpec,
     secrets?: TaskSecrets,
@@ -70,6 +83,7 @@ describe('NunjucksWorkflowRunner', () => {
     emitLog: fakeTaskLog,
     cancelSignal: new AbortController().signal,
     getWorkspaceName: () => Promise.resolve('test-workspace'),
+    getInitiatorCredentials: () => Promise.resolve(credentials),
   });
 
   function expectTaskLog(message: string) {
@@ -78,10 +92,14 @@ describe('NunjucksWorkflowRunner', () => {
     );
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockDir.clear();
 
+    // This one is ESM-only
+    stripAnsi = await import('strip-ansi').then(m => m.default);
+
     jest.resetAllMocks();
+    logger = mockServices.logger.mock();
     actionRegistry = new TemplateActionRegistry();
     fakeActionHandler = jest.fn();
     fakeTaskLog = jest.fn();
@@ -133,6 +151,44 @@ describe('NunjucksWorkflowRunner', () => {
       },
     });
 
+    actionRegistry.register({
+      id: 'checkpoints-action',
+      description: 'Mock action with checkpoints',
+      handler: async ctx => {
+        const key1 = await ctx.checkpoint({
+          key: 'key1',
+          fn: async () => 'updated',
+        });
+        const key2 = await ctx.checkpoint({
+          key: 'key2',
+          fn: async () => 'updated',
+        });
+        const key3 = await ctx.checkpoint({
+          key: 'key3',
+          fn: async () => 'updated',
+        });
+
+        const key4 = await ctx.checkpoint({
+          key: 'key4',
+          fn: () => {},
+        });
+
+        const key5 = await ctx.checkpoint({
+          key: 'key5',
+          fn: async () => {},
+        });
+
+        ctx.output('key1', key1);
+        ctx.output('key2', key2);
+        ctx.output('key3', key3);
+
+        // @ts-expect-error - this is void return
+        ctx.output('key4', key4);
+        // @ts-expect-error - this is void return
+        ctx.output('key5', key5);
+      },
+    });
+
     mockedPermissionApi.authorizeConditional.mockResolvedValue([
       { result: AuthorizeResult.ALLOW },
     ]);
@@ -141,7 +197,7 @@ describe('NunjucksWorkflowRunner', () => {
       actionRegistry,
       integrations,
       workingDirectory: mockDir.path,
-      logger,
+      logger: loggerToWinstonLogger(logger),
       permissions: mockedPermissionApi,
     });
   });
@@ -155,7 +211,7 @@ describe('NunjucksWorkflowRunner', () => {
     });
 
     await expect(runner.execute(task)).rejects.toThrow(
-      "Template action with ID 'does-not-exist' is not registered.",
+      /Template action with ID 'does-not-exist' is not registered/,
     );
   });
 
@@ -275,7 +331,6 @@ describe('NunjucksWorkflowRunner', () => {
     });
 
     it('should pass token through', async () => {
-      const fakeToken = 'secret';
       const task = createMockTaskWithSpec(
         {
           apiVersion: 'scaffolder.backstage.io/v1beta3',
@@ -291,14 +346,15 @@ describe('NunjucksWorkflowRunner', () => {
           ],
         },
         {
-          backstageToken: fakeToken,
+          backstageToken: token,
+          initiatorCredentials: JSON.stringify(credentials),
         },
       );
 
       await runner.execute(task);
 
       expect(fakeActionHandler.mock.calls[0][0].secrets).toEqual(
-        expect.objectContaining({ backstageToken: fakeToken }),
+        expect.objectContaining({ backstageToken: token }),
       );
     });
   });
@@ -371,6 +427,48 @@ describe('NunjucksWorkflowRunner', () => {
       const { output } = await runner.execute(task);
 
       expect(output.result).toBeUndefined();
+    });
+    describe('should apply boolean step conditions', () => {
+      it('executes when true', async () => {
+        const task = createMockTaskWithSpec({
+          apiVersion: 'scaffolder.backstage.io/v1beta3',
+          steps: [
+            {
+              id: 'conditional',
+              name: 'conditional',
+              action: 'output-action',
+              if: true,
+            },
+          ],
+          output: {
+            result: '${{ steps.conditional.output.mock }}',
+          },
+          parameters: {},
+        });
+
+        const { output } = await runner.execute(task);
+        expect(output.result).toBe('backstage');
+      });
+      it('skips when false', async () => {
+        const task = createMockTaskWithSpec({
+          apiVersion: 'scaffolder.backstage.io/v1beta3',
+          steps: [
+            {
+              id: 'conditional',
+              name: 'conditional',
+              action: 'output-action',
+              if: false,
+            },
+          ],
+          output: {
+            result: '${{ steps.conditional.output.mock }}',
+          },
+          parameters: {},
+        });
+
+        const { output } = await runner.execute(task);
+        expect(output.result).toBeUndefined();
+      });
     });
   });
 
@@ -538,6 +636,59 @@ describe('NunjucksWorkflowRunner', () => {
       );
     });
 
+    it('should deal with checkpoints', async () => {
+      const task = {
+        ...createMockTaskWithSpec({
+          apiVersion: 'scaffolder.backstage.io/v1beta3',
+          parameters: {},
+          steps: [
+            {
+              id: 'test',
+              name: 'name',
+              action: 'checkpoints-action',
+              input: { foo: 1 },
+            },
+          ],
+          output: {
+            key1: '${{steps.test.output.key1}}',
+            key2: '${{steps.test.output.key2}}',
+            key3: '${{steps.test.output.key3}}',
+            key4: '${{steps.test.output.key4}}',
+            key5: '${{steps.test.output.key5}}',
+            key6: '${{steps.test.output.key6}}',
+          },
+        }),
+        getTaskState: (): Promise<
+          | {
+              state: JsonObject;
+            }
+          | undefined
+        > => {
+          return Promise.resolve({
+            state: {
+              checkpoints: {
+                ['v1.task.checkpoint.test.key1']: {
+                  status: 'success',
+                  value: 'initial',
+                },
+                ['v1.task.checkpoint.test2.key2']: {
+                  status: 'failed',
+                  reason: 'fatal error',
+                },
+              },
+            },
+          });
+        },
+      };
+      const result = await runner.execute(task);
+
+      expect(result.output.key1).toEqual('initial');
+      expect(result.output.key2).toEqual('updated');
+      expect(result.output.key3).toEqual('updated');
+      expect(result.output.key4).toEqual(undefined);
+      expect(result.output.key5).toEqual(undefined);
+    });
+
     it('should template the output from simple actions', async () => {
       const task = createMockTaskWithSpec({
         apiVersion: 'scaffolder.backstage.io/v1beta3',
@@ -558,6 +709,128 @@ describe('NunjucksWorkflowRunner', () => {
       const { output } = await runner.execute(task);
 
       expect(output.foo).toEqual('BACKSTAGE');
+    });
+
+    it('should include task ID in the templated context', async () => {
+      const task = createMockTaskWithSpec({
+        apiVersion: 'scaffolder.backstage.io/v1beta3',
+        steps: [
+          {
+            id: 'test',
+            name: 'name',
+            action: 'jest-mock-action',
+            input: {
+              values: {
+                taskId: '${{context.task.id}}',
+              },
+            },
+          },
+        ],
+        output: {},
+        parameters: {},
+      });
+
+      await runner.execute(task);
+
+      expect(fakeActionHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: { values: { taskId: 'test-workspace' } },
+        }),
+      );
+    });
+  });
+
+  describe('redactions', () => {
+    // eslint-disable-next-line jest/expect-expect
+    it('should redact secrets that are passed with the task', async () => {
+      actionRegistry.register({
+        id: 'log-secret',
+        description: 'Mock action for testing',
+        supportsDryRun: true,
+        handler: async ctx => {
+          ctx.logger.info(ctx.input.secret);
+        },
+        schema: {
+          input: {
+            type: 'object',
+            required: ['secret'],
+            properties: {
+              secret: {
+                type: 'string',
+              },
+            },
+          },
+        },
+      });
+
+      const task = createMockTaskWithSpec(
+        {
+          apiVersion: 'scaffolder.backstage.io/v1beta3',
+          parameters: {},
+          output: {},
+          steps: [
+            {
+              id: 'test',
+              name: 'name',
+              action: 'log-secret',
+              input: {
+                secret: '${{ secrets.secret }}',
+              },
+            },
+          ],
+        },
+        { secret: 'my-secret-value' },
+      );
+
+      await runner.execute(task);
+
+      expectTaskLog('info: ***');
+    });
+
+    // eslint-disable-next-line jest/expect-expect
+    it('should redact meta fields properly', async () => {
+      actionRegistry.register({
+        id: 'log-secret',
+        description: 'Mock action for testing',
+        supportsDryRun: true,
+        handler: async ctx => {
+          ctx.logger.child({ thing: ctx.input.secret }).info(ctx.input.secret);
+        },
+        schema: {
+          input: {
+            type: 'object',
+            required: ['secret'],
+            properties: {
+              secret: {
+                type: 'string',
+              },
+            },
+          },
+        },
+      });
+
+      const task = createMockTaskWithSpec(
+        {
+          apiVersion: 'scaffolder.backstage.io/v1beta3',
+          parameters: {},
+          output: {},
+          steps: [
+            {
+              id: 'test',
+              name: 'name',
+              action: 'log-secret',
+              input: {
+                secret: '${{ secrets.secret }}',
+              },
+            },
+          ],
+        },
+        { secret: 'my-secret-value' },
+      );
+
+      await runner.execute(task);
+
+      expectTaskLog('info: *** {"thing":"***"}');
     });
   });
 
@@ -715,6 +988,27 @@ describe('NunjucksWorkflowRunner', () => {
       });
       await expect(runner.execute(task)).rejects.toThrow(
         'Invalid input passed to action jest-validated-action[1], instance requires property "foo"',
+      );
+      expect(fakeActionHandler).not.toHaveBeenCalled();
+    });
+
+    it('should validate each parameter renders to a valid value', async () => {
+      const task = createMockTaskWithSpec({
+        apiVersion: 'scaffolder.backstage.io/v1beta3',
+        steps: [
+          {
+            id: 'test',
+            name: 'name',
+            each: '${{parameters.data}}',
+            action: 'jest-validated-action',
+            input: { foo: '${{each.value}}' },
+          },
+        ],
+        output: {},
+        parameters: {},
+      });
+      await expect(runner.execute(task)).rejects.toThrow(
+        'Invalid value on action jest-validated-action.each parameter, "${{parameters.data}}" cannot be resolved to a value',
       );
       expect(fakeActionHandler).not.toHaveBeenCalled();
     });
@@ -1103,7 +1397,7 @@ describe('NunjucksWorkflowRunner', () => {
           ],
         },
         {
-          backstageToken: 'secret',
+          backstageToken: token,
         },
         true,
       );
@@ -1111,6 +1405,39 @@ describe('NunjucksWorkflowRunner', () => {
       await runner.execute(task);
 
       expect(fakeActionHandler.mock.calls[0][0].isDryRun).toEqual(true);
+    });
+
+    it('should have metadata in action context during dry run', async () => {
+      const task = createMockTaskWithSpec(
+        {
+          apiVersion: 'scaffolder.backstage.io/v1beta3',
+          templateInfo: {
+            entityRef: 'dryRun-Entity',
+            entity: { metadata: { name: 'test-template' } },
+          },
+          parameters: {},
+          output: {},
+          steps: [
+            {
+              id: 'test',
+              name: 'name',
+              action: 'jest-validated-action',
+              input: { foo: 1 },
+            },
+          ],
+        },
+        {
+          backstageToken: token,
+        },
+        true,
+      );
+
+      await runner.execute(task);
+
+      expect(fakeActionHandler.mock.calls[0][0].isDryRun).toEqual(true);
+      expect(
+        fakeActionHandler.mock.calls[0][0].templateInfo.entity.metadata.name,
+      ).toEqual('test-template');
     });
   });
 

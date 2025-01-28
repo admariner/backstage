@@ -14,31 +14,39 @@
  * limitations under the License.
  */
 
-import {
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  makeStyles,
-  MenuItem,
-  MenuList,
-  Popover,
-  Theme,
-  useTheme,
-} from '@material-ui/core';
+import IconButton from '@material-ui/core/IconButton';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuItem from '@material-ui/core/MenuItem';
+import MenuList from '@material-ui/core/MenuList';
+import Popover from '@material-ui/core/Popover';
+import { makeStyles, Theme, useTheme } from '@material-ui/core/styles';
 import { useAsync } from '@react-hookz/web';
 import Cancel from '@material-ui/icons/Cancel';
-import Retry from '@material-ui/icons/Repeat';
+import Repeat from '@material-ui/icons/Repeat';
+import Replay from '@material-ui/icons/Replay';
 import Toc from '@material-ui/icons/Toc';
 import ControlPointIcon from '@material-ui/icons/ControlPoint';
 import MoreVert from '@material-ui/icons/MoreVert';
 import React, { useState } from 'react';
-import { useApi } from '@backstage/core-plugin-api';
+import { useAnalytics, useApi } from '@backstage/core-plugin-api';
 import { scaffolderApiRef } from '@backstage/plugin-scaffolder-react';
+import { usePermission } from '@backstage/plugin-permission-react';
+import {
+  taskCancelPermission,
+  taskReadPermission,
+  taskCreatePermission,
+} from '@backstage/plugin-scaffolder-common/alpha';
+import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
+import { scaffolderTranslationRef } from '../../translation';
 
 type ContextMenuProps = {
   cancelEnabled?: boolean;
+  canRetry: boolean;
+  isRetryableTask: boolean;
   logsVisible?: boolean;
   buttonBarVisible?: boolean;
+  onRetry?: () => void;
   onStartOver?: () => void;
   onToggleLogs?: (state: boolean) => void;
   onToggleButtonBar?: (state: boolean) => void;
@@ -54,8 +62,11 @@ const useStyles = makeStyles<Theme, { fontColor: string }>(() => ({
 export const ContextMenu = (props: ContextMenuProps) => {
   const {
     cancelEnabled,
+    canRetry,
+    isRetryableTask,
     logsVisible,
     buttonBarVisible,
+    onRetry,
     onStartOver,
     onToggleLogs,
     onToggleButtonBar,
@@ -65,13 +76,31 @@ export const ContextMenu = (props: ContextMenuProps) => {
   const pageTheme = getPageTheme({ themeId: 'website' });
   const classes = useStyles({ fontColor: pageTheme.fontColor });
   const scaffolderApi = useApi(scaffolderApiRef);
+  const analytics = useAnalytics();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement>();
+  const { t } = useTranslationRef(scaffolderTranslationRef);
 
   const [{ status: cancelStatus }, { execute: cancel }] = useAsync(async () => {
     if (taskId) {
+      analytics.captureEvent('cancelled', 'Template has been cancelled');
       await scaffolderApi.cancelTask(taskId);
     }
   });
+
+  const { allowed: canCancelTask } = usePermission({
+    permission: taskCancelPermission,
+  });
+
+  const { allowed: canReadTask } = usePermission({
+    permission: taskReadPermission,
+  });
+
+  const { allowed: canCreateTask } = usePermission({
+    permission: taskCreatePermission,
+  });
+
+  // Start Over endpoint requires user to have both read (to grab parameters) and create (to create new task) permissions
+  const canStartOver = canReadTask && canCreateTask;
 
   return (
     <>
@@ -99,31 +128,61 @@ export const ContextMenu = (props: ContextMenuProps) => {
             <ListItemIcon>
               <Toc fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary={logsVisible ? 'Hide Logs' : 'Show Logs'} />
+            <ListItemText
+              primary={
+                logsVisible
+                  ? t('ongoingTask.contextMenu.hideLogs')
+                  : t('ongoingTask.contextMenu.showLogs')
+              }
+            />
           </MenuItem>
           <MenuItem onClick={() => onToggleButtonBar?.(!buttonBarVisible)}>
             <ListItemIcon>
               <ControlPointIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText
-              primary={buttonBarVisible ? 'Hide Button Bar' : 'Show Button Bar'}
+              primary={
+                buttonBarVisible
+                  ? t('ongoingTask.contextMenu.hideButtonBar')
+                  : t('ongoingTask.contextMenu.showButtonBar')
+              }
             />
           </MenuItem>
-          <MenuItem onClick={onStartOver}>
+          <MenuItem
+            onClick={onStartOver}
+            disabled={cancelEnabled || !canStartOver}
+            data-testid="start-over-task"
+          >
             <ListItemIcon>
-              <Retry fontSize="small" />
+              <Repeat fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Start Over" />
+            <ListItemText primary={t('ongoingTask.contextMenu.startOver')} />
           </MenuItem>
+          {isRetryableTask && (
+            <MenuItem
+              onClick={onRetry}
+              disabled={cancelEnabled || !canRetry}
+              data-testid="retry-task"
+            >
+              <ListItemIcon>
+                <Replay fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={t('ongoingTask.contextMenu.retry')} />
+            </MenuItem>
+          )}
           <MenuItem
             onClick={cancel}
-            disabled={!cancelEnabled || cancelStatus !== 'not-executed'}
+            disabled={
+              !cancelEnabled ||
+              cancelStatus !== 'not-executed' ||
+              !canCancelTask
+            }
             data-testid="cancel-task"
           >
             <ListItemIcon>
               <Cancel fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Cancel" />
+            <ListItemText primary={t('ongoingTask.contextMenu.cancel')} />
           </MenuItem>
         </MenuList>
       </Popover>

@@ -26,12 +26,15 @@ import {
   serializeDirectoryContents,
 } from '@backstage/plugin-scaffolder-node';
 import { Octokit } from 'octokit';
-import { InputError, CustomErrorBase } from '@backstage/errors';
-import { resolveSafeChildPath } from '@backstage/backend-common';
+import { CustomErrorBase, InputError } from '@backstage/errors';
 import { createPullRequest } from 'octokit-plugin-create-pull-request';
 import { getOctokitOptions } from './helpers';
-import { Logger } from 'winston';
 import { examples } from './githubPullRequest.examples';
+import {
+  LoggerService,
+  resolveSafeChildPath,
+} from '@backstage/backend-plugin-api';
+import { Config } from '@backstage/config';
 
 export type Encoding = 'utf-8' | 'base64';
 
@@ -100,6 +103,10 @@ export interface CreateGithubPullRequestActionOptions {
       } | null>;
     }
   >;
+  /**
+   * An instance of {@link @backstage/config#Config} that will be used in the action.
+   */
+  config?: Config;
 }
 
 type GithubPullRequest = {
@@ -119,6 +126,7 @@ export const createPublishGithubPullRequestAction = (
     integrations,
     githubCredentialsProvider,
     clientFactory = defaultClientFactory,
+    config,
   } = options;
 
   return createTemplateAction<{
@@ -135,9 +143,14 @@ export const createPublishGithubPullRequestAction = (
     teamReviewers?: string[];
     commitMessage?: string;
     update?: boolean;
+    forceFork?: boolean;
+    gitAuthorName?: string;
+    gitAuthorEmail?: string;
+    forceEmptyGitAuthor?: boolean;
   }>({
     id: 'publish:github:pull-request',
     examples,
+    supportsDryRun: true,
     schema: {
       input: {
         required: ['repoUrl', 'title', 'description', 'branchName'],
@@ -217,6 +230,29 @@ export const createPublishGithubPullRequestAction = (
             title: 'Update',
             description: 'Update pull request if already exists',
           },
+          forceFork: {
+            type: 'boolean',
+            title: 'Force Fork',
+            description: 'Create pull request from a fork',
+          },
+          gitAuthorName: {
+            type: 'string',
+            title: 'Default Author Name',
+            description:
+              "Sets the default author name for the commit. The default value is the authenticated user or 'Scaffolder'",
+          },
+          gitAuthorEmail: {
+            type: 'string',
+            title: 'Default Author Email',
+            description:
+              "Sets the default author email for the commit. The default value is the authenticated user or 'scaffolder@backstage.io'",
+          },
+          forceEmptyGitAuthor: {
+            type: 'boolean',
+            title: 'Force Empty Git Author',
+            description:
+              'Forces the author to be empty. This is useful when using a Github App, it permit the commit to be verified on Github',
+          },
         },
       },
       output: {
@@ -255,6 +291,10 @@ export const createPublishGithubPullRequestAction = (
         teamReviewers,
         commitMessage,
         update,
+        forceFork,
+        gitAuthorEmail,
+        gitAuthorName,
+        forceEmptyGitAuthor,
       } = ctx.input;
 
       const { owner, repo, host } = parseRepoUrl(repoUrl, integrations);
@@ -312,6 +352,16 @@ export const createPublishGithubPullRequestAction = (
         ]),
       );
 
+      // If this is a dry run, log and return
+      if (ctx.isDryRun) {
+        ctx.logger.info(`Performing dry run of creating pull request`);
+        ctx.output('targetBranchName', branchName);
+        ctx.output('remoteUrl', repoUrl);
+        ctx.output('pullRequestNumber', 43);
+        ctx.logger.info(`Dry run complete`);
+        return;
+      }
+
       try {
         const createOptions: createPullRequest.Options = {
           owner,
@@ -320,14 +370,50 @@ export const createPublishGithubPullRequestAction = (
           changes: [
             {
               files,
-              commit: commitMessage ?? title,
+              commit:
+                commitMessage ??
+                config?.getOptionalString('scaffolder.defaultCommitMessage') ??
+                title,
             },
           ],
           body: description,
           head: branchName,
           draft,
           update,
+          forceFork,
         };
+
+        const gitAuthorInfo = {
+          name:
+            gitAuthorName ??
+            config?.getOptionalString('scaffolder.defaultAuthor.name'),
+          email:
+            gitAuthorEmail ??
+            config?.getOptionalString('scaffolder.defaultAuthor.email'),
+        };
+
+        if (!forceEmptyGitAuthor) {
+          if (gitAuthorInfo.name || gitAuthorInfo.email) {
+            if (Array.isArray(createOptions.changes)) {
+              createOptions.changes = createOptions.changes.map(change => ({
+                ...change,
+                author: {
+                  name: gitAuthorInfo.name || 'Scaffolder',
+                  email: gitAuthorInfo.email || 'scaffolder@backstage.io',
+                },
+              }));
+            } else {
+              createOptions.changes = {
+                ...createOptions.changes,
+                author: {
+                  name: gitAuthorInfo.name || 'Scaffolder',
+                  email: gitAuthorInfo.email || 'scaffolder@backstage.io',
+                },
+              };
+            }
+          }
+        }
+
         if (targetBranchName) {
           createOptions.base = targetBranchName;
         }
@@ -364,7 +450,7 @@ export const createPublishGithubPullRequestAction = (
     reviewers: string[] | undefined,
     teamReviewers: string[] | undefined,
     client: Octokit,
-    logger: Logger,
+    logger: LoggerService,
   ) {
     try {
       const result = await client.rest.pulls.requestReviewers({
@@ -372,7 +458,7 @@ export const createPublishGithubPullRequestAction = (
         repo: pr.repo,
         pull_number: pr.number,
         reviewers,
-        team_reviewers: teamReviewers,
+        team_reviewers: teamReviewers ? [...new Set(teamReviewers)] : undefined,
       });
       const addedUsers = result.data.requested_reviewers?.join(', ') ?? '';
       const addedTeams = result.data.requested_teams?.join(', ') ?? '';

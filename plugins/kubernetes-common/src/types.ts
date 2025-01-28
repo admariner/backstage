@@ -21,7 +21,7 @@ import {
   V1CronJob,
   V1DaemonSet,
   V1Deployment,
-  V1HorizontalPodAutoscaler,
+  V2HorizontalPodAutoscaler,
   V1Ingress,
   V1Job,
   V1LimitRange,
@@ -30,6 +30,7 @@ import {
   V1ResourceQuota,
   V1Service,
   V1StatefulSet,
+  V1Secret,
 } from '@kubernetes/client-node';
 import { Entity } from '@backstage/catalog-model';
 
@@ -67,9 +68,13 @@ export interface KubernetesRequestBody {
 /** @public */
 export interface ClusterAttributes {
   /**
-   * Specifies the name of the Kubernetes cluster.
+   * Name of the Kubernetes cluster; used as an internal identifier.
    */
   name: string;
+  /**
+   * Human-readable name for the cluster, to be dispayed in UIs.
+   */
+  title?: string;
   /**
    * Specifies the link to the Kubernetes dashboard managing this cluster.
    * @remarks
@@ -135,7 +140,8 @@ export type FetchResponse =
   | CustomResourceFetchResponse
   | StatefulSetsFetchResponse
   | DaemonSetsFetchResponse
-  | PodStatusFetchResponse;
+  | PodStatusFetchResponse
+  | SecretsFetchResponse;
 
 /** @public */
 export interface PodFetchResponse {
@@ -182,7 +188,7 @@ export interface ResourceQuotaFetchResponse {
 /** @public */
 export interface HorizontalPodAutoscalersFetchResponse {
   type: 'horizontalpodautoscalers';
-  resources: Array<V1HorizontalPodAutoscaler>;
+  resources: Array<V2HorizontalPodAutoscaler>;
 }
 
 /** @public */
@@ -225,6 +231,12 @@ export interface DaemonSetsFetchResponse {
 export interface PodStatusFetchResponse {
   type: 'podstatus';
   resources: Array<PodStatus>;
+}
+
+/** @public */
+export interface SecretsFetchResponse {
+  type: 'secrets';
+  resources: Array<V1Secret>;
 }
 
 /** @public */
@@ -278,7 +290,7 @@ export interface DeploymentResources {
   pods: V1Pod[];
   replicaSets: V1ReplicaSet[];
   deployments: V1Deployment[];
-  horizontalPodAutoscalers: V1HorizontalPodAutoscaler[];
+  horizontalPodAutoscalers: V2HorizontalPodAutoscaler[];
 }
 
 /** @public */
@@ -290,4 +302,5 @@ export interface GroupedResponses extends DeploymentResources {
   cronJobs: V1CronJob[];
   customResources: any[];
   statefulsets: V1StatefulSet[];
+  daemonSets: V1DaemonSet[];
 }

@@ -1,5 +1,81 @@
 # @backstage/config
 
+## 1.3.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.1
+  - @backstage/errors@1.2.7
+
+## 1.3.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.1-next.0
+  - @backstage/errors@1.2.7-next.0
+
+## 1.3.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.6
+  - @backstage/types@1.2.0
+
+## 1.3.1-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.6-next.0
+  - @backstage/types@1.2.0
+
+## 1.3.0
+
+### Minor Changes
+
+- d52d7f9: Make `readDurationFromConfig` support both ISO and ms formats as well, to make it easier to enter time as an end user
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.0
+  - @backstage/errors@1.2.5
+
+## 1.2.0
+
+### Minor Changes
+
+- 50cf9df: The `ConfigReader` now treats `null` values as present but explicitly undefined, meaning it will not fall back to the next level of configuration.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.2.0-next.1
+
+### Minor Changes
+
+- 50cf9df: The `ConfigReader` now treats `null` values as present but explicitly undefined, meaning it will not fall back to the next level of configuration.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/types@1.1.1
+
+## 1.1.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/types@1.1.1
+
 ## 1.1.1
 
 ### Patch Changes

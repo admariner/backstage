@@ -214,3 +214,108 @@ The above module can then be installed by the integrator alongside the kubernete
 backend.add(import('@backstage/plugin-kubernetes-backend'));
 backend.add(import('@internal/gke-cluster-supplier'));
 ```
+
+### Dev Server
+
+Follow the steps below to run your migrated plugin on a local development server:
+
+1. First, delete the `src/run.ts` and `src/service/standaloneServer.ts` files in case they exist (the `backstage-cli` previously used these files to run legacy backend plugins locally, but they are no longer required).
+
+2. Next, create a new development backend in the `dev/index.ts` file. The dev server is a lite version of a backend app that is mainly used to run your plugin locally, so a simple `kubernetes` backend local development server would look like this:
+
+```ts title="in dev/index.js"
+// This package should be installed as a `dev` dependency
+import { createBackend } from '@backstage/backend-defaults';
+
+const backend = createBackend();
+// Path to the file where the plugin is export as default
+backend.add(import('../src'));
+backend.start();
+```
+
+The development server created above will be automatically configured with the default dependency factories, but if you need to mock some of the services your plugin relies on, such as the `rootConfig` service, you can use one of the `mockServices` factories:
+
+```ts title="in dev/index.js"
+//...
+// This package should be installed as `devDependecies`
+import { mockServices } from '@backstage/backend-test-utils';
+
+const backend = createBackend();
+// ...
+backend.add(
+  mockServices.rootConfig.factory({
+    data: {
+      // your config mocked values goes here
+    },
+  }),
+);
+// ...
+```
+
+Checkout the [custom service implementations](https://backstage.io/docs/backend-system/building-backends/index#custom-service-implementations) documentation and also the [core service configurations](https://backstage.io/docs/backend-system/core-services/index) page in case you'd like to create your own custom mock factory for one or more services.
+
+3. Now you can finally start your plugin locally by running `yarn start` from the root folder of your plugin.
+
+## Remove support for the old backend system
+
+Given that you have followed the guide above to export your new backend plugin the steps to deprecate and remove the old backend plugin are the following:
+
+### Deprecate public exports other than the default export
+
+First of all make sure that `createRouter` and `routerOptions` are marked as deprecated to give users time and an indication to migrate to the new system (we recommend deprecating in one release and remove the deprecates in the following one).
+This is done by adding a `@deprecated` annotation to the legacy exports. It's worth noting that the plugin can continue using `createRouter` internally but it should not be exported as part of public api. If you are reusing the create router and relative imports in migrated plugins, ensure that you refactor the internal code to remove deprecated imports once the `createRouter` export gets deleted. It is recommended that you avoid the use of `@backstage/backend-common` and `@backstage/backend-tasks` in migrated plugins as they will be deleted together with the ending of support for the legacy system. There are instructions in most of the deprecated imports about how to stop using them once you have migrated to the new backend system.
+
+```ts title="@backstage/plugin-kubernetes-backend/src/service/router.ts"
+import { KubernetesBuilder } from './KubernetesBuilder';
+
+/**
+* @public
+// highlight-add-next-line
+* @deprecated Please migrate to the new backend system.
+*/
+export interface RouterOptions {
+  logger: Logger;
+  config: Config;
+  catalogApi: CatalogApi;
+  clusterSupplier?: KubernetesClustersSupplier;
+  discovery: PluginEndpointDiscovery;
+}
+
+/**
+* @public
+// highlight-add-next-line
+* @deprecated Please migrate to the new backend system.
+*/
+export async function createRouter(
+  options: RouterOptions,
+): Promise<express.Router> {
+  const { router } = await KubernetesBuilder.createBuilder(options)
+    .setClusterSupplier(options.clusterSupplier)
+    .build();
+  return router;
+}
+```
+
+If your plugin contains an `api-report.md` file make sure to run `yarn build:api-reports` afterwards.
+It's recommended to inspect the api report and look for other exports other than the new backend plugin, they should most likely also be deprecated as plugins in the new backend system are extended using extension points and not directly by passing options. Any type of builder or helper methods that are used together with the backend plugin should be moved to a library package specifically for that plugin (e.g. a `plugin-kubernetes-backend-node` package, see the [package roles](https://backstage.io/docs/tooling/cli/build-system/#package-roles) documentation for more details).
+
+After removals of deprecations all your `index.ts` should contain is just the default export:
+
+```ts title="@backstage/plugin-kubernetes-backend/src/index.ts"
+export { kubernetesPlugin as default } from './plugin';
+```
+
+### Deprecate the `/alpha` subpath if it exists
+
+In cases where you previously supported the new backend system using an `alpha` export, please deprecate the alpha exports and re-export them from `index.ts`.
+
+```ts title="@backstage/<plugin-name>-backend/src/alpha.ts"
+/**
+* @alpha
+// highlight-add-next-line
+* @deprecated Please import from the root path instead.
+*/
+export default createPlugin({
+  //...
+});
+```

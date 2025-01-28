@@ -21,31 +21,53 @@ import {
   storageApiRef,
 } from '@backstage/core-plugin-api';
 import { CatalogClient } from '@backstage/catalog-client';
-import { createApiExtension } from '@backstage/frontend-plugin-api';
+import { ApiBlueprint } from '@backstage/frontend-plugin-api';
 import {
   catalogApiRef,
+  entityPresentationApiRef,
   starredEntitiesApiRef,
 } from '@backstage/plugin-catalog-react';
-import { DefaultStarredEntitiesApi } from '../apis';
+import {
+  DefaultEntityPresentationApi,
+  DefaultStarredEntitiesApi,
+} from '../apis';
 
-export const catalogApi = createApiExtension({
-  factory: createApiFactory({
-    api: catalogApiRef,
-    deps: {
-      discoveryApi: discoveryApiRef,
-      fetchApi: fetchApiRef,
-    },
-    factory: ({ discoveryApi, fetchApi }) =>
-      new CatalogClient({ discoveryApi, fetchApi }),
-  }),
+export const catalogApi = ApiBlueprint.make({
+  params: {
+    factory: createApiFactory({
+      api: catalogApiRef,
+      deps: {
+        discoveryApi: discoveryApiRef,
+        fetchApi: fetchApiRef,
+      },
+      factory: ({ discoveryApi, fetchApi }) =>
+        new CatalogClient({ discoveryApi, fetchApi }),
+    }),
+  },
 });
 
-export const catalogStarredEntitiesApi = createApiExtension({
-  factory: createApiFactory({
-    api: starredEntitiesApiRef,
-    deps: { storageApi: storageApiRef },
-    factory: ({ storageApi }) => new DefaultStarredEntitiesApi({ storageApi }),
-  }),
+export const catalogStarredEntitiesApi = ApiBlueprint.make({
+  name: 'starred-entities',
+  params: {
+    factory: createApiFactory({
+      api: starredEntitiesApiRef,
+      deps: { storageApi: storageApiRef },
+      factory: ({ storageApi }) =>
+        new DefaultStarredEntitiesApi({ storageApi }),
+    }),
+  },
 });
 
-export default [catalogApi, catalogStarredEntitiesApi];
+export const entityPresentationApi = ApiBlueprint.make({
+  name: 'entity-presentation',
+  params: {
+    factory: createApiFactory({
+      api: entityPresentationApiRef,
+      deps: { catalogApiImp: catalogApiRef },
+      factory: ({ catalogApiImp }) =>
+        DefaultEntityPresentationApi.create({ catalogApi: catalogApiImp }),
+    }),
+  },
+});
+
+export default [catalogApi, catalogStarredEntitiesApi, entityPresentationApi];

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import { TaskRunner } from '@backstage/backend-tasks';
+import {
+  LoggerService,
+  SchedulerServiceTaskRunner,
+} from '@backstage/backend-plugin-api';
 import { Entity, isGroupEntity } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import {
@@ -28,7 +31,7 @@ import {
   EntityProvider,
   EntityProviderConnection,
 } from '@backstage/plugin-catalog-node';
-import { EventParams, EventSubscriber } from '@backstage/plugin-events-node';
+import { EventParams, EventsService } from '@backstage/plugin-events-node';
 import { graphql } from '@octokit/graphql';
 import {
   MembershipEvent,
@@ -39,28 +42,34 @@ import {
   TeamEvent,
 } from '@octokit/webhooks-types';
 import * as uuid from 'uuid';
-import { Logger } from 'winston';
 import {
-  TeamTransformer,
-  UserTransformer,
   defaultOrganizationTeamTransformer,
   defaultUserTransformer,
+  TeamTransformer,
+  UserTransformer,
 } from '../lib/defaultTransformers';
 import {
-  DeferredEntitiesBuilder,
-  GithubTeam,
   createAddEntitiesOperation,
+  createGraphqlClient,
   createRemoveEntitiesOperation,
   createReplaceEntitiesOperation,
+  DeferredEntitiesBuilder,
   getOrganizationTeam,
   getOrganizationTeams,
   getOrganizationTeamsFromUsers,
   getOrganizationUsers,
+  GithubTeam,
 } from '../lib/github';
+import { areGroupEntities, areUserEntities } from '../lib/guards';
 import { assignGroupsToUsers, buildOrgHierarchy } from '../lib/org';
 import { parseGithubOrgUrl } from '../lib/util';
 import { withLocations } from '../lib/withLocations';
-import { areGroupEntities, areUserEntities } from '../lib/guards';
+
+const EVENT_TOPICS = [
+  'github.membership',
+  'github.organization',
+  'github.team',
+];
 
 /**
  * Options for {@link GithubOrgEntityProvider}.
@@ -83,6 +92,11 @@ export interface GithubOrgEntityProviderOptions {
   orgUrl: string;
 
   /**
+   * Passing the optional EventsService enables event-based delta updates.
+   */
+  events?: EventsService;
+
+  /**
    * The refresh schedule to use.
    *
    * @defaultValue "manual"
@@ -92,15 +106,15 @@ export interface GithubOrgEntityProviderOptions {
    * manually at some interval.
    *
    * But more commonly you will pass in the result of
-   * {@link @backstage/backend-tasks#PluginTaskScheduler.createScheduledTaskRunner}
+   * {@link @backstage/backend-plugin-api#SchedulerService.createScheduledTaskRunner}
    * to enable automatic scheduling of tasks.
    */
-  schedule?: 'manual' | TaskRunner;
+  schedule?: 'manual' | SchedulerServiceTaskRunner;
 
   /**
    * The logger to use.
    */
-  logger: Logger;
+  logger: LoggerService;
 
   /**
    * Optionally supply a custom credentials provider, replacing the default one.
@@ -123,9 +137,7 @@ export interface GithubOrgEntityProviderOptions {
  *
  * @public
  */
-export class GithubOrgEntityProvider
-  implements EntityProvider, EventSubscriber
-{
+export class GithubOrgEntityProvider implements EntityProvider {
   private readonly credentialsProvider: GithubCredentialsProvider;
   private connection?: EntityProviderConnection;
   private scheduleFn?: () => Promise<void>;
@@ -154,6 +166,7 @@ export class GithubOrgEntityProvider
         DefaultGithubCredentialsProvider.fromIntegrations(integrations),
       userTransformer: options.userTransformer,
       teamTransformer: options.teamTransformer,
+      events: options.events,
     });
 
     provider.schedule(options.schedule);
@@ -163,10 +176,11 @@ export class GithubOrgEntityProvider
 
   constructor(
     private options: {
+      events?: EventsService;
       id: string;
       orgUrl: string;
       gitHubConfig: GithubIntegrationConfig;
-      logger: Logger;
+      logger: LoggerService;
       githubCredentialsProvider?: GithubCredentialsProvider;
       userTransformer?: UserTransformer;
       teamTransformer?: TeamTransformer;
@@ -185,6 +199,11 @@ export class GithubOrgEntityProvider
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
   async connect(connection: EntityProviderConnection) {
     this.connection = connection;
+    await this.options.events?.subscribe({
+      id: this.getProviderName(),
+      topics: EVENT_TOPICS,
+      onEvent: params => this.onEvent(params),
+    });
     await this.scheduleFn?.();
   }
 
@@ -192,7 +211,7 @@ export class GithubOrgEntityProvider
    * Runs one single complete ingestion. This is only necessary if you use
    * manual scheduling.
    */
-  async read(options?: { logger?: Logger }) {
+  async read(options?: { logger?: LoggerService }) {
     if (!this.connection) {
       throw new Error('Not initialized');
     }
@@ -204,9 +223,11 @@ export class GithubOrgEntityProvider
       await this.credentialsProvider.getCredentials({
         url: this.options.orgUrl,
       });
-    const client = graphql.defaults({
-      baseUrl: this.options.gitHubConfig.apiBaseUrl,
+
+    const client = createGraphqlClient({
       headers,
+      baseUrl: this.options.gitHubConfig.apiBaseUrl!,
+      logger,
     });
 
     const { org } = parseGithubOrgUrl(this.options.orgUrl);
@@ -246,8 +267,7 @@ export class GithubOrgEntityProvider
     markCommitComplete();
   }
 
-  /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.onEvent} */
-  async onEvent(params: EventParams): Promise<void> {
+  private async onEvent(params: EventParams): Promise<void> {
     const { logger } = this.options;
     logger.debug(`Received event from ${params.topic}`);
 
@@ -311,11 +331,6 @@ export class GithubOrgEntityProvider
     }
 
     return;
-  }
-
-  /** {@inheritdoc @backstage/plugin-events-node#EventSubscriber.supportsEventTopics} */
-  supportsEventTopics(): string[] {
-    return ['github.organization', 'github.team', 'github.membership'];
   }
 
   private async onTeamEditedInOrganization(
@@ -501,7 +516,9 @@ export class GithubOrgEntityProvider
         editTeamUrl: `${url}/edit`,
         combinedSlug: `${org}/${slug}`,
         description: description || undefined,
-        parentTeam: { slug: event.team?.parent?.slug || '' } as GithubTeam,
+        parentTeam: event.team?.parent?.slug
+          ? ({ slug: event.team.parent.slug } as GithubTeam)
+          : undefined,
         // entity will be removed
         members: [],
       },
@@ -596,7 +613,7 @@ export class GithubOrgEntityProvider
 }
 
 // Helps wrap the timing and logging behaviors
-function trackProgress(logger: Logger) {
+function trackProgress(logger: LoggerService) {
   let timestamp = Date.now();
   let summary: string;
 

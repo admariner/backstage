@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { TestApiProvider } from '@backstage/test-utils';
 import React, { useEffect } from 'react';
 import { BackstageRouteObject } from './types';
@@ -46,7 +47,10 @@ describe('RouteTracker', () => {
       caseSensitive: false,
       children: [MATCH_ALL_ROUTE],
       appNode: {
-        spec: { extension: { id: 'home.page.index' }, source: { id: 'home' } },
+        spec: {
+          extension: { id: 'home.page.index' },
+          source: { id: 'home' },
+        },
       } as AppNode,
     },
     {
@@ -211,8 +215,8 @@ describe('RouteTracker', () => {
       action: 'navigate',
       attributes: {},
       context: {
-        extensionId: 'App',
-        pluginId: 'root',
+        extensionId: 'app',
+        pluginId: 'app',
       },
       subject: '/not-routable-extension',
       value: undefined,
@@ -221,8 +225,8 @@ describe('RouteTracker', () => {
       action: 'click',
       attributes: undefined,
       context: {
-        extensionId: 'App',
-        pluginId: 'root',
+        extensionId: 'app',
+        pluginId: 'app',
       },
       subject: 'test',
       value: undefined,

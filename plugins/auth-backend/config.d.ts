@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { HumanDuration } from '@backstage/types';
+
 export interface Config {
   /** Configuration options for the auth plugin */
   auth?: {
@@ -88,29 +90,6 @@ export interface Config {
      */
     providers?: {
       /** @visibility frontend */
-      google?: {
-        [authEnv: string]: {
-          clientId: string;
-          /**
-           * @visibility secret
-           */
-          clientSecret: string;
-          callbackUrl?: string;
-        };
-      };
-      /** @visibility frontend */
-      github?: {
-        [authEnv: string]: {
-          clientId: string;
-          /**
-           * @visibility secret
-           */
-          clientSecret: string;
-          callbackUrl?: string;
-          enterpriseInstanceUrl?: string;
-        };
-      };
-      /** @visibility frontend */
       saml?: {
         entryPoint: string;
         logoutUrl?: string;
@@ -135,36 +114,6 @@ export interface Config {
         acceptedClockSkewMs?: number;
       };
       /** @visibility frontend */
-      oauth2?: {
-        [authEnv: string]: {
-          clientId: string;
-          /**
-           * @visibility secret
-           */
-          clientSecret: string;
-          authorizationUrl: string;
-          tokenUrl: string;
-          scope?: string;
-          disableRefresh?: boolean;
-        };
-      };
-      /** @visibility frontend */
-      oidc?: {
-        [authEnv: string]: {
-          clientId: string;
-          /**
-           * @visibility secret
-           */
-          clientSecret: string;
-          callbackUrl?: string;
-          metadataUrl: string;
-          tokenEndpointAuthMethod?: string;
-          tokenSignedResponseAlg?: string;
-          scope?: string;
-          prompt?: string;
-        };
-      };
-      /** @visibility frontend */
       auth0?: {
         [authEnv: string]: {
           clientId: string;
@@ -180,18 +129,6 @@ export interface Config {
         };
       };
       /** @visibility frontend */
-      microsoft?: {
-        [authEnv: string]: {
-          clientId: string;
-          /**
-           * @visibility secret
-           */
-          clientSecret: string;
-          tenantId: string;
-          callbackUrl?: string;
-        };
-      };
-      /** @visibility frontend */
       onelogin?: {
         [authEnv: string]: {
           clientId: string;
@@ -203,15 +140,14 @@ export interface Config {
           callbackUrl?: string;
         };
       };
-      /** @visibility frontend */
-      awsalb?: {
-        iss?: string;
-        region: string;
-      };
-      /** @visibility frontend */
-      cfaccess?: {
-        teamName: string;
-      };
+      /**
+       * The backstage token expiration.
+       */
+      backstageTokenExpiration?: HumanDuration | string;
     };
+    /**
+     * Additional app origins to allow for authenticating
+     */
+    experimentalExtraAllowedOrigins?: string[];
   };
 }

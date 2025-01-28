@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { isChildPath } from '@backstage/backend-common';
+import { isChildPath, LoggerService } from '@backstage/backend-plugin-api';
 import { Entity } from '@backstage/catalog-model';
 import { assertError, ForwardedError } from '@backstage/errors';
 import { ScmIntegrationRegistry } from '@backstage/integration';
@@ -24,7 +24,6 @@ import gitUrlParse from 'git-url-parse';
 import yaml, { DEFAULT_SCHEMA, Type } from 'js-yaml';
 import path, { resolve as resolvePath } from 'path';
 import { PassThrough, Writable } from 'stream';
-import { Logger } from 'winston';
 import { ParsedLocationAnnotation } from '../../helpers';
 import { DefaultMkdocsContent, SupportedGeneratorKey } from './types';
 import { getFileTreeRecursively } from '../publish/helpers';
@@ -101,11 +100,13 @@ export const getRepoUrlFromLocationAnnotation = (
   if (locationType === 'url') {
     const integration = scmIntegrations.byUrl(target);
 
-    // We only support it for github, gitlab and bitbucketServer for now as the edit_uri
+    // We only support it for github, gitlab, bitbucketServer and harness for now as the edit_uri
     // is not properly supported for others yet.
     if (
       integration &&
-      ['github', 'gitlab', 'bitbucketServer'].includes(integration.type)
+      ['github', 'gitlab', 'bitbucketServer', 'harness'].includes(
+        integration.type,
+      )
     ) {
       // handle the case where a user manually writes url:https://github.com/backstage/backstage i.e. without /blob/...
       const { filepathtype } = gitUrlParse(target);
@@ -115,7 +116,7 @@ export const getRepoUrlFromLocationAnnotation = (
 
       const sourceFolder = integration.resolveUrl({
         url: `./${docsFolder}`,
-        base: target,
+        base: target.endsWith('/') ? target : `${target}/`,
       });
       return {
         repo_url: target,
@@ -134,6 +135,14 @@ class UnknownTag {
 export const MKDOCS_SCHEMA = DEFAULT_SCHEMA.extend([
   new Type('', {
     kind: 'scalar',
+    multi: true,
+    representName: o => (o as UnknownTag).type,
+    represent: o => (o as UnknownTag).data ?? '',
+    instanceOf: UnknownTag,
+    construct: (data: string, type?: string) => new UnknownTag(data, type),
+  }),
+  new Type('tag:', {
+    kind: 'mapping',
     multi: true,
     representName: o => (o as UnknownTag).type,
     represent: o => (o as UnknownTag).data ?? '',
@@ -296,7 +305,7 @@ export const patchIndexPreBuild = async ({
   docsDir = 'docs',
 }: {
   inputDir: string;
-  logger: Logger;
+  logger: LoggerService;
   docsDir?: string;
 }) => {
   const docsPath = path.join(inputDir, docsDir);
@@ -340,7 +349,7 @@ export const patchIndexPreBuild = async ({
  */
 export const createOrUpdateMetadata = async (
   techdocsMetadataPath: string,
-  logger: Logger,
+  logger: LoggerService,
 ): Promise<void> => {
   const techdocsMetadataDir = techdocsMetadataPath
     .split(path.sep)

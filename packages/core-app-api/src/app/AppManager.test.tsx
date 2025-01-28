@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-import { LocalStorageFeatureFlags, NoOpAnalyticsApi } from '../apis';
+import { LocalStorageFeatureFlags } from '../apis';
 import {
-  MockAnalyticsApi,
+  mockApis,
   renderWithEffects,
   withLogCollector,
+  registerMswTestHooks,
 } from '@backstage/test-utils';
-import { render, screen } from '@testing-library/react';
+import { screen, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { setupServer } from 'msw/node';
+import { rest } from 'msw';
 import React, { PropsWithChildren, ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import {
@@ -36,7 +40,11 @@ import {
   analyticsApiRef,
   useApi,
   errorApiRef,
+  fetchApiRef,
+  discoveryApiRef,
+  identityApiRef,
 } from '@backstage/core-plugin-api';
+import { AppRouter } from './AppRouter';
 import { AppManager } from './AppManager';
 import { AppComponents, AppIcons } from './types';
 import { FeatureFlagged } from '../routing/FeatureFlagged';
@@ -46,9 +54,12 @@ import {
 } from '@backstage/core-plugin-api/alpha';
 
 describe('Integration Test', () => {
+  const server = setupServer();
+  registerMswTestHooks(server);
+
   const noOpAnalyticsApi = createApiFactory(
     analyticsApiRef,
-    new NoOpAnalyticsApi(),
+    mockApis.analytics(),
   );
   const noopErrorApi = createApiFactory(errorApiRef, {
     error$() {
@@ -564,7 +575,7 @@ describe('Integration Test', () => {
   });
 
   it('should track route changes via analytics api', async () => {
-    const mockAnalyticsApi = new MockAnalyticsApi();
+    const mockAnalyticsApi = mockApis.analytics();
     const apis = [createApiFactory(analyticsApiRef, mockAnalyticsApi)];
     const app = new AppManager({
       apis,
@@ -597,29 +608,30 @@ describe('Integration Test', () => {
     );
 
     // Capture initial and subsequent navigation events with expected context.
-    const capturedEvents = mockAnalyticsApi.getEvents();
-    expect(capturedEvents[0]).toMatchObject({
+    expect(mockAnalyticsApi.captureEvent).toHaveBeenCalledTimes(2);
+    expect(mockAnalyticsApi.captureEvent).toHaveBeenNthCalledWith(1, {
       action: 'navigate',
       subject: '/',
+      attributes: {},
       context: {
         extension: 'App',
         pluginId: 'blob',
         routeRef: 'ref-1-2',
       },
     });
-    expect(capturedEvents[1]).toMatchObject({
+    expect(mockAnalyticsApi.captureEvent).toHaveBeenNthCalledWith(2, {
       action: 'navigate',
       subject: '/foo',
+      attributes: {},
       context: {
         extension: 'App',
         pluginId: 'plugin2',
         routeRef: 'ref-2',
       },
     });
-    expect(capturedEvents).toHaveLength(2);
   });
 
-  it('should throw some error when the route has duplicate params', () => {
+  it('should throw some error when the route has duplicate params', async () => {
     const app = new AppManager({
       apis: [],
       defaultApis: [],
@@ -636,31 +648,43 @@ describe('Integration Test', () => {
       },
     });
 
+    const expectedMessage =
+      'Parameter :thing is duplicated in path test/:thing/some/:thing';
+
     const Provider = app.getProvider();
     const Router = app.getRouter();
-    const { error: errorLogs } = withLogCollector(() => {
-      render(
-        <Provider>
-          <Router>
-            <Routes>
-              <Route path="/test/:thing" element={<ExposedComponent />}>
-                <Route path="/some/:thing" element={<HiddenComponent />} />
-              </Route>
-            </Routes>
-          </Router>
-        </Provider>,
-      );
+    const { error: errorLogs } = await withLogCollector(async () => {
+      await expect(() =>
+        renderWithEffects(
+          <Provider>
+            <Router>
+              <Routes>
+                <Route path="/test/:thing" element={<ExposedComponent />}>
+                  <Route path="/some/:thing" element={<HiddenComponent />} />
+                </Route>
+              </Routes>
+            </Router>
+          </Provider>,
+        ),
+      ).rejects.toThrow(expectedMessage);
     });
+
     expect(errorLogs).toEqual([
       expect.objectContaining({
-        message: expect.stringContaining(
-          'Parameter :thing is duplicated in path test/:thing/some/:thing',
-        ),
+        detail: new Error(expectedMessage),
+        type: 'unhandled exception',
       }),
+      expect.objectContaining({
+        detail: new Error(expectedMessage),
+        type: 'unhandled exception',
+      }),
+      expect.stringContaining(
+        'The above error occurred in the <Provider> component:',
+      ),
     ]);
   });
 
-  it('should throw an error when required external plugin routes are not bound', () => {
+  it('should throw an error when required external plugin routes are not bound', async () => {
     const app = new AppManager({
       apis: [],
       defaultApis: [],
@@ -671,25 +695,36 @@ describe('Integration Test', () => {
       configLoader: async () => [],
     });
 
+    const expectedMessage =
+      "External route 'extRouteRef1' of the 'blob' plugin must be bound to a target route. See https://backstage.io/link?bind-routes for details.";
+
     const Provider = app.getProvider();
     const Router = app.getRouter();
-    const { error: errorLogs } = withLogCollector(() => {
-      render(
-        <Provider>
-          <Router>
-            <Routes>
-              <Route path="/test/:thing" element={<ExposedComponent />} />
-            </Routes>
-          </Router>
-        </Provider>,
-      );
+    const { error: errorLogs } = await withLogCollector(async () => {
+      await expect(() =>
+        renderWithEffects(
+          <Provider>
+            <Router>
+              <Routes>
+                <Route path="/test/:thing" element={<ExposedComponent />} />
+              </Routes>
+            </Router>
+          </Provider>,
+        ),
+      ).rejects.toThrow(expectedMessage);
     });
     expect(errorLogs).toEqual([
       expect.objectContaining({
-        message: expect.stringMatching(
-          /^External route 'extRouteRef1' of the 'blob' plugin must be bound to a target route/,
-        ),
+        detail: new Error(expectedMessage),
+        type: 'unhandled exception',
       }),
+      expect.objectContaining({
+        detail: new Error(expectedMessage),
+        type: 'unhandled exception',
+      }),
+      expect.stringContaining(
+        'The above error occurred in the <Provider> component:',
+      ),
     ]);
   });
 
@@ -816,5 +851,76 @@ describe('Integration Test', () => {
         ).toBeTruthy();
       },
     );
+  });
+
+  it('should clear app cookie when the user logs out', async () => {
+    const logoutSignal = jest.fn();
+    server.use(
+      rest.delete(
+        'http://localhost:7007/app/.backstage/auth/v1/cookie',
+        (_req, res, ctx) => {
+          logoutSignal();
+          return res(ctx.status(200));
+        },
+      ),
+    );
+
+    const meta = global.document.createElement('meta');
+    meta.name = 'backstage-app-mode';
+    meta.content = 'protected';
+    global.document.head.appendChild(meta);
+
+    const fetchApiMock = {
+      fetch: jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        }),
+      }),
+    };
+    const discoveryApiMock = mockApis.discovery.mock({
+      getBaseUrl: async () => 'http://localhost:7007/app',
+    });
+
+    const app = new AppManager({
+      icons,
+      themes,
+      components,
+      configLoader: async () => [],
+      defaultApis: [
+        noopErrorApi,
+        createApiFactory({
+          api: fetchApiRef,
+          deps: {},
+          factory: () => fetchApiMock,
+        }),
+        createApiFactory({
+          api: discoveryApiRef,
+          deps: {},
+          factory: () => discoveryApiMock,
+        }),
+      ],
+    });
+
+    const SignOutButton = () => {
+      const identityApi = useApi(identityApiRef);
+      return <button onClick={() => identityApi.signOut()}>Sign Out</button>;
+    };
+
+    const Root = app.createRoot(
+      <AppRouter>
+        <meta name="backstage-app-mode" content="protected" />
+        <SignOutButton />
+      </AppRouter>,
+    );
+    await renderWithEffects(<Root />);
+
+    await act(async () => {
+      await userEvent.click(screen.getByText('Sign Out'));
+    });
+
+    expect(logoutSignal).toHaveBeenCalled();
+
+    global.document.head.removeChild(meta);
   });
 });

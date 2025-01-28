@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import yaml from 'yaml';
+import { createMockActionContext } from '@backstage/plugin-scaffolder-node-test-utils';
 
 jest.mock('@backstage/plugin-scaffolder-node', () => {
   return {
@@ -31,25 +32,26 @@ import { createPublishGitlabAction } from './gitlab';
 import { initRepoAndPush } from '@backstage/plugin-scaffolder-node';
 import { ScmIntegrations } from '@backstage/integration';
 import { ConfigReader } from '@backstage/config';
-import { getVoidLogger } from '@backstage/backend-common';
-import { PassThrough } from 'stream';
 import { examples } from './gitlab.examples';
 
 const mockGitlabClient = {
   Namespaces: {
     show: jest.fn(),
   },
+  Groups: {
+    allProjects: jest.fn(),
+  },
   Projects: {
     create: jest.fn(),
   },
   Users: {
-    current: jest.fn(),
+    showCurrentUser: jest.fn(),
   },
   ProjectMembers: {
     add: jest.fn(),
   },
 };
-jest.mock('@gitbeaker/node', () => ({
+jest.mock('@gitbeaker/rest', () => ({
   Gitlab: class {
     constructor() {
       return mockGitlabClient;
@@ -76,24 +78,20 @@ describe('publish:gitlab', () => {
 
   const integrations = ScmIntegrations.fromConfig(config);
   const action = createPublishGitlabAction({ integrations, config });
-  const mockContext = {
+  const mockContext = createMockActionContext({
     input: {
       repoUrl: 'gitlab.com?repo=repo&owner=owner',
     },
-    workspacePath: 'lol',
-    logger: getVoidLogger(),
-    logStream: new PassThrough(),
-    output: jest.fn(),
-    createTemporaryDirectory: jest.fn(),
-  };
+  });
 
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('should call initRepoAndPush with the correct values', async () => {
-    mockGitlabClient.Users.current.mockResolvedValue({ id: 12345 });
+    mockGitlabClient.Users.showCurrentUser.mockResolvedValue({ id: 12345 });
     mockGitlabClient.Namespaces.show.mockResolvedValue({ id: 1234 });
+    mockGitlabClient.Groups.allProjects.mockResolvedValue([]);
     mockGitlabClient.Projects.create.mockResolvedValue({
       http_url_to_repo: 'http://mockurl.git',
     });

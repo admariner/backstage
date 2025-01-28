@@ -15,7 +15,7 @@
  */
 
 import React, { PropsWithChildren } from 'react';
-import { makeStyles } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import HomeIcon from '@material-ui/icons/Home';
 import RuleIcon from '@material-ui/icons/AssignmentTurnedIn';
 import MapIcon from '@material-ui/icons/MyLocation';
@@ -32,8 +32,8 @@ import {
   UserSettingsSignInAvatar,
 } from '@backstage/plugin-user-settings';
 import { SidebarSearchModal } from '@backstage/plugin-search';
-import { Shortcuts } from '@backstage/plugin-shortcuts';
 import {
+  Link,
   Sidebar,
   sidebarConfig,
   SidebarDivider,
@@ -42,17 +42,16 @@ import {
   SidebarPage,
   SidebarScrollWrapper,
   SidebarSpace,
-  Link,
-  useSidebarOpenState,
   SidebarSubmenu,
   SidebarSubmenuItem,
+  useSidebarOpenState,
 } from '@backstage/core-components';
 import { MyGroupsSidebarItem } from '@backstage/plugin-org';
 import { SearchModal } from '../search/SearchModal';
 import Score from '@material-ui/icons/Score';
 import { useApp } from '@backstage/core-plugin-api';
 import BuildIcon from '@material-ui/icons/Build';
-import { ExtensionTree } from '@backstage/frontend-app-api';
+import { NotificationsSidebarItem } from '@backstage/plugin-notifications';
 
 const useSidebarLogoStyles = makeStyles({
   root: {
@@ -82,10 +81,7 @@ const SidebarLogo = () => {
   );
 };
 
-export const Root = ({
-  children,
-  extensionTree,
-}: PropsWithChildren<{ extensionTree?: ExtensionTree }>) => (
+export const Root = ({ children }: PropsWithChildren<{}>) => (
   <SidebarPage>
     <Sidebar>
       <SidebarLogo />
@@ -166,14 +162,11 @@ export const Root = ({
             to="cost-insights"
             text="Cost Insights"
           />
-          {
-            /* HIGHLY EXPERIMENTAL. DO NOT USE THIS IN YOUR APP */ extensionTree?.getSidebarItems() ??
-              null
-          }
           <SidebarItem icon={Score} to="score-board" text="Score board" />
         </SidebarScrollWrapper>
         <SidebarDivider />
-        <Shortcuts allowExternalLinks />
+        <SidebarDivider />
+        <NotificationsSidebarItem />
       </SidebarGroup>
       <SidebarSpace />
       <SidebarDivider />

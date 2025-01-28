@@ -24,6 +24,9 @@ import { getOctokitOptions } from './helpers';
 import { Octokit } from 'octokit';
 import Sodium from 'libsodium-wrappers';
 import { examples } from './gitHubEnvironment.examples';
+import { CatalogApi } from '@backstage/catalog-client';
+import { Entity } from '@backstage/catalog-model';
+import { AuthService } from '@backstage/backend-plugin-api';
 
 /**
  * Creates an `github:environment:create` Scaffolder action that creates a Github Environment.
@@ -32,8 +35,10 @@ import { examples } from './gitHubEnvironment.examples';
  */
 export function createGithubEnvironmentAction(options: {
   integrations: ScmIntegrationRegistry;
+  catalogClient?: CatalogApi;
+  auth?: AuthService;
 }) {
-  const { integrations } = options;
+  const { integrations, catalogClient, auth } = options;
   // For more information on how to define custom actions, see
   //   https://backstage.io/docs/features/software-templates/writing-custom-actions
   return createTemplateAction<{
@@ -44,9 +49,13 @@ export function createGithubEnvironmentAction(options: {
       custom_branch_policies: boolean;
     };
     customBranchPolicyNames?: string[];
+    customTagPolicyNames?: string[];
     environmentVariables?: { [key: string]: string };
     secrets?: { [key: string]: string };
     token?: string;
+    waitTimer?: number;
+    preventSelfReview?: boolean;
+    reviewers?: string[];
   }>({
     id: 'github:environment:create',
     description: 'Creates Deployment Environments',
@@ -94,6 +103,16 @@ export function createGithubEnvironmentAction(options: {
               type: 'string',
             },
           },
+          customTagPolicyNames: {
+            title: 'Custom Tag Policy Name',
+            description: `The name pattern that tags must match in order to deploy to the environment.
+
+            Wildcard characters will not match /. For example, to match tags that begin with release/ and contain an additional single slash, use release/*/*. For more information about pattern matching syntax, see the Ruby File.fnmatch documentation.`,
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
           environmentVariables: {
             title: 'Environment Variables',
             description: `Environment variables attached to the deployment environment`,
@@ -109,6 +128,26 @@ export function createGithubEnvironmentAction(options: {
             type: 'string',
             description: 'The token to use for authorization to GitHub',
           },
+          waitTimer: {
+            title: 'Wait Timer',
+            type: 'integer',
+            description:
+              'The time to wait before creating or updating the environment (in milliseconds)',
+          },
+          preventSelfReview: {
+            title: 'Prevent Self Review',
+            type: 'boolean',
+            description: 'Whether to prevent self-review for this environment',
+          },
+          reviewers: {
+            title: 'Reviewers',
+            type: 'array',
+            description:
+              'Reviewers for this environment. Must be a list of Backstage entity references.',
+            items: {
+              type: 'string',
+            },
+          },
         },
       },
     },
@@ -118,10 +157,23 @@ export function createGithubEnvironmentAction(options: {
         name,
         deploymentBranchPolicy,
         customBranchPolicyNames,
+        customTagPolicyNames,
         environmentVariables,
         secrets,
         token: providedToken,
+        waitTimer,
+        preventSelfReview,
+        reviewers,
       } = ctx.input;
+
+      const { token } = (await auth?.getPluginRequestToken({
+        onBehalfOf: await ctx.getInitiatorCredentials(),
+        targetPluginId: 'catalog',
+      })) ?? { token: ctx.secrets?.backstageToken };
+
+      // When environment creation step is executed right after a repo publish step, the repository might not be available immediately.
+      // Add a 2-second delay before initiating the steps in this action.
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       const octokitOptions = await getOctokitOptions({
         integrations,
@@ -141,11 +193,61 @@ export function createGithubEnvironmentAction(options: {
         repo: repo,
       });
 
+      // convert reviewers from catalog entity to Github user or team
+      const githubReviewers: { type: 'User' | 'Team'; id: number }[] = [];
+      if (reviewers) {
+        let reviewersEntityRefs: Array<Entity | undefined> = [];
+        // Fetch reviewers from Catalog
+        const catalogResponse = await catalogClient?.getEntitiesByRefs(
+          {
+            entityRefs: reviewers,
+          },
+          {
+            token,
+          },
+        );
+        if (catalogResponse?.items?.length) {
+          reviewersEntityRefs = catalogResponse.items;
+        }
+
+        for (const reviewerEntityRef of reviewersEntityRefs) {
+          if (reviewerEntityRef?.kind === 'User') {
+            try {
+              const user = await client.rest.users.getByUsername({
+                username: reviewerEntityRef.metadata.name,
+              });
+              githubReviewers.push({
+                type: 'User',
+                id: user.data.id,
+              });
+            } catch (error) {
+              ctx.logger.error('User not found:', error);
+            }
+          } else if (reviewerEntityRef?.kind === 'Group') {
+            try {
+              const team = await client.rest.teams.getByName({
+                org: owner,
+                team_slug: reviewerEntityRef.metadata.name,
+              });
+              githubReviewers.push({
+                type: 'Team',
+                id: team.data.id,
+              });
+            } catch (error) {
+              ctx.logger.error('Team not found:', error);
+            }
+          }
+        }
+      }
+
       await client.rest.repos.createOrUpdateEnvironment({
         owner: owner,
         repo: repo,
         environment_name: name,
         deployment_branch_policy: deploymentBranchPolicy ?? null,
+        wait_timer: waitTimer ?? 0,
+        prevent_self_review: preventSelfReview ?? false,
+        reviewers: githubReviewers.length ? githubReviewers : null,
       });
 
       if (customBranchPolicyNames) {
@@ -153,6 +255,19 @@ export function createGithubEnvironmentAction(options: {
           await client.rest.repos.createDeploymentBranchPolicy({
             owner: owner,
             repo: repo,
+            type: 'branch',
+            environment_name: name,
+            name: item,
+          });
+        }
+      }
+
+      if (customTagPolicyNames) {
+        for (const item of customTagPolicyNames) {
+          await client.rest.repos.createDeploymentBranchPolicy({
+            owner: owner,
+            repo: repo,
+            type: 'tag',
             environment_name: name,
             name: item,
           });
@@ -162,6 +277,8 @@ export function createGithubEnvironmentAction(options: {
       for (const [key, value] of Object.entries(environmentVariables ?? {})) {
         await client.rest.actions.createEnvironmentVariable({
           repository_id: repository.data.id,
+          owner: owner,
+          repo: repo,
           environment_name: name,
           name: key,
           value,
@@ -172,6 +289,8 @@ export function createGithubEnvironmentAction(options: {
         const publicKeyResponse =
           await client.rest.actions.getEnvironmentPublicKey({
             repository_id: repository.data.id,
+            owner: owner,
+            repo: repo,
             environment_name: name,
           });
 
@@ -193,6 +312,8 @@ export function createGithubEnvironmentAction(options: {
 
           await client.rest.actions.createOrUpdateEnvironmentSecret({
             repository_id: repository.data.id,
+            owner: owner,
+            repo: repo,
             environment_name: name,
             secret_name: key,
             encrypted_value: encryptedBase64Secret,

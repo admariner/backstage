@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import { getVoidLogger } from '@backstage/backend-common';
 import { ConfigReader } from '@backstage/config';
 import { ScmIntegrations } from '@backstage/integration';
-import { createMockDirectory } from '@backstage/backend-test-utils';
+import {
+  createMockDirectory,
+  mockServices,
+} from '@backstage/backend-test-utils';
 import fs from 'fs-extra';
 import path, { resolve as resolvePath } from 'path';
 import { ParsedLocationAnnotation } from '../../helpers';
@@ -81,10 +83,16 @@ const mkdocsYmlWithoutPlugins = fs.readFileSync(
 const mkdocsYmlWithAdditionalPlugins = fs.readFileSync(
   resolvePath(__filename, '../__fixtures__/mkdocs_with_additional_plugins.yml'),
 );
+const mkdocsYmlWithAdditionalPluginsWithConfig = fs.readFileSync(
+  resolvePath(
+    __filename,
+    '../__fixtures__/mkdocs_with_additional_plugins_with_config.yml',
+  ),
+);
 const mkdocsYmlWithEnvTag = fs.readFileSync(
   resolvePath(__filename, '../__fixtures__/mkdocs_with_env_tag.yml'),
 );
-const mockLogger = getVoidLogger();
+const mockLogger = mockServices.logger.mock();
 const warn = jest.spyOn(mockLogger, 'warn');
 
 const scmIntegrations = ScmIntegrations.fromConfig(new ConfigReader({}));
@@ -106,6 +114,7 @@ describe('helpers', () => {
       url                                                                        | repo_url                                                                   | edit_uri
       ${'https://github.com/backstage/backstage'}                                | ${'https://github.com/backstage/backstage'}                                | ${undefined}
       ${'https://github.com/backstage/backstage/tree/main/examples/techdocs/'}   | ${'https://github.com/backstage/backstage/tree/main/examples/techdocs/'}   | ${'https://github.com/backstage/backstage/edit/main/examples/techdocs/docs'}
+      ${'https://github.com/backstage/backstage/tree/main/examples/techdocs'}    | ${'https://github.com/backstage/backstage/tree/main/examples/techdocs'}    | ${'https://github.com/backstage/backstage/edit/main/examples/techdocs/docs'}
       ${'https://github.com/backstage/backstage/tree/main/'}                     | ${'https://github.com/backstage/backstage/tree/main/'}                     | ${'https://github.com/backstage/backstage/edit/main/docs'}
       ${'https://gitlab.com/backstage/backstage'}                                | ${'https://gitlab.com/backstage/backstage'}                                | ${undefined}
       ${'https://gitlab.com/backstage/backstage/-/blob/main/examples/techdocs/'} | ${'https://gitlab.com/backstage/backstage/-/blob/main/examples/techdocs/'} | ${'https://gitlab.com/backstage/backstage/-/edit/main/examples/techdocs/docs'}
@@ -238,6 +247,10 @@ describe('helpers', () => {
       expect(updatedMkdocsYml.toString()).toContain(
         "emoji_index: !!python/name:materialx.emoji.twemoji ''",
       );
+      expect(updatedMkdocsYml.toString()).toContain(
+        'slugify: !!python/object/apply:pymdownx.slugs.slugify',
+      );
+      expect(updatedMkdocsYml.toString()).toContain('case: lower');
     });
 
     it('should not override existing repo_url in mkdocs.yml', async () => {
@@ -286,7 +299,32 @@ describe('helpers', () => {
         'edit_uri: https://github.com/backstage/backstage/edit/main/docs',
       );
       expect(updatedMkdocsYml.toString()).not.toContain(
-        'https://github.com/neworg/newrepo',
+        'edit_uri: https://github.com/neworg/newrepo',
+      );
+    });
+
+    it('should add edit_uri to mkdocs.yml with existing repo_url', async () => {
+      const parsedLocationAnnotation: ParsedLocationAnnotation = {
+        type: 'url',
+        target: 'https://github.com/neworg/newrepo/tree/main/',
+      };
+
+      await patchMkdocsYmlPreBuild(
+        mockDir.resolve('mkdocs_with_repo_url.yml'),
+        mockLogger,
+        parsedLocationAnnotation,
+        scmIntegrations,
+      );
+
+      const updatedMkdocsYml = await fs.readFile(
+        mockDir.resolve('mkdocs_with_repo_url.yml'),
+      );
+
+      expect(updatedMkdocsYml.toString()).toContain(
+        'edit_uri: https://github.com/neworg/newrepo/edit/main/docs',
+      );
+      expect(updatedMkdocsYml.toString()).toContain(
+        'repo_url: https://github.com/backstage/backstage',
       );
     });
 
@@ -321,6 +359,8 @@ describe('helpers', () => {
         'mkdocs_with_techdocs_plugin.yml': mkdocsYmlWithTechdocsPlugins,
         'mkdocs_without_plugins.yml': mkdocsYmlWithoutPlugins,
         'mkdocs_with_additional_plugins.yml': mkdocsYmlWithAdditionalPlugins,
+        'mkdocs_with_additional_plugins_with_config.yml':
+          mkdocsYmlWithAdditionalPluginsWithConfig,
       });
     });
     it('should not add additional plugins if techdocs exists already in mkdocs file', async () => {
@@ -385,6 +425,28 @@ describe('helpers', () => {
       expect(parsedYml.plugins).toHaveLength(4);
       expect(parsedYml.plugins).toContain('techdocs-core');
       expect(parsedYml.plugins).toContain('custom-plugin');
+    });
+    it('should not overwrite config when defaults are added', async () => {
+      await patchMkdocsYmlWithPlugins(
+        mockDir.resolve('mkdocs_with_additional_plugins_with_config.yml'),
+        mockLogger,
+        ['techdocs-core', 'custom-plugin'],
+      );
+
+      const updatedMkdocsYml = await fs.readFile(
+        mockDir.resolve('mkdocs_with_additional_plugins_with_config.yml'),
+      );
+      const parsedYml = yaml.load(updatedMkdocsYml.toString()) as {
+        plugins: object[];
+      };
+      expect(parsedYml.plugins).toHaveLength(4);
+      expect(parsedYml.plugins).toContain('techdocs-core');
+      // we want our original object with its properties to be preserved, and for the basic string form of the plugin
+      // to NOT be added as well.
+      expect(parsedYml.plugins).not.toContain('custom-plugin');
+      expect(parsedYml.plugins).toContainEqual({
+        'custom-plugin': { with: { configuration: 1 } },
+      });
     });
   });
 

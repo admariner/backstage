@@ -19,7 +19,11 @@ The diagram below provides an overview of the different building blocks, and the
 
 ![backend system building blocks diagram](../../assets/backend-system/architecture-building-blocks.drawio.svg)
 
-> NOTE: These are all concepts that existed in our old backend system in one way or another, but they have now all been lifted up to be first class concerns.
+:::note Note
+
+These are all concepts that existed in our old backend system in one way or another, but they have now all been lifted up to be first class concerns.
+
+:::
 
 ### Backend
 
@@ -56,8 +60,7 @@ Just like plugins, modules also have access to services and can depend on their 
 ## Package structure
 
 A detailed explanation of the package architecture can be found in the
-[Backstage Architecture
-Overview](../../overview/architecture-overview.md#package-architecture). The
+[Backstage Architecture Overview](../../overview/architecture-overview.md#package-architecture). The
 most important packages to consider for this system are the following:
 
 - `plugin-<pluginId>-backend` houses the implementation of the backend plugins

@@ -26,6 +26,14 @@ import {
 import { backendModule } from './backendModule';
 import { createMockDirectory } from '@backstage/backend-test-utils';
 
+const backendIndexTsContent = `
+import { createBackend } from '@backstage/backend-defaults';
+
+const backend = createBackend();
+
+backend.start();
+`;
+
 describe('backendModule factory', () => {
   const mockDir = createMockDirectory();
 
@@ -44,6 +52,9 @@ describe('backendModule factory', () => {
       packages: {
         backend: {
           'package.json': JSON.stringify({}),
+          src: {
+            'index.ts': backendIndexTsContent,
+          },
         },
       },
       plugins: {},
@@ -68,6 +79,7 @@ describe('backendModule factory', () => {
         modified = true;
       },
       createTemporaryDirectory: () => fs.mkdtemp('test'),
+      license: 'Apache-2.0',
     });
 
     expect(modified).toBe(true);
@@ -78,7 +90,7 @@ describe('backendModule factory', () => {
       `availability  plugins${sep}test-backend-module-tester-two`,
       'creating      temp dir',
       'Executing Template:',
-      'copying       .eslintrc.js',
+      'templating    .eslintrc.js.hbs',
       'templating    README.md.hbs',
       'templating    package.json.hbs',
       'templating    index.ts.hbs',
@@ -86,7 +98,19 @@ describe('backendModule factory', () => {
       'Installing:',
       `moving        plugins${sep}test-backend-module-tester-two`,
       'backend       adding dependency',
+      'backend       adding module',
     ]);
+
+    await expect(
+      fs.readFile(mockDir.resolve('packages/backend/src/index.ts'), 'utf8'),
+    ).resolves.toBe(`
+import { createBackend } from '@backstage/backend-defaults';
+
+const backend = createBackend();
+
+backend.add(import('backstage-plugin-test-backend-module-tester-two'));
+backend.start();
+`);
 
     await expect(
       fs.readJson(mockDir.resolve('packages/backend/package.json')),

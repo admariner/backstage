@@ -10,7 +10,7 @@ Plugins provide the actual base features of a Backstage backend. Each plugin ope
 
 ## Defining a Plugin
 
-Plugins are created using the `createBackendPlugin` function, and should typically be exported from a plugin package. All plugins must have an ID and a `register` method, where the ID matches the plugin ID in the package name, without the `-backend` suffix. See also the [dedicated section](./07-naming-patterns.md) about proper naming patterns.
+Plugins are created using the `createBackendPlugin` function, and should typically be exported from a plugin package. All plugins must have an ID and a `register` method, where the ID matches the plugin ID in the package name, without the `-backend` suffix. See also the [dedicated section](./08-naming-patterns.md) about proper naming patterns.
 
 ```ts
 // plugins/example-backend/src/plugin.ts
@@ -41,7 +41,7 @@ The `createBackendPlugin` return value is exported as `examplePlugin`, which is 
 ```ts
 import { examplePlugin } from 'backstage-plugin-example-backend';
 
-backend.add(examplePlugin());
+backend.add(examplePlugin);
 ```
 
 By convention every plugin package should export its plugin instance as the default export from the package:
@@ -78,4 +78,4 @@ Plugins must always be designed to be horizontally scalable. This means that you
 
 ### Isolated
 
-Plugins must never communicate with each other directly through code, they may only communicate over the network. Plugins that wish to expose an external interface for other plugins and modules to use are recommended to do so through a [node-library](../../local-dev/cli-build-system.md#package-roles) package. The library should export an API client service to make calls to your plugin, or similar construct.
+Plugins must never communicate with each other directly through code, they may only communicate over the network. Plugins that wish to expose an external interface for other plugins and modules to use are recommended to do so through a [node-library](../../tooling/cli/02-build-system.md#package-roles) package. The library should export an API client service to make calls to your plugin, or similar construct.

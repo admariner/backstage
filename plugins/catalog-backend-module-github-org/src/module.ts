@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import { loggerToWinstonLogger } from '@backstage/backend-common';
 import {
   coreServices,
   createBackendModule,
   createExtensionPoint,
+  SchedulerServiceTaskScheduleDefinition,
+  readSchedulerServiceTaskScheduleDefinitionFromConfig,
 } from '@backstage/backend-plugin-api';
-import {
-  readTaskScheduleDefinitionFromConfig,
-  TaskScheduleDefinition,
-} from '@backstage/backend-tasks';
 import { Config } from '@backstage/config';
 import {
   GithubMultiOrgEntityProvider,
@@ -31,6 +28,8 @@ import {
   UserTransformer,
 } from '@backstage/plugin-catalog-backend-module-github';
 import { catalogProcessingExtensionPoint } from '@backstage/plugin-catalog-node/alpha';
+import { eventsServiceRef } from '@backstage/plugin-events-node';
+import { GithubOrgEntityCleanerProvider } from './GithubOrgEntityCleanerProvider';
 
 /**
  * Interface for {@link githubOrgEntityProviderTransformsExtensionPoint}.
@@ -95,22 +94,32 @@ export const catalogModuleGithubOrgEntityProvider = createBackendModule({
       deps: {
         catalog: catalogProcessingExtensionPoint,
         config: coreServices.rootConfig,
+        events: eventsServiceRef,
         logger: coreServices.logger,
         scheduler: coreServices.scheduler,
       },
-      async init({ catalog, config, logger, scheduler }) {
-        for (const definition of readDefinitionsFromConfig(config)) {
+
+      async init({ catalog, config, events, logger, scheduler }) {
+        const definitions = readDefinitionsFromConfig(config);
+
+        for (const definition of definitions) {
+          catalog.addEntityProvider(
+            new GithubOrgEntityCleanerProvider({ id: definition.id, logger }),
+          );
           catalog.addEntityProvider(
             GithubMultiOrgEntityProvider.fromConfig(config, {
               id: definition.id,
               githubUrl: definition.githubUrl,
               orgs: definition.orgs,
+              events,
               schedule: scheduler.createScheduledTaskRunner(
                 definition.schedule,
               ),
-              logger: loggerToWinstonLogger(logger),
+              logger,
               userTransformer,
               teamTransformer,
+              alwaysUseDefaultNamespace:
+                definitions.length === 1 && definition.orgs?.length === 1,
             }),
           );
         }
@@ -123,7 +132,7 @@ function readDefinitionsFromConfig(rootConfig: Config): Array<{
   id: string;
   githubUrl: string;
   orgs?: string[];
-  schedule: TaskScheduleDefinition;
+  schedule: SchedulerServiceTaskScheduleDefinition;
 }> {
   const baseKey = 'catalog.providers.githubOrg';
   const baseConfig = rootConfig.getOptional(baseKey);
@@ -139,6 +148,8 @@ function readDefinitionsFromConfig(rootConfig: Config): Array<{
     id: c.getString('id'),
     githubUrl: c.getString('githubUrl'),
     orgs: c.getOptionalStringArray('orgs'),
-    schedule: readTaskScheduleDefinitionFromConfig(c.getConfig('schedule')),
+    schedule: readSchedulerServiceTaskScheduleDefinitionFromConfig(
+      c.getConfig('schedule'),
+    ),
   }));
 }

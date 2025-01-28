@@ -19,16 +19,13 @@ import {
   GetEntitiesResponse,
 } from '@backstage/catalog-client';
 import { Entity, GroupEntity, UserEntity } from '@backstage/catalog-model';
-import {
-  CatalogApi,
-  catalogApiRef,
-  EntityProvider,
-} from '@backstage/plugin-catalog-react';
+import { catalogApiRef, EntityProvider } from '@backstage/plugin-catalog-react';
 import { renderInTestApp, TestApiProvider } from '@backstage/test-utils';
 import { queryByText } from '@testing-library/react';
 import React from 'react';
 import { catalogIndexRouteRef } from '../../../routes';
 import { OwnershipCard } from './OwnershipCard';
+import { catalogApiMock } from '@backstage/plugin-catalog-react/testUtils';
 
 const items = [
   {
@@ -120,19 +117,6 @@ const getEntitiesMock = (
   } as GetEntitiesResponse);
 };
 
-// Mock needed because jsdom doesn't correctly implement box-sizing
-// https://github.com/ShinyChang/React-Text-Truncate/issues/70
-// https://stackoverflow.com/questions/71916701/how-to-mock-a-react-function-component-that-takes-a-ref-prop
-jest.mock('react-text-truncate', () => {
-  const { forwardRef } = jest.requireActual('react');
-  return {
-    __esModule: true,
-    default: forwardRef((props: any, ref: any) => (
-      <div ref={ref}>{props.text}</div>
-    )),
-  };
-});
-
 describe('OwnershipCard', () => {
   const groupEntity: GroupEntity = {
     apiVersion: 'backstage.io/v1alpha1',
@@ -174,11 +158,7 @@ describe('OwnershipCard', () => {
   };
 
   it('displays entity counts', async () => {
-    const catalogApi: jest.Mocked<CatalogApi> = {
-      getEntities: jest.fn(),
-    } as any;
-
-    catalogApi.getEntities.mockImplementation(getEntitiesMock);
+    const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
     const { getByText } = await renderInTestApp(
       <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
@@ -228,11 +208,7 @@ describe('OwnershipCard', () => {
   });
 
   it('applies CustomFilterDefinition', async () => {
-    const catalogApi: jest.Mocked<CatalogApi> = {
-      getEntities: jest.fn(),
-    } as any;
-
-    catalogApi.getEntities.mockImplementation(getEntitiesMock);
+    const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
     const { getByText } = await renderInTestApp(
       <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
@@ -265,11 +241,7 @@ describe('OwnershipCard', () => {
   });
 
   it('links to the catalog with the group filter', async () => {
-    const catalogApi: jest.Mocked<CatalogApi> = {
-      getEntities: jest.fn(),
-    } as any;
-
-    catalogApi.getEntities.mockImplementation(getEntitiesMock);
+    const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
     const { getByText } = await renderInTestApp(
       <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
@@ -292,16 +264,12 @@ describe('OwnershipCard', () => {
   });
 
   it('links to the catalog with the user and groups filters from an user profile', async () => {
-    const catalogApi: jest.Mocked<CatalogApi> = {
-      getEntities: jest.fn(),
-    } as any;
-
-    catalogApi.getEntities.mockImplementation(getEntitiesMock);
+    const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
     const { getByText } = await renderInTestApp(
       <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
         <EntityProvider entity={userEntity}>
-          <OwnershipCard relationsType="aggregated" />
+          <OwnershipCard relationAggregation="aggregated" />
         </EntityProvider>
       </TestApiProvider>,
       {
@@ -321,11 +289,7 @@ describe('OwnershipCard', () => {
 
   describe('OwnershipCard relations', () => {
     it('shows relations toggle', async () => {
-      const catalogApi: jest.Mocked<CatalogApi> = {
-        getEntities: jest.fn(),
-      } as any;
-
-      catalogApi.getEntities.mockImplementation(getEntitiesMock);
+      const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
       const { getByTitle } = await renderInTestApp(
         <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
@@ -344,11 +308,7 @@ describe('OwnershipCard', () => {
     });
 
     it('hides relations toggle', async () => {
-      const catalogApi: jest.Mocked<CatalogApi> = {
-        getEntities: jest.fn(),
-      } as any;
-
-      catalogApi.getEntities.mockImplementation(getEntitiesMock);
+      const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
       const rendered = await renderInTestApp(
         <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
@@ -365,12 +325,9 @@ describe('OwnershipCard', () => {
 
       expect(rendered.queryByText('Direct Relations')).toBeNull();
     });
-    it('overrides relation type', async () => {
-      const catalogApi: jest.Mocked<CatalogApi> = {
-        getEntities: jest.fn(),
-      } as any;
 
-      catalogApi.getEntities.mockImplementation(getEntitiesMock);
+    it('overrides relation type', async () => {
+      const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
       const { getByTitle } = await renderInTestApp(
         <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
@@ -389,11 +346,7 @@ describe('OwnershipCard', () => {
     });
 
     it('defaults to aggregated for User entity kind', async () => {
-      const catalogApi: jest.Mocked<CatalogApi> = {
-        getEntities: jest.fn(),
-      } as any;
-
-      catalogApi.getEntities.mockImplementation(getEntitiesMock);
+      const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
       const { getByLabelText } = await renderInTestApp(
         <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
@@ -412,11 +365,7 @@ describe('OwnershipCard', () => {
     });
 
     it('defaults to direct for all entity kinds except User', async () => {
-      const catalogApi: jest.Mocked<CatalogApi> = {
-        getEntities: jest.fn(),
-      } as any;
-
-      catalogApi.getEntities.mockImplementation(getEntitiesMock);
+      const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
       const { getByLabelText } = await renderInTestApp(
         <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>
@@ -435,11 +384,7 @@ describe('OwnershipCard', () => {
     });
 
     it('defaults to provided relationsType', async () => {
-      const catalogApi: jest.Mocked<CatalogApi> = {
-        getEntities: jest.fn(),
-      } as any;
-
-      catalogApi.getEntities.mockImplementation(getEntitiesMock);
+      const catalogApi = catalogApiMock.mock({ getEntities: getEntitiesMock });
 
       const { getByLabelText } = await renderInTestApp(
         <TestApiProvider apis={[[catalogApiRef, catalogApi]]}>

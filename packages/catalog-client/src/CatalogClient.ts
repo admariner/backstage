@@ -15,35 +15,34 @@
  */
 
 import {
-  Entity,
   CompoundEntityRef,
+  Entity,
   parseEntityRef,
-  stringifyEntityRef,
   stringifyLocationRef,
 } from '@backstage/catalog-model';
 import { ResponseError } from '@backstage/errors';
 import {
-  CATALOG_FILTER_EXISTS,
   AddLocationRequest,
   AddLocationResponse,
+  CATALOG_FILTER_EXISTS,
   CatalogApi,
-  GetEntitiesRequest,
-  GetEntitiesResponse,
   CatalogRequestOptions,
-  GetEntityAncestorsRequest,
-  GetEntityAncestorsResponse,
-  Location,
-  GetEntityFacetsRequest,
-  GetEntityFacetsResponse,
-  ValidateEntityResponse,
+  EntityFilterQuery,
   GetEntitiesByRefsRequest,
   GetEntitiesByRefsResponse,
+  GetEntitiesRequest,
+  GetEntitiesResponse,
+  GetEntityAncestorsRequest,
+  GetEntityAncestorsResponse,
+  GetEntityFacetsRequest,
+  GetEntityFacetsResponse,
+  Location,
   QueryEntitiesRequest,
-  EntityFilterQuery,
   QueryEntitiesResponse,
+  ValidateEntityResponse,
 } from './types/api';
-import { isQueryEntitiesInitialRequest } from './utils';
-import { DefaultApiClient, TypedResponse } from './generated';
+import { isQueryEntitiesInitialRequest, splitRefsIntoChunks } from './utils';
+import { DefaultApiClient, TypedResponse } from './schema/openapi';
 
 /**
  * A frontend and backend compatible client for communicating with the Backstage
@@ -89,6 +88,21 @@ export class CatalogClient implements CatalogApi {
   }
 
   /**
+   * {@inheritdoc CatalogApi.getLocationByEntity}
+   */
+  async getLocationByEntity(
+    entityRef: CompoundEntityRef | string,
+    options?: CatalogRequestOptions,
+  ): Promise<Location | undefined> {
+    return await this.requestOptional(
+      await this.apiClient.getLocationByEntity(
+        { path: parseEntityRef(entityRef) },
+        options,
+      ),
+    );
+  }
+
+  /**
    * {@inheritdoc CatalogApi.getEntities}
    */
   async getEntities(
@@ -127,30 +141,7 @@ export class CatalogClient implements CatalogApi {
         options,
       ),
     );
-
-    const refCompare = (a: Entity, b: Entity) => {
-      // in case field filtering is used, these fields might not be part of the response
-      if (
-        a.metadata?.name === undefined ||
-        a.kind === undefined ||
-        b.metadata?.name === undefined ||
-        b.kind === undefined
-      ) {
-        return 0;
-      }
-
-      const aRef = stringifyEntityRef(a);
-      const bRef = stringifyEntityRef(b);
-      if (aRef < bRef) {
-        return -1;
-      }
-      if (aRef > bRef) {
-        return 1;
-      }
-      return 0;
-    };
-
-    return { items: entities.sort(refCompare) };
+    return { items: entities };
   }
 
   /**
@@ -160,22 +151,34 @@ export class CatalogClient implements CatalogApi {
     request: GetEntitiesByRefsRequest,
     options?: CatalogRequestOptions,
   ): Promise<GetEntitiesByRefsResponse> {
-    const response = await this.apiClient.getEntitiesByRefs(
-      {
-        body: request,
-      },
-      options,
-    );
-
-    if (!response.ok) {
-      throw await ResponseError.fromResponse(response);
-    }
-
-    const { items } = (await response.json()) as {
-      items: Array<Entity | null>;
+    const getOneChunk = async (refs: string[]) => {
+      const response = await this.apiClient.getEntitiesByRefs(
+        {
+          body: { entityRefs: refs, fields: request.fields },
+          query: { filter: this.getFilterValue(request.filter) },
+        },
+        options,
+      );
+      if (!response.ok) {
+        throw await ResponseError.fromResponse(response);
+      }
+      const body = (await response.json()) as {
+        items: Array<Entity | null>;
+      };
+      return body.items.map(i => i ?? undefined);
     };
 
-    return { items: items.map(i => i ?? undefined) };
+    let result: Array<Entity | undefined> | undefined;
+    for (const refs of splitRefsIntoChunks(request.entityRefs)) {
+      const entities = await getOneChunk(refs);
+      if (!result) {
+        result = entities;
+      } else {
+        result.push(...entities);
+      }
+    }
+
+    return { items: result ?? [] };
   }
 
   /**
@@ -194,6 +197,7 @@ export class CatalogClient implements CatalogApi {
         fields = [],
         filter,
         limit,
+        offset,
         orderFields,
         fullTextFilter,
       } = request;
@@ -201,6 +205,9 @@ export class CatalogClient implements CatalogApi {
 
       if (limit !== undefined) {
         params.limit = limit;
+      }
+      if (offset !== undefined) {
+        params.offset = offset;
       }
       if (orderFields !== undefined) {
         params.orderField = (
@@ -230,9 +237,9 @@ export class CatalogClient implements CatalogApi {
       }
     }
 
-    return this.apiClient
-      .getEntitiesByQuery({ query: params }, options)
-      .then(r => r.json());
+    return this.requestRequired(
+      await this.apiClient.getEntitiesByQuery({ query: params }, options),
+    );
   }
 
   /**

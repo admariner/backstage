@@ -1,5 +1,1285 @@
 # @backstage/plugin-catalog
 
+## 1.26.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-search-react@1.8.6-next.0
+  - @backstage/frontend-plugin-api@0.9.5-next.0
+  - @backstage/catalog-client@1.9.1
+  - @backstage/catalog-model@1.7.3
+  - @backstage/core-compat-api@0.3.6-next.0
+  - @backstage/core-components@0.16.3
+  - @backstage/core-plugin-api@1.10.3
+  - @backstage/errors@1.2.7
+  - @backstage/integration-react@1.2.3
+  - @backstage/types@1.2.1
+  - @backstage/plugin-catalog-common@1.1.3
+  - @backstage/plugin-catalog-react@1.15.2-next.0
+  - @backstage/plugin-permission-react@0.4.30
+  - @backstage/plugin-scaffolder-common@1.5.9
+  - @backstage/plugin-search-common@1.2.17
+
+## 1.26.1
+
+### Patch Changes
+
+- 208e53b: Fixing spelling mistake in translation
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.15.1
+  - @backstage/frontend-plugin-api@0.9.4
+  - @backstage/core-plugin-api@1.10.3
+  - @backstage/types@1.2.1
+  - @backstage/core-components@0.16.3
+  - @backstage/catalog-client@1.9.1
+  - @backstage/catalog-model@1.7.3
+  - @backstage/core-compat-api@0.3.5
+  - @backstage/errors@1.2.7
+  - @backstage/integration-react@1.2.3
+  - @backstage/plugin-catalog-common@1.1.3
+  - @backstage/plugin-permission-react@0.4.30
+  - @backstage/plugin-scaffolder-common@1.5.9
+  - @backstage/plugin-search-common@1.2.17
+  - @backstage/plugin-search-react@1.8.5
+
+## 1.26.1-next.1
+
+### Patch Changes
+
+- 208e53b: Fixing spelling mistake in translation
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.9.4-next.0
+  - @backstage/core-plugin-api@1.10.3-next.0
+  - @backstage/types@1.2.1-next.0
+  - @backstage/core-compat-api@0.3.5-next.0
+  - @backstage/plugin-catalog-react@1.15.1-next.1
+  - @backstage/plugin-search-react@1.8.5-next.0
+  - @backstage/core-components@0.16.3-next.0
+  - @backstage/integration-react@1.2.3-next.0
+  - @backstage/plugin-permission-react@0.4.30-next.0
+  - @backstage/catalog-model@1.7.3-next.0
+  - @backstage/errors@1.2.7-next.0
+  - @backstage/plugin-scaffolder-common@1.5.9-next.0
+  - @backstage/plugin-search-common@1.2.17-next.0
+  - @backstage/catalog-client@1.9.1-next.0
+  - @backstage/plugin-catalog-common@1.1.3-next.0
+
+## 1.26.1-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.15.1-next.0
+  - @backstage/integration-react@1.2.2
+  - @backstage/core-compat-api@0.3.4
+
+## 1.26.0
+
+### Minor Changes
+
+- 25beb82: Adds an optional columns attribute to HasSubdomainsCardProps and changes its default columns
+- 39f1abc: Consistent title behaviour across CatalogTable, CursorPaginatedCatalogTable, and OffsetPaginatedCatalogTable.
+- 1ffb9f3: Update `CatalogTable` title to use properly capitalized Kind facets (e.g. 'Component' instead of 'component')
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.15.0
+  - @backstage/plugin-scaffolder-common@1.5.8
+  - @backstage/plugin-search-react@1.8.4
+  - @backstage/catalog-client@1.9.0
+  - @backstage/core-compat-api@0.3.4
+  - @backstage/frontend-plugin-api@0.9.3
+  - @backstage/core-components@0.16.2
+  - @backstage/errors@1.2.6
+  - @backstage/catalog-model@1.7.2
+  - @backstage/core-plugin-api@1.10.2
+  - @backstage/integration-react@1.2.2
+  - @backstage/types@1.2.0
+  - @backstage/plugin-catalog-common@1.1.2
+  - @backstage/plugin-permission-react@0.4.29
+  - @backstage/plugin-search-common@1.2.16
+
+## 1.26.0-next.2
+
+### Minor Changes
+
+- 25beb82: Adds an optional columns attribute to HasSubdomainsCardProps and changes its default columns
+- 39f1abc: Consistent title behaviour across CatalogTable, CursorPaginatedCatalogTable, and OffsetPaginatedCatalogTable.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-compat-api@0.3.4-next.2
+  - @backstage/plugin-catalog-react@1.14.3-next.2
+  - @backstage/errors@1.2.6-next.0
+  - @backstage/catalog-client@1.9.0-next.2
+  - @backstage/catalog-model@1.7.2-next.0
+  - @backstage/core-components@0.16.2-next.2
+  - @backstage/core-plugin-api@1.10.2-next.0
+  - @backstage/frontend-plugin-api@0.9.3-next.2
+  - @backstage/integration-react@1.2.2-next.1
+  - @backstage/types@1.2.0
+  - @backstage/plugin-catalog-common@1.1.2-next.0
+  - @backstage/plugin-permission-react@0.4.29-next.0
+  - @backstage/plugin-scaffolder-common@1.5.8-next.1
+  - @backstage/plugin-search-common@1.2.16-next.0
+  - @backstage/plugin-search-react@1.8.4-next.2
+
+## 1.25.2-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.14.3-next.1
+  - @backstage/catalog-client@1.9.0-next.1
+  - @backstage/core-components@0.16.2-next.1
+  - @backstage/catalog-model@1.7.1
+  - @backstage/core-compat-api@0.3.4-next.1
+  - @backstage/core-plugin-api@1.10.1
+  - @backstage/errors@1.2.5
+  - @backstage/frontend-plugin-api@0.9.3-next.1
+  - @backstage/integration-react@1.2.2-next.0
+  - @backstage/types@1.2.0
+  - @backstage/plugin-catalog-common@1.1.1
+  - @backstage/plugin-permission-react@0.4.28
+  - @backstage/plugin-scaffolder-common@1.5.8-next.0
+  - @backstage/plugin-search-common@1.2.15
+  - @backstage/plugin-search-react@1.8.4-next.1
+
+## 1.25.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-scaffolder-common@1.5.8-next.0
+  - @backstage/plugin-search-react@1.8.4-next.0
+  - @backstage/plugin-catalog-react@1.14.3-next.0
+  - @backstage/frontend-plugin-api@0.9.3-next.0
+  - @backstage/catalog-client@1.8.1-next.0
+  - @backstage/catalog-model@1.7.1
+  - @backstage/core-compat-api@0.3.4-next.0
+  - @backstage/core-components@0.16.2-next.0
+  - @backstage/core-plugin-api@1.10.1
+  - @backstage/errors@1.2.5
+  - @backstage/integration-react@1.2.2-next.0
+  - @backstage/types@1.2.0
+  - @backstage/plugin-catalog-common@1.1.1
+  - @backstage/plugin-permission-react@0.4.28
+  - @backstage/plugin-search-common@1.2.15
+
+## 1.25.0
+
+### Minor Changes
+
+- 50df3c8: - Updated EntityLayout component to implement breadcrumb navigation based on the entity relations.
+
+  - Added parentEntityRelations prop to EntityLayoutProps to specify relation types for parent entities.
+
+- 79e9631: Allow `OffsetPaginatedCatalogTable` to configure Table options and `CursorPaginatedCatalogTable` to configure `paginationPosition`.
+
+### Patch Changes
+
+- 2a67594: Fixed an issue causing the `CatalogIndexPage` to not properly filter results when using offset pagination.
+- Updated dependencies
+  - @backstage/catalog-client@1.8.0
+  - @backstage/types@1.2.0
+  - @backstage/plugin-catalog-react@1.14.1
+  - @backstage/plugin-scaffolder-common@1.5.7
+  - @backstage/core-components@0.16.0
+  - @backstage/catalog-model@1.7.1
+  - @backstage/core-compat-api@0.3.2
+  - @backstage/core-plugin-api@1.10.1
+  - @backstage/errors@1.2.5
+  - @backstage/frontend-plugin-api@0.9.1
+  - @backstage/integration-react@1.2.1
+  - @backstage/plugin-catalog-common@1.1.1
+  - @backstage/plugin-permission-react@0.4.28
+  - @backstage/plugin-search-common@1.2.15
+  - @backstage/plugin-search-react@1.8.2
+
+## 1.25.0-next.3
+
+### Minor Changes
+
+- 50df3c8: - Updated EntityLayout component to implement breadcrumb navigation based on the entity relations.
+
+  - Added parentEntityRelations prop to EntityLayoutProps to specify relation types for parent entities.
+
+- 79e9631: Allow `OffsetPaginatedCatalogTable` to configure Table options and `CursorPaginatedCatalogTable` to configure `paginationPosition`.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-scaffolder-common@1.5.7-next.0
+  - @backstage/core-components@0.16.0-next.2
+  - @backstage/plugin-catalog-react@1.14.1-next.3
+  - @backstage/core-compat-api@0.3.2-next.2
+  - @backstage/catalog-client@1.8.0-next.1
+  - @backstage/catalog-model@1.7.0
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.9.1-next.2
+  - @backstage/integration-react@1.2.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/plugin-permission-react@0.4.27
+  - @backstage/plugin-search-common@1.2.14
+  - @backstage/plugin-search-react@1.8.2-next.2
+
+## 1.24.1-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-client@1.8.0-next.1
+  - @backstage/plugin-catalog-react@1.14.1-next.2
+  - @backstage/catalog-model@1.7.0
+  - @backstage/core-compat-api@0.3.2-next.1
+  - @backstage/core-components@0.16.0-next.1
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.9.1-next.1
+  - @backstage/integration-react@1.2.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/plugin-permission-react@0.4.27
+  - @backstage/plugin-scaffolder-common@1.5.6
+  - @backstage/plugin-search-common@1.2.14
+  - @backstage/plugin-search-react@1.8.2-next.1
+
+## 1.24.1-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-client@1.8.0-next.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/core-compat-api@0.3.2-next.1
+  - @backstage/core-components@0.16.0-next.1
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.9.1-next.1
+  - @backstage/integration-react@1.2.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/plugin-catalog-react@1.14.1-next.1
+  - @backstage/plugin-permission-react@0.4.27
+  - @backstage/plugin-scaffolder-common@1.5.6
+  - @backstage/plugin-search-common@1.2.14
+  - @backstage/plugin-search-react@1.8.2-next.1
+
+## 1.24.1-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.16.0-next.0
+  - @backstage/catalog-client@1.8.0-next.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/core-compat-api@0.3.2-next.0
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.9.1-next.0
+  - @backstage/integration-react@1.2.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/plugin-catalog-react@1.14.1-next.0
+  - @backstage/plugin-permission-react@0.4.27
+  - @backstage/plugin-scaffolder-common@1.5.6
+  - @backstage/plugin-search-common@1.2.14
+  - @backstage/plugin-search-react@1.8.2-next.0
+
+## 1.24.0
+
+### Minor Changes
+
+- 71f9f0c: Updated default columns for location entities to remove description and tags from the catalog table view.
+- cec8e8c: Adding negation keyword for entity filtering
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+- 46b5a20: Empty states updated with external link icon for learn more links
+- Updated dependencies
+  - @backstage/core-components@0.15.1
+  - @backstage/frontend-plugin-api@0.9.0
+  - @backstage/integration-react@1.2.0
+  - @backstage/core-compat-api@0.3.1
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/plugin-permission-react@0.4.27
+  - @backstage/plugin-catalog-react@1.14.0
+  - @backstage/plugin-search-react@1.8.1
+  - @backstage/catalog-client@1.7.1
+  - @backstage/catalog-model@1.7.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/plugin-scaffolder-common@1.5.6
+  - @backstage/plugin-search-common@1.2.14
+
+## 1.24.0-next.2
+
+### Minor Changes
+
+- cec8e8c: Adding negation keyword for entity filtering
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.14.0-next.2
+  - @backstage/catalog-client@1.7.1-next.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/core-compat-api@0.3.1-next.2
+  - @backstage/core-components@0.15.1-next.2
+  - @backstage/core-plugin-api@1.10.0-next.1
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.9.0-next.2
+  - @backstage/integration-react@1.2.0-next.2
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/plugin-permission-react@0.4.27-next.1
+  - @backstage/plugin-scaffolder-common@1.5.6
+  - @backstage/plugin-search-common@1.2.14
+  - @backstage/plugin-search-react@1.8.1-next.2
+
+## 1.24.0-next.1
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+- Updated dependencies
+  - @backstage/core-components@0.15.1-next.1
+  - @backstage/frontend-plugin-api@0.9.0-next.1
+  - @backstage/integration-react@1.2.0-next.1
+  - @backstage/core-compat-api@0.3.1-next.1
+  - @backstage/core-plugin-api@1.10.0-next.1
+  - @backstage/plugin-permission-react@0.4.27-next.1
+  - @backstage/plugin-catalog-react@1.14.0-next.1
+  - @backstage/plugin-search-react@1.8.1-next.1
+  - @backstage/catalog-client@1.7.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/plugin-scaffolder-common@1.5.6
+  - @backstage/plugin-search-common@1.2.14
+
+## 1.24.0-next.0
+
+### Minor Changes
+
+- 71f9f0c: Updated default columns for location entities to remove description and tags from the catalog table view.
+
+### Patch Changes
+
+- 46b5a20: Empty states updated with external link icon for learn more links
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.9.0-next.0
+  - @backstage/core-compat-api@0.3.1-next.0
+  - @backstage/core-components@0.15.1-next.0
+  - @backstage/core-plugin-api@1.10.0-next.0
+  - @backstage/plugin-catalog-react@1.13.1-next.0
+  - @backstage/plugin-search-react@1.8.1-next.0
+  - @backstage/catalog-client@1.7.0
+  - @backstage/catalog-model@1.7.0
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.32-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/plugin-permission-react@0.4.27-next.0
+  - @backstage/plugin-scaffolder-common@1.5.6
+  - @backstage/plugin-search-common@1.2.14
+
+## 1.23.0
+
+### Minor Changes
+
+- 78475c3: Allow offset mode paging in entity list provider
+
+### Patch Changes
+
+- c891b69: Add `FavoriteToggle` in `core-components` to standardise favorite marking
+- fec8b57: Updated exports to use the new type parameters for extensions and extension blueprints.
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+- 5446061: The `/alpha` export no longer export extension creators for the new frontend system, existing usage should be switched to use the equivalent extension blueprint instead. For more information see the [new frontend system 1.30 migration documentation](https://backstage.io/docs/frontend-system/architecture/migrations#130).
+- 0ff53c8: Enable loading state for paginated catalog tables by passing `isLoading` prop
+- 180a45f: Entity presentation api now only fetches fields that are required to display entity title
+- a159180: Added missing items to `overridableComponents`
+- Updated dependencies
+  - @backstage/core-components@0.15.0
+  - @backstage/plugin-catalog-react@1.13.0
+  - @backstage/frontend-plugin-api@0.8.0
+  - @backstage/core-compat-api@0.3.0
+  - @backstage/plugin-search-react@1.8.0
+  - @backstage/integration-react@1.1.31
+  - @backstage/catalog-model@1.7.0
+  - @backstage/catalog-client@1.7.0
+  - @backstage/plugin-catalog-common@1.1.0
+  - @backstage/core-plugin-api@1.9.4
+  - @backstage/plugin-permission-react@0.4.26
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-scaffolder-common@1.5.6
+  - @backstage/plugin-search-common@1.2.14
+
+## 1.23.0-next.2
+
+### Minor Changes
+
+- 78475c3: Allow offset mode paging in entity list provider
+
+### Patch Changes
+
+- c891b69: Add `FavoriteToggle` in `core-components` to standardise favorite marking
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+- Updated dependencies
+  - @backstage/core-components@0.14.11-next.1
+  - @backstage/plugin-catalog-react@1.13.0-next.2
+  - @backstage/integration-react@1.1.31-next.0
+  - @backstage/catalog-client@1.7.0-next.1
+  - @backstage/plugin-search-react@1.8.0-next.2
+  - @backstage/core-compat-api@0.3.0-next.2
+  - @backstage/core-plugin-api@1.9.4-next.0
+  - @backstage/frontend-plugin-api@0.8.0-next.2
+  - @backstage/plugin-permission-react@0.4.26-next.0
+  - @backstage/catalog-model@1.6.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.26
+  - @backstage/plugin-scaffolder-common@1.5.5
+  - @backstage/plugin-search-common@1.2.14
+
+## 1.22.1-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.8.0-next.1
+  - @backstage/core-compat-api@0.3.0-next.1
+  - @backstage/catalog-client@1.6.7-next.0
+  - @backstage/core-components@0.14.11-next.0
+  - @backstage/plugin-catalog-react@1.12.4-next.1
+  - @backstage/catalog-model@1.6.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.30
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.26
+  - @backstage/plugin-permission-react@0.4.25
+  - @backstage/plugin-scaffolder-common@1.5.5
+  - @backstage/plugin-search-common@1.2.14
+  - @backstage/plugin-search-react@1.8.0-next.1
+
+## 1.22.1-next.0
+
+### Patch Changes
+
+- fec8b57: Updated exports to use the new type parameters for extensions and extension blueprints.
+- 5446061: The `/alpha` export no longer export extension creators for the new frontend system, existing usage should be switched to use the equivalent extension blueprint instead. For more information see the [new frontend system 1.30 migration documentation](https://backstage.io/docs/frontend-system/architecture/migrations#130).
+- 180a45f: Entity presentation api now only fetches fields that are required to display entity title
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.8.0-next.0
+  - @backstage/core-compat-api@0.2.9-next.0
+  - @backstage/plugin-catalog-react@1.12.4-next.0
+  - @backstage/plugin-search-react@1.8.0-next.0
+  - @backstage/catalog-client@1.6.6
+  - @backstage/catalog-model@1.6.0
+  - @backstage/core-components@0.14.10
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.30
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.26
+  - @backstage/plugin-permission-react@0.4.25
+  - @backstage/plugin-scaffolder-common@1.5.5
+  - @backstage/plugin-search-common@1.2.14
+
+## 1.22.0
+
+### Minor Changes
+
+- 6925dcb: Introduces the HasSubdomainsCard component that displays the subdomains of a given domain
+
+### Patch Changes
+
+- 496b8a9: Export `RelatedEntitiesCard` presets to be reused.
+- 604a504: The entity relation cards available for the new frontend system via `/alpha` now have more accurate and granular default filters.
+- 7bd27e1: Deprecate the old pattern of `create*Extension`, and replace it with the equivalent Blueprint implementation instead.
+- c7603e8: Deprecate the old pattern of `create*Extension`, and replace it with the equivalent Blueprint implementation instead
+- 6582799: Add `tableOptions` to all tables and additionally `title` to API tables.
+- 6349099: Added config input type to the extensions
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.7.0
+  - @backstage/plugin-catalog-react@1.12.3
+  - @backstage/plugin-search-react@1.7.14
+  - @backstage/core-components@0.14.10
+  - @backstage/core-compat-api@0.2.8
+  - @backstage/plugin-search-common@1.2.14
+  - @backstage/catalog-model@1.6.0
+  - @backstage/catalog-client@1.6.6
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.30
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.26
+  - @backstage/plugin-permission-react@0.4.25
+  - @backstage/plugin-scaffolder-common@1.5.5
+
+## 1.22.0-next.3
+
+### Patch Changes
+
+- 6582799: Add `tableOptions` to all tables and additionally `title` to API tables.
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.7.0-next.3
+  - @backstage/catalog-model@1.6.0-next.0
+  - @backstage/core-compat-api@0.2.8-next.3
+  - @backstage/plugin-catalog-react@1.12.3-next.3
+  - @backstage/plugin-search-react@1.7.14-next.3
+  - @backstage/catalog-client@1.6.6-next.0
+  - @backstage/core-components@0.14.10-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.30-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.26-next.2
+  - @backstage/plugin-permission-react@0.4.25-next.1
+  - @backstage/plugin-scaffolder-common@1.5.5-next.2
+  - @backstage/plugin-search-common@1.2.14-next.1
+
+## 1.22.0-next.2
+
+### Minor Changes
+
+- 6925dcb: Introduces the HasSubdomainsCard component that displays the subdomains of a given domain
+
+### Patch Changes
+
+- 604a504: The entity relation cards available for the new frontend system via `/alpha` now have more accurate and granular default filters.
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.7.0-next.2
+  - @backstage/core-compat-api@0.2.8-next.2
+  - @backstage/plugin-search-common@1.2.14-next.1
+  - @backstage/plugin-search-react@1.7.14-next.2
+  - @backstage/plugin-catalog-react@1.12.3-next.2
+  - @backstage/plugin-catalog-common@1.0.26-next.1
+  - @backstage/plugin-permission-react@0.4.25-next.1
+  - @backstage/plugin-scaffolder-common@1.5.5-next.1
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/core-components@0.14.10-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.30-next.0
+  - @backstage/types@1.1.1
+
+## 1.21.2-next.1
+
+### Patch Changes
+
+- 6349099: Added config input type to the extensions
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.12.3-next.1
+  - @backstage/frontend-plugin-api@0.6.8-next.1
+  - @backstage/core-compat-api@0.2.8-next.1
+  - @backstage/plugin-search-react@1.7.14-next.1
+  - @backstage/plugin-catalog-common@1.0.26-next.0
+  - @backstage/plugin-permission-react@0.4.25-next.0
+  - @backstage/plugin-scaffolder-common@1.5.5-next.0
+  - @backstage/plugin-search-common@1.2.14-next.0
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/core-components@0.14.10-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.30-next.0
+  - @backstage/types@1.1.1
+
+## 1.21.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.6.8-next.0
+  - @backstage/plugin-catalog-react@1.12.3-next.0
+  - @backstage/plugin-search-react@1.7.14-next.0
+  - @backstage/core-components@0.14.10-next.0
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/core-compat-api@0.2.8-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.30-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.25
+  - @backstage/plugin-permission-react@0.4.24
+  - @backstage/plugin-scaffolder-common@1.5.4
+  - @backstage/plugin-search-common@1.2.13
+
+## 1.21.1
+
+### Patch Changes
+
+- 06c0956: Support i18n for catalog and catalog-react plugins
+- d133eaa: Added small notes to AboutCard to discourage customizability PRs
+- Updated dependencies
+  - @backstage/core-components@0.14.9
+  - @backstage/plugin-catalog-react@1.12.2
+  - @backstage/plugin-permission-react@0.4.24
+  - @backstage/plugin-catalog-common@1.0.25
+  - @backstage/plugin-scaffolder-common@1.5.4
+  - @backstage/plugin-search-common@1.2.13
+  - @backstage/frontend-plugin-api@0.6.7
+  - @backstage/integration-react@1.1.29
+  - @backstage/plugin-search-react@1.7.13
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/core-compat-api@0.2.7
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.21.1-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.9-next.1
+  - @backstage/frontend-plugin-api@0.6.7-next.1
+  - @backstage/integration-react@1.1.29-next.0
+  - @backstage/plugin-catalog-react@1.12.2-next.2
+  - @backstage/plugin-search-react@1.7.13-next.1
+  - @backstage/core-compat-api@0.2.7-next.1
+
+## 1.21.1-next.1
+
+### Patch Changes
+
+- 06c0956: Support i18n for catalog and catalog-react plugins
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.12.2-next.1
+  - @backstage/core-compat-api@0.2.7-next.0
+  - @backstage/core-components@0.14.9-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/plugin-search-react@1.7.13-next.0
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.6.7-next.0
+  - @backstage/integration-react@1.1.29-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.24
+  - @backstage/plugin-permission-react@0.4.23
+  - @backstage/plugin-scaffolder-common@1.5.3
+  - @backstage/plugin-search-common@1.2.12
+
+## 1.21.1-next.0
+
+### Patch Changes
+
+- d133eaa: Added small notes to AboutCard to discourage customizability PRs
+- Updated dependencies
+  - @backstage/core-components@0.14.9-next.0
+  - @backstage/plugin-catalog-react@1.12.2-next.0
+  - @backstage/frontend-plugin-api@0.6.7-next.0
+  - @backstage/integration-react@1.1.29-next.0
+  - @backstage/plugin-search-react@1.7.13-next.0
+  - @backstage/core-compat-api@0.2.7-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.24
+  - @backstage/plugin-permission-react@0.4.23
+  - @backstage/plugin-scaffolder-common@1.5.3
+  - @backstage/plugin-search-common@1.2.12
+
+## 1.21.0
+
+### Minor Changes
+
+- 863a800: Added the following default targets for external routes:
+
+  - `createComponent` binds to the Scaffolder page.
+  - `viewTechDoc` binds to the TechDocs entity documentation page.
+  - `createFromTemplate` binds to the Scaffolder selected template page.
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+- e04e57d: Fix bug with missing Actions column after adding "pagination" prop to catalog table
+- a2d2649: Export `catalogTranslationRef` under `/alpha`
+- bcec60f: updated the ContextMenu, ActionsPage, OngoingTask and TemplateCard frontend components to support the new scaffolder permissions:
+
+  - `scaffolder.task.create`
+  - `scaffolder.task.cancel`
+  - `scaffolder.task.read`
+
+- Updated dependencies
+  - @backstage/core-components@0.14.8
+  - @backstage/core-compat-api@0.2.6
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/plugin-scaffolder-common@1.5.3
+  - @backstage/plugin-permission-react@0.4.23
+  - @backstage/plugin-catalog-common@1.0.24
+  - @backstage/plugin-catalog-react@1.12.1
+  - @backstage/plugin-search-common@1.2.12
+  - @backstage/plugin-search-react@1.7.12
+  - @backstage/integration-react@1.1.28
+  - @backstage/frontend-plugin-api@0.6.6
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.21.0-next.3
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+- e04e57d: Fix bug with missing Actions column after adding "pagination" prop to catalog table
+- Updated dependencies
+  - @backstage/core-components@0.14.8-next.2
+  - @backstage/plugin-scaffolder-common@1.5.3-next.1
+  - @backstage/plugin-permission-react@0.4.23-next.1
+  - @backstage/plugin-catalog-common@1.0.24-next.0
+  - @backstage/plugin-catalog-react@1.12.1-next.2
+  - @backstage/plugin-search-common@1.2.12-next.0
+  - @backstage/plugin-search-react@1.7.12-next.2
+  - @backstage/integration-react@1.1.28-next.1
+  - @backstage/frontend-plugin-api@0.6.6-next.2
+  - @backstage/core-compat-api@0.2.6-next.2
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/core-plugin-api@1.9.3-next.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.21.0-next.2
+
+### Minor Changes
+
+- 863a800: Added the following default targets for external routes:
+
+  - `createComponent` binds to the Scaffolder page.
+  - `viewTechDoc` binds to the TechDocs entity documentation page.
+  - `createFromTemplate` binds to the Scaffolder selected template page.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.8-next.1
+  - @backstage/core-compat-api@0.2.6-next.1
+  - @backstage/core-plugin-api@1.9.3-next.0
+  - @backstage/frontend-plugin-api@0.6.6-next.1
+  - @backstage/integration-react@1.1.28-next.0
+  - @backstage/plugin-catalog-react@1.12.1-next.1
+  - @backstage/plugin-search-react@1.7.12-next.1
+  - @backstage/plugin-permission-react@0.4.23-next.0
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.23
+  - @backstage/plugin-scaffolder-common@1.5.3-next.0
+  - @backstage/plugin-search-common@1.2.11
+
+## 1.20.1-next.1
+
+### Patch Changes
+
+- a2d2649: Export `catalogTranslationRef` under `/alpha`
+- bcec60f: updated the ContextMenu, ActionsPage, OngoingTask and TemplateCard frontend components to support the new scaffolder permissions:
+
+  - `scaffolder.task.create`
+  - `scaffolder.task.cancel`
+  - `scaffolder.task.read`
+
+- Updated dependencies
+  - @backstage/plugin-scaffolder-common@1.5.3-next.0
+  - @backstage/plugin-catalog-react@1.12.1-next.0
+
+## 1.20.1-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.8-next.0
+  - @backstage/plugin-search-react@1.7.12-next.0
+  - @backstage/catalog-client@1.6.5
+  - @backstage/catalog-model@1.5.0
+  - @backstage/core-compat-api@0.2.6-next.0
+  - @backstage/core-plugin-api@1.9.2
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.6.6-next.0
+  - @backstage/integration-react@1.1.27
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.23
+  - @backstage/plugin-catalog-react@1.12.1-next.0
+  - @backstage/plugin-permission-react@0.4.22
+  - @backstage/plugin-scaffolder-common@1.5.2
+  - @backstage/plugin-search-common@1.2.11
+
+## 1.20.0
+
+### Minor Changes
+
+- 8834daf: Updated the presentation API to return a promise, in addition to the snapshot and observable that were there before. This makes it much easier to consume the API in a non-React context.
+
+### Patch Changes
+
+- 131e5cb: Fix broken links in README.
+- 5d99272: Update local development dependencies.
+- 4118530: Avoiding pre-loading display total count undefined for table counts
+- Updated dependencies
+  - @backstage/plugin-scaffolder-common@1.5.2
+  - @backstage/core-compat-api@0.2.5
+  - @backstage/core-components@0.14.7
+  - @backstage/catalog-model@1.5.0
+  - @backstage/plugin-catalog-react@1.12.0
+  - @backstage/catalog-client@1.6.5
+  - @backstage/frontend-plugin-api@0.6.5
+  - @backstage/integration-react@1.1.27
+  - @backstage/plugin-catalog-common@1.0.23
+  - @backstage/plugin-search-react@1.7.11
+
+## 1.20.0-next.2
+
+### Minor Changes
+
+- 8834daf: Updated the presentation API to return a promise, in addition to the snapshot and observable that were there before. This makes it much easier to consume the API in a non-React context.
+
+### Patch Changes
+
+- 4118530: Avoiding pre-loading display total count undefined for table counts
+- Updated dependencies
+  - @backstage/plugin-catalog-react@1.12.0-next.2
+  - @backstage/core-components@0.14.7-next.2
+  - @backstage/core-compat-api@0.2.5-next.1
+  - @backstage/frontend-plugin-api@0.6.5-next.1
+  - @backstage/plugin-search-react@1.7.11-next.1
+  - @backstage/integration-react@1.1.27-next.0
+
+## 1.19.1-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-scaffolder-common@1.5.2-next.1
+  - @backstage/core-components@0.14.6-next.1
+  - @backstage/plugin-catalog-react@1.11.4-next.1
+  - @backstage/frontend-plugin-api@0.6.5-next.1
+  - @backstage/integration-react@1.1.26
+  - @backstage/plugin-search-react@1.7.11-next.1
+  - @backstage/core-compat-api@0.2.5-next.1
+
+## 1.19.1-next.0
+
+### Patch Changes
+
+- 5d99272: Update local development dependencies.
+- Updated dependencies
+  - @backstage/core-compat-api@0.2.5-next.0
+  - @backstage/catalog-model@1.5.0-next.0
+  - @backstage/core-components@0.14.5-next.0
+  - @backstage/catalog-client@1.6.5-next.0
+  - @backstage/plugin-catalog-common@1.0.23-next.0
+  - @backstage/plugin-catalog-react@1.11.4-next.0
+  - @backstage/plugin-scaffolder-common@1.5.2-next.0
+  - @backstage/core-plugin-api@1.9.2
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.6.5-next.0
+  - @backstage/integration-react@1.1.26
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-react@0.4.22
+  - @backstage/plugin-search-common@1.2.11
+  - @backstage/plugin-search-react@1.7.11-next.0
+
+## 1.19.0
+
+### Minor Changes
+
+- 18c7f12: Add `isApiType()` to EntitySwitch routing functions.
+
+### Patch Changes
+
+- bcb2674: Added a "create something similar" button to the `<AboutCard>` that is visible and links to the scaffolder template corresponding to the entity's `backstage.io/source-template` annotation, if present.
+- 4ef0dcf: Fixed a bug that prevented the default `entityPresentationApi` from being set in apps using the new frontend system.
+- abfbcfc: Updated dependency `@testing-library/react` to `^15.0.0`.
+- cb1e3b0: Updated dependency `@testing-library/dom` to `^10.0.0`.
+- 7495b36: Fixed sorting of columns created with `CatalogTable.columns.createLabelColumn`.
+- Updated dependencies
+  - @backstage/plugin-search-react@1.7.10
+  - @backstage/plugin-catalog-react@1.11.3
+  - @backstage/core-compat-api@0.2.4
+  - @backstage/core-components@0.14.4
+  - @backstage/core-plugin-api@1.9.2
+  - @backstage/frontend-plugin-api@0.6.4
+  - @backstage/plugin-permission-react@0.4.22
+  - @backstage/integration-react@1.1.26
+  - @backstage/catalog-client@1.6.4
+  - @backstage/catalog-model@1.4.5
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22
+  - @backstage/plugin-scaffolder-common@1.5.1
+  - @backstage/plugin-search-common@1.2.11
+
+## 1.19.0-next.1
+
+### Patch Changes
+
+- bcb2674: Added a "create something similar" button to the `<AboutCard>` that is visible and links to the scaffolder template corresponding to the entity's `backstage.io/source-template` annotation, if present.
+- 4ef0dcf: Fixed a bug that prevented the default `entityPresentationApi` from being set in apps using the new frontend system.
+- Updated dependencies
+  - @backstage/catalog-client@1.6.4-next.0
+  - @backstage/frontend-plugin-api@0.6.4-next.1
+  - @backstage/core-compat-api@0.2.4-next.1
+  - @backstage/catalog-model@1.4.5
+  - @backstage/core-components@0.14.4-next.0
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.26-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22
+  - @backstage/plugin-catalog-react@1.11.3-next.1
+  - @backstage/plugin-permission-react@0.4.21
+  - @backstage/plugin-scaffolder-common@1.5.1
+  - @backstage/plugin-search-common@1.2.11
+  - @backstage/plugin-search-react@1.7.10-next.1
+
+## 1.19.0-next.0
+
+### Minor Changes
+
+- 18c7f12: Add `isApiType()` to EntitySwitch routing functions.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-components@0.14.4-next.0
+  - @backstage/catalog-client@1.6.3
+  - @backstage/catalog-model@1.4.5
+  - @backstage/core-compat-api@0.2.4-next.0
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/errors@1.2.4
+  - @backstage/frontend-plugin-api@0.6.4-next.0
+  - @backstage/integration-react@1.1.26-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22
+  - @backstage/plugin-catalog-react@1.11.3-next.0
+  - @backstage/plugin-permission-react@0.4.21
+  - @backstage/plugin-scaffolder-common@1.5.1
+  - @backstage/plugin-search-common@1.2.11
+  - @backstage/plugin-search-react@1.7.10-next.0
+
+## 1.18.2
+
+### Patch Changes
+
+- e8f026a: Use ESM exports of react-use library
+- bbbd510: `CatalogIndexPage` now uses `EntitySearchBar` for text-based filtering of entities, saving the search text in the query parameters and debouncing the server requests.
+- Updated dependencies
+  - @backstage/catalog-client@1.6.3
+  - @backstage/core-components@0.14.3
+  - @backstage/plugin-catalog-react@1.11.2
+  - @backstage/plugin-search-react@1.7.9
+  - @backstage/frontend-plugin-api@0.6.3
+  - @backstage/integration-react@1.1.25
+  - @backstage/core-compat-api@0.2.3
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/catalog-model@1.4.5
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22
+  - @backstage/plugin-permission-react@0.4.21
+  - @backstage/plugin-scaffolder-common@1.5.1
+  - @backstage/plugin-search-common@1.2.11
+
+## 1.18.1
+
+### Patch Changes
+
+- e8f026a: Use ESM exports of react-use library
+- Updated dependencies
+  - @backstage/catalog-client@1.6.2
+  - @backstage/core-components@0.14.2
+  - @backstage/plugin-catalog-react@1.11.1
+  - @backstage/plugin-search-react@1.7.8
+  - @backstage/frontend-plugin-api@0.6.2
+  - @backstage/integration-react@1.1.25
+  - @backstage/core-compat-api@0.2.2
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/catalog-model@1.4.5
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22
+  - @backstage/plugin-permission-react@0.4.21
+  - @backstage/plugin-scaffolder-common@1.5.1
+  - @backstage/plugin-search-common@1.2.11
+
+## 1.18.0
+
+### Minor Changes
+
+- 72b8827: Adds a title to the `PaginatedCatalogTable` for better visibility on what you're viewing.
+
+### Patch Changes
+
+- 50b6687: Resolved an issue where the `PaginatedCatalogTable` was not propagating table options to its child table.
+- 9332425: The entity page extension provided by the `/alpha` plugin now correctly renders the entity 404 page.
+- 1c0b179: Added the `no-top-level-material-ui-4-imports` ESLint rule to aid with the migration to Material UI v5
+- 2ac1630: Added support for passing in custom filters to `CatalogIndexPage`
+- 298953b: Added support for providing an `initiallySelectedNamespaces` which accepts an array of Namespaces to have selected by default
+- 6727665: Allow the `spec.target` field to be searchable in the catalog table for locations. Previously, only the `spec.targets` field was be searchable. This makes locations generated by providers such as the `GithubEntityProvider` searchable in the catalog table. [#23098](https://github.com/backstage/backstage/issues/23098)
+- Updated dependencies
+  - @backstage/core-components@0.14.1
+  - @backstage/errors@1.2.4
+  - @backstage/integration-react@1.1.25
+  - @backstage/plugin-catalog-react@1.11.0
+  - @backstage/plugin-search-common@1.2.11
+  - @backstage/catalog-client@1.6.1
+  - @backstage/catalog-model@1.4.5
+  - @backstage/core-compat-api@0.2.1
+  - @backstage/core-plugin-api@1.9.1
+  - @backstage/frontend-plugin-api@0.6.1
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22
+  - @backstage/plugin-permission-react@0.4.21
+  - @backstage/plugin-scaffolder-common@1.5.1
+  - @backstage/plugin-search-react@1.7.7
+
+## 1.18.0-next.2
+
+### Minor Changes
+
+- 72b8827: Adds a title to the `PaginatedCatalogTable` for better visibility on what you're viewing.
+
+### Patch Changes
+
+- 298953b: Added support for providing an `initiallySelectedNamespaces` which accepts an array of Namespaces to have selected by default
+- Updated dependencies
+  - @backstage/core-components@0.14.1-next.2
+  - @backstage/plugin-catalog-react@1.11.0-next.2
+  - @backstage/catalog-client@1.6.1-next.1
+  - @backstage/integration-react@1.1.25-next.2
+  - @backstage/frontend-plugin-api@0.6.1-next.2
+  - @backstage/plugin-search-react@1.7.7-next.2
+  - @backstage/core-compat-api@0.2.1-next.2
+  - @backstage/catalog-model@1.4.5-next.0
+  - @backstage/core-plugin-api@1.9.1-next.1
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22-next.1
+  - @backstage/plugin-permission-react@0.4.21-next.1
+  - @backstage/plugin-scaffolder-common@1.5.1-next.1
+  - @backstage/plugin-search-common@1.2.11-next.1
+
+## 1.17.1-next.1
+
+### Patch Changes
+
+- 2ac1630: Added support for passing in custom filters to `CatalogIndexPage`
+- Updated dependencies
+  - @backstage/core-components@0.14.1-next.1
+  - @backstage/plugin-catalog-react@1.10.1-next.1
+  - @backstage/core-plugin-api@1.9.1-next.1
+  - @backstage/integration-react@1.1.25-next.1
+  - @backstage/plugin-permission-react@0.4.21-next.1
+  - @backstage/frontend-plugin-api@0.6.1-next.1
+  - @backstage/plugin-search-react@1.7.7-next.1
+  - @backstage/catalog-client@1.6.1-next.0
+  - @backstage/catalog-model@1.4.5-next.0
+  - @backstage/core-compat-api@0.2.1-next.1
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22-next.1
+  - @backstage/plugin-scaffolder-common@1.5.1-next.1
+  - @backstage/plugin-search-common@1.2.11-next.1
+
+## 1.17.1-next.0
+
+### Patch Changes
+
+- 9332425: The entity page extension provided by the `/alpha` plugin now correctly renders the entity 404 page.
+- 6727665: Allow the `spec.target` field to be searchable in the catalog table for locations. Previously, only the `spec.targets` field was be searchable. This makes locations generated by providers such as the `GithubEntityProvider` searchable in the catalog table. [#23098](https://github.com/backstage/backstage/issues/23098)
+- Updated dependencies
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/core-components@0.14.1-next.0
+  - @backstage/integration-react@1.1.25-next.0
+  - @backstage/plugin-catalog-react@1.10.1-next.0
+  - @backstage/plugin-search-common@1.2.11-next.0
+  - @backstage/catalog-client@1.6.1-next.0
+  - @backstage/catalog-model@1.4.5-next.0
+  - @backstage/core-plugin-api@1.9.1-next.0
+  - @backstage/plugin-search-react@1.7.7-next.0
+  - @backstage/frontend-plugin-api@0.6.1-next.0
+  - @backstage/core-compat-api@0.2.1-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.22-next.0
+  - @backstage/plugin-permission-react@0.4.21-next.0
+  - @backstage/plugin-scaffolder-common@1.5.1-next.0
+
+## 1.17.0
+
+### Minor Changes
+
+- d208a93: Updated the paginated catalog table to support server side text filtering.
+- 1f8c2fa: Add entity warning components to the default entity overview page.
+- e541c0e: Exported `CatalogTable.defaultColumnsFunc` for defining the columns in `<CatalogTable />` of some Kinds while using the default columns for the others.
+
+### Patch Changes
+
+- 916da47: Change default icon for unknown entities to nothing instead of the help icon.
+- f899eec: Change default icon for `kind:resource` to the storage icon.
+- 9aac2b0: Use `--cwd` as the first `yarn` argument
+- 912ca7b: Use `convertLegacyRouteRefs` to define routes in `/alpha` export plugin.
+- 797a329: Fixed inconsistencies in icons used for System and Template
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+- 987f565: Add line clamping to `CatalogSearchResultListItem`
+- 172a717: Fix entity content extension filtering.
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.6.0
+  - @backstage/core-compat-api@0.2.0
+  - @backstage/plugin-catalog-react@1.10.0
+  - @backstage/core-components@0.14.0
+  - @backstage/catalog-model@1.4.4
+  - @backstage/core-plugin-api@1.9.0
+  - @backstage/catalog-client@1.6.0
+  - @backstage/plugin-permission-react@0.4.20
+  - @backstage/plugin-search-react@1.7.6
+  - @backstage/plugin-scaffolder-common@1.5.0
+  - @backstage/errors@1.2.3
+  - @backstage/integration-react@1.1.24
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.21
+  - @backstage/plugin-search-common@1.2.10
+
+## 1.17.0-next.3
+
+### Minor Changes
+
+- 1f8c2fa: Add entity warning components to the default entity overview page.
+
+### Patch Changes
+
+- 172a717: Fix entity content extension filtering.
+- Updated dependencies
+  - @backstage/core-components@0.14.0-next.2
+  - @backstage/plugin-catalog-react@1.10.0-next.3
+  - @backstage/catalog-client@1.6.0-next.1
+  - @backstage/catalog-model@1.4.4-next.0
+  - @backstage/core-compat-api@0.2.0-next.3
+  - @backstage/core-plugin-api@1.9.0-next.1
+  - @backstage/errors@1.2.3
+  - @backstage/frontend-plugin-api@0.6.0-next.3
+  - @backstage/integration-react@1.1.24-next.2
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.21-next.0
+  - @backstage/plugin-permission-react@0.4.20-next.1
+  - @backstage/plugin-scaffolder-common@1.5.0-next.1
+  - @backstage/plugin-search-common@1.2.10
+  - @backstage/plugin-search-react@1.7.6-next.3
+
+## 1.17.0-next.2
+
+### Patch Changes
+
+- 9aac2b0: Use `--cwd` as the first `yarn` argument
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+- Updated dependencies
+  - @backstage/core-components@0.14.0-next.1
+  - @backstage/core-plugin-api@1.9.0-next.1
+  - @backstage/frontend-plugin-api@0.6.0-next.2
+  - @backstage/plugin-catalog-react@1.10.0-next.2
+  - @backstage/plugin-permission-react@0.4.20-next.1
+  - @backstage/plugin-search-react@1.7.6-next.2
+  - @backstage/integration-react@1.1.24-next.1
+  - @backstage/core-compat-api@0.2.0-next.2
+  - @backstage/catalog-client@1.6.0-next.1
+  - @backstage/catalog-model@1.4.4-next.0
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.21-next.0
+  - @backstage/plugin-scaffolder-common@1.5.0-next.1
+  - @backstage/plugin-search-common@1.2.10
+
+## 1.17.0-next.1
+
+### Patch Changes
+
+- 987f565: Add line clamping to `CatalogSearchResultListItem`
+- Updated dependencies
+  - @backstage/frontend-plugin-api@0.6.0-next.1
+  - @backstage/core-compat-api@0.2.0-next.1
+  - @backstage/core-components@0.14.0-next.0
+  - @backstage/catalog-model@1.4.4-next.0
+  - @backstage/catalog-client@1.6.0-next.1
+  - @backstage/core-plugin-api@1.8.3-next.0
+  - @backstage/plugin-catalog-react@1.9.4-next.1
+  - @backstage/plugin-search-react@1.7.6-next.1
+  - @backstage/integration-react@1.1.24-next.0
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.21-next.0
+  - @backstage/plugin-permission-react@0.4.20-next.0
+  - @backstage/plugin-scaffolder-common@1.5.0-next.1
+  - @backstage/plugin-search-common@1.2.10
+
+## 1.17.0-next.0
+
+### Minor Changes
+
+- e541c0e: Exported `CatalogTable.defaultColumnsFunc` for defining the columns in `<CatalogTable />` of some Kinds while using the default columns for the others.
+
+### Patch Changes
+
+- 916da47: Change default icon for unknown entities to nothing instead of the help icon.
+- f899eec: Change default icon for `kind:resource` to the storage icon.
+- 912ca7b: Use `convertLegacyRouteRefs` to define routes in `/alpha` export plugin.
+- 797a329: Fixed inconsistencies in icons used for System and Template
+- Updated dependencies
+  - @backstage/core-compat-api@0.1.2-next.0
+  - @backstage/plugin-catalog-react@1.9.4-next.0
+  - @backstage/frontend-plugin-api@0.5.1-next.0
+  - @backstage/catalog-client@1.6.0-next.0
+  - @backstage/plugin-scaffolder-common@1.5.0-next.0
+  - @backstage/core-components@0.13.10
+  - @backstage/plugin-search-react@1.7.6-next.0
+  - @backstage/catalog-model@1.4.3
+  - @backstage/core-plugin-api@1.8.2
+  - @backstage/errors@1.2.3
+  - @backstage/integration-react@1.1.23
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.20
+  - @backstage/plugin-permission-react@0.4.19
+  - @backstage/plugin-search-common@1.2.10
+
+## 1.16.1
+
+### Patch Changes
+
+- 4016f21: Remove some unused dependencies
+- Updated dependencies
+  - @backstage/core-compat-api@0.1.1
+  - @backstage/frontend-plugin-api@0.5.0
+  - @backstage/core-components@0.13.10
+  - @backstage/plugin-scaffolder-common@1.4.5
+  - @backstage/core-plugin-api@1.8.2
+  - @backstage/catalog-client@1.5.2
+  - @backstage/plugin-permission-react@0.4.19
+  - @backstage/plugin-catalog-react@1.9.3
+  - @backstage/plugin-search-react@1.7.5
+  - @backstage/integration-react@1.1.23
+  - @backstage/catalog-model@1.4.3
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-catalog-common@1.0.20
+  - @backstage/plugin-search-common@1.2.10
+
 ## 1.16.1-next.2
 
 ### Patch Changes
@@ -2927,8 +4207,7 @@
   `CatalogPage` component in your `App.tsx` routing allows you to adjust the
   layout, header, and which filters are available.
 
-  See the documentation added on [Catalog
-  Customization](https://backstage.io/docs/features/software-catalog/catalog-customization)
+  See the documentation added on [Catalog Customization](https://backstage.io/docs/features/software-catalog/catalog-customization)
   for instructions.
 
 ### Patch Changes

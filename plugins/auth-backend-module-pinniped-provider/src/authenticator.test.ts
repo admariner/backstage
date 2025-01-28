@@ -23,7 +23,7 @@ import {
 } from '@backstage/plugin-auth-node';
 import { pinnipedAuthenticator } from './authenticator';
 import { setupServer } from 'msw/node';
-import { setupRequestMockHandlers } from '@backstage/backend-test-utils';
+import { registerMswTestHooks } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 import { JWK, SignJWT, exportJWK, generateKeyPair } from 'jose';
 import { rest } from 'msw';
@@ -37,7 +37,7 @@ describe('pinnipedAuthenticator', () => {
   let publicKey: JWK;
 
   const mswServer = setupServer();
-  setupRequestMockHandlers(mswServer);
+  registerMswTestHooks(mswServer);
 
   const issuerMetadata = {
     issuer: 'https://pinniped.test',
@@ -249,22 +249,14 @@ describe('pinnipedAuthenticator', () => {
       expect(fakeSession['oidc:pinniped.test'].code_verifier).toBeDefined();
     });
 
-    it('requests sufficient scopes for token exchange by default', async () => {
+    it('forwards scopes for token exchange', async () => {
       const startResponse = await pinnipedAuthenticator.start(
-        startRequest,
+        { ...startRequest, scope: 'openid username' },
         authCtx,
       );
       const { searchParams } = new URL(startResponse.url);
-      const scopes = searchParams.get('scope')?.split(' ') ?? [];
 
-      expect(scopes).toEqual(
-        expect.arrayContaining([
-          'openid',
-          'pinniped:request-audience',
-          'username',
-          'offline_access',
-        ]),
-      );
+      expect(searchParams.get('scope')).toBe('openid username');
     });
 
     it('encodes OAuth state in query param', async () => {

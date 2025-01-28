@@ -66,7 +66,7 @@ function createConfig(dir, extraConfig = {}) {
       ...(extraExtends ?? []),
     ],
     parser: '@typescript-eslint/parser',
-    plugins: ['import', 'unused-imports', ...(plugins ?? [])],
+    plugins: ['import', 'unused-imports', 'deprecation', ...(plugins ?? [])],
     env: {
       jest: true,
       ...env,
@@ -84,6 +84,7 @@ function createConfig(dir, extraConfig = {}) {
       ...(ignorePatterns ?? []),
     ],
     rules: {
+      'deprecation/deprecation': 'off',
       'no-shadow': 'off',
       'no-redeclare': 'off',
       '@typescript-eslint/no-shadow': 'error',
@@ -166,7 +167,7 @@ function createConfig(dir, extraConfig = {}) {
         },
       },
       {
-        files: ['**/src/generated/**/*.ts'],
+        files: ['**/src/**/generated/**/*.ts'],
         rules: {
           ...tsRules,
           'no-unused-vars': 'off',
@@ -200,6 +201,7 @@ function createConfigForRole(dir, role, extraConfig = {}) {
     case 'frontend':
     case 'frontend-plugin':
     case 'frontend-plugin-module':
+    case 'frontend-dynamic-container':
       return createConfig(dir, {
         ...extraConfig,
         extends: [
@@ -275,7 +277,7 @@ function createConfigForRole(dir, role, extraConfig = {}) {
         restrictedSrcSyntax: [
           {
             message:
-              "`__dirname` doesn't refer to the same dir in production builds, try `resolvePackagePath()` from `@backstage/backend-common` instead.",
+              "`__dirname` doesn't refer to the same dir in production builds, try `resolvePackagePath()` from `@backstage/backend-plugin-api` instead.",
             selector: 'Identifier[name="__dirname"]',
           },
           ...(extraConfig.restrictedSrcSyntax ?? []),

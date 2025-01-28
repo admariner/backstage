@@ -19,7 +19,7 @@ import { KubernetesBackendClient } from './KubernetesBackendClient';
 import { rest } from 'msw';
 import { UrlPatternDiscovery } from '@backstage/core-app-api';
 import { setupServer } from 'msw/node';
-import { setupRequestMockHandlers } from '@backstage/test-utils';
+import { MockFetchApi, registerMswTestHooks } from '@backstage/test-utils';
 import {
   CustomObjectsByEntityRequest,
   KubernetesRequestBody,
@@ -36,7 +36,7 @@ describe('KubernetesBackendClient', () => {
   };
   let mockResponse: ObjectsByEntityResponse;
   const worker = setupServer();
-  setupRequestMockHandlers(worker);
+  registerMswTestHooks(worker);
 
   const identityApi = {
     getCredentials: jest.fn(),
@@ -44,6 +44,7 @@ describe('KubernetesBackendClient', () => {
     getBackstageIdentity: jest.fn(),
     signOut: jest.fn(),
   };
+  const fetchApi = new MockFetchApi({ injectIdentityAuth: { identityApi } });
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -51,7 +52,7 @@ describe('KubernetesBackendClient', () => {
       discoveryApi: UrlPatternDiscovery.compile(
         'http://localhost:1234/api/{{ pluginId }}',
       ),
-      identityApi,
+      fetchApi,
       kubernetesAuthProvidersApi,
     });
     mockResponse = {
@@ -448,9 +449,13 @@ describe('KubernetesBackendClient', () => {
       const response = await backendClient.proxy(request);
 
       await expect(response.json()).resolves.toStrictEqual(nsResponse);
+      expect(kubernetesAuthProvidersApi.getCredentials).toHaveBeenCalledWith(
+        'oidc.okta',
+      );
     });
 
     it('hits the /proxy API with serviceAccount as auth provider', async () => {
+      identityApi.getCredentials.mockResolvedValue({ token: 'idToken' });
       worker.use(
         rest.get(
           'http://localhost:1234/api/kubernetes/clusters',
@@ -495,6 +500,42 @@ describe('KubernetesBackendClient', () => {
       const response = await backendClient.proxy(request);
 
       await expect(response.json()).resolves.toStrictEqual(nsResponse);
+      expect(kubernetesAuthProvidersApi.getCredentials).toHaveBeenCalledWith(
+        'serviceAccount',
+      );
+    });
+
+    it('ignores oidcTokenProvider for non-oidc auth provider', async () => {
+      worker.use(
+        rest.get(
+          'http://localhost:1234/api/kubernetes/clusters',
+          (_, res, ctx) =>
+            res(
+              ctx.json({
+                items: [
+                  {
+                    name: 'cluster-a',
+                    authProvider: 'not oidc',
+                    oidcTokenProvider: 'should be ignored',
+                  },
+                ],
+              }),
+            ),
+        ),
+        rest.get(
+          'http://localhost:1234/api/kubernetes/proxy/api/v1/namespaces',
+          (_, res, ctx) => res(ctx.json([])),
+        ),
+      );
+
+      await backendClient.proxy({
+        clusterName: 'cluster-a',
+        path: '/api/v1/namespaces',
+      });
+
+      expect(kubernetesAuthProvidersApi.getCredentials).toHaveBeenCalledWith(
+        'not oidc',
+      );
     });
 
     it('hits /proxy api when signed in as a guest', async () => {

@@ -15,7 +15,9 @@
  */
 
 import { CompoundEntityRef, Entity } from '@backstage/catalog-model';
-import { Box, Theme, Tooltip, makeStyles } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Tooltip from '@material-ui/core/Tooltip';
+import { Theme, makeStyles } from '@material-ui/core/styles';
 import React from 'react';
 import { useEntityPresentation } from '../../apis';
 
@@ -32,11 +34,14 @@ const useStyles = makeStyles(
     root: {
       display: 'inline-flex',
       alignItems: 'center',
+      textDecoration: 'inherit',
     },
     icon: {
       marginRight: theme.spacing(0.5),
       color: theme.palette.text.secondary,
-      lineHeight: 0,
+      '& svg': {
+        verticalAlign: 'middle',
+      },
     },
   }),
   { name: 'CatalogReactEntityDisplayName' },
@@ -74,7 +79,6 @@ export const EntityDisplayName = (
 
   // The innermost "body" content
   let content = <>{primaryTitle}</>;
-
   // Optionally an icon, and wrapper around them both
   content = (
     <Box component="span" className={classes.root}>

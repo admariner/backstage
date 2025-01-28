@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { createMocks } from 'react-idle-timer';
 // eslint-disable-next-line no-restricted-imports
 import { MessageChannel } from 'worker_threads';
 import { ApiProvider } from '@backstage/core-app-api';
 import { identityApiRef } from '@backstage/core-plugin-api';
-import { TestApiRegistry } from '@backstage/test-utils';
+import {
+  TestApiRegistry,
+  renderInTestApp,
+  mockApis,
+} from '@backstage/test-utils';
 import React from 'react';
 
 import { AutoLogout } from './AutoLogout';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup } from '@testing-library/react';
 
-// Mock the signOut function of identityApiRef
-const mockSignOut = jest.fn();
-const mockIdentityApi = { signOut: mockSignOut };
-
+const mockIdentityApi = mockApis.identity({ token: 'xxx' });
 const apis = TestApiRegistry.from([identityApiRef, mockIdentityApi]);
 
 describe('AutoLogout', () => {
@@ -44,27 +46,29 @@ describe('AutoLogout', () => {
   });
 
   it('should throw error if idleTimeoutMinutes is smaller than promptBeforeSeconds', async () => {
-    expect(() =>
-      render(
-        <ApiProvider apis={apis}>
-          <AutoLogout
-            enabled
-            idleTimeoutMinutes={0.5}
-            promptBeforeIdleSeconds={120}
-          />
-        </ApiProvider>,
-      ),
-    ).toThrow();
+    await expect(
+      async () =>
+        await renderInTestApp(
+          <ApiProvider apis={apis}>
+            <AutoLogout
+              enabled
+              idleTimeoutMinutes={0.5}
+              promptBeforeIdleSeconds={120}
+            />
+          </ApiProvider>,
+        ),
+    ).rejects.toThrow();
   });
 
   it('should throw error if idleTimeoutMinutes is smaller than 30 seconds', async () => {
-    expect(() =>
-      render(
-        <ApiProvider apis={apis}>
-          <AutoLogout enabled idleTimeoutMinutes={0.49} />
-          <div>Test Child</div>
-        </ApiProvider>,
-      ),
-    ).toThrow();
+    await expect(
+      async () =>
+        await renderInTestApp(
+          <ApiProvider apis={apis}>
+            <AutoLogout enabled idleTimeoutMinutes={0.49} />
+            <div>Test Child</div>
+          </ApiProvider>,
+        ),
+    ).rejects.toThrow();
   });
 });

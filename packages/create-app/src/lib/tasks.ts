@@ -186,17 +186,6 @@ export async function checkPathExistsTask(path: string) {
 export async function buildAppTask(appDir: string) {
   process.chdir(appDir);
 
-  await Task.forItem('determining', 'yarn version', async () => {
-    const result = await exec('yarn --version');
-    const yarnVersion = result.stdout?.trim();
-
-    if (yarnVersion && !yarnVersion.startsWith('1.')) {
-      throw new Error(
-        `@backstage/create-app requires Yarn v1, found '${yarnVersion}'. You can migrate the project to Yarn 3 after creation using https://backstage.io/docs/tutorials/yarn-migration`,
-      );
-    }
-  });
-
   const runCmd = async (cmd: string) => {
     await Task.forItem('executing', cmd, async () => {
       await exec(cmd).catch(error => {
@@ -301,6 +290,50 @@ export async function tryInitGitRepository(dir: string) {
       throw new Error('Failed to remove .git folder');
     }
 
+    return false;
+  }
+}
+
+/**
+ * This fetches the yarn.lock seed file at https://github.com/backstage/backstage/blob/master/packages/create-app/seed-yarn.lock
+ * Its purpose is to lock individual dependencies with broken releases to known working versions.
+ * This flow is decoupled from the release of the create-app package in order to avoid
+ * the need to re-publish the create-app package whenever we want to update the seed file.
+ *
+ * @returns true if the yarn.lock seed file was fetched successfully
+ */
+export async function fetchYarnLockSeedTask(dir: string) {
+  try {
+    await Task.forItem('fetching', 'yarn.lock seed', async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch(
+        'https://raw.githubusercontent.com/backstage/backstage/master/packages/create-app/seed-yarn.lock',
+        {
+          signal: controller.signal,
+        },
+      );
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        throw new Error(
+          `Request failed with status ${res.status} ${res.statusText}`,
+        );
+      }
+
+      const initialYarnLockContent = await res.text();
+
+      await fs.writeFile(
+        resolvePath(dir, 'yarn.lock'),
+        initialYarnLockContent
+          .split('\n')
+          .filter(l => !l.startsWith('//'))
+          .join('\n'),
+        'utf8',
+      );
+    });
+    return true;
+  } catch {
     return false;
   }
 }

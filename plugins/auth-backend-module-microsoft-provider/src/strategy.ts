@@ -16,13 +16,18 @@
 
 import { PassportProfile } from '@backstage/plugin-auth-node';
 import { decodeJwt } from 'jose';
-import fetch from 'node-fetch';
 import { Strategy as MicrosoftStrategy } from 'passport-microsoft';
 
 export class ExtendedMicrosoftStrategy extends MicrosoftStrategy {
+  private shouldSkipUserProfile = false;
+
+  public setSkipUserProfile(shouldSkipUserProfile: boolean): void {
+    this.shouldSkipUserProfile = shouldSkipUserProfile;
+  }
+
   userProfile(
     accessToken: string,
-    done: (err?: Error | null, profile?: PassportProfile) => void,
+    done: (err?: unknown, profile?: PassportProfile) => void,
   ): void {
     if (this.skipUserProfile(accessToken)) {
       done(null, undefined);
@@ -31,7 +36,7 @@ export class ExtendedMicrosoftStrategy extends MicrosoftStrategy {
 
     super.userProfile(
       accessToken,
-      (err?: Error | null, profile?: PassportProfile) => {
+      (err?: unknown, profile?: PassportProfile) => {
         if (!profile || profile.photos) {
           done(err, profile);
           return;
@@ -66,7 +71,7 @@ export class ExtendedMicrosoftStrategy extends MicrosoftStrategy {
 
   private skipUserProfile(accessToken: string): boolean {
     try {
-      return !this.hasGraphReadScope(accessToken);
+      return this.shouldSkipUserProfile || !this.hasGraphReadScope(accessToken);
     } catch {
       // If there is any error with checking the scope
       // we fall back to not skipping the user profile
@@ -97,9 +102,9 @@ export class ExtendedMicrosoftStrategy extends MicrosoftStrategy {
           },
         },
       );
-      const data = await res.buffer();
+      const data = await res.arrayBuffer();
 
-      return `data:image/jpeg;base64,${data.toString('base64')}`;
+      return `data:image/jpeg;base64,${Buffer.from(data).toString('base64')}`;
     } catch (error) {
       return undefined;
     }

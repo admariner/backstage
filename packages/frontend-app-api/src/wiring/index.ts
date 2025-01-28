@@ -14,11 +14,5 @@
  * limitations under the License.
  */
 
-export {
-  createApp,
-  createSpecializedApp,
-  createExtensionTree,
-  type CreateAppFeatureLoader,
-  type ExtensionTreeNode,
-  type ExtensionTree,
-} from './createApp';
+export { createSpecializedApp } from './createSpecializedApp';
+export * from './types';

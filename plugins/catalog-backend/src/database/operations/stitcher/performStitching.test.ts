@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { getVoidLogger } from '@backstage/backend-common';
-import { TestDatabases } from '@backstage/backend-test-utils';
+import { TestDatabases, mockServices } from '@backstage/backend-test-utils';
 import { Entity } from '@backstage/catalog-model';
 import { applyDatabaseMigrations } from '../../migrations';
 import {
@@ -31,7 +30,7 @@ jest.setTimeout(60_000);
 
 describe('performStitching', () => {
   const databases = TestDatabases.create();
-  const logger = getVoidLogger();
+  const logger = mockServices.logger.mock();
 
   // NOTE(freben): Testing the deferred path since it's a superset of the immediate one
   it.each(databases.eachSupportedId())(
@@ -292,6 +291,75 @@ describe('performStitching', () => {
             value: 'v',
           },
         ]),
+      );
+    },
+  );
+
+  it.each(databases.eachSupportedId())(
+    'handles conflicts with past stitches %p',
+    async databaseId => {
+      if (databaseId === 'MYSQL_8') {
+        // MySQL doesn't handle conflicts in the same way as the other two, most
+        // likely due to the conflict probably being handled with a merged even
+        // if it's for the entity_ref. This probably means that MySQL will have
+        // inconsistencies in the final_entities table in some cases, but they
+        // should heal fairly quickly.
+        return;
+      }
+      const knex = await databases.init(databaseId);
+      await applyDatabaseMigrations(knex);
+
+      // Drop the foreign key constraint so we can insert a conflicting entity
+      // where the ID is inconsistent with the entity ref across refresh_state
+      // and final_entities
+      await knex.schema.alterTable('final_entities', table => {
+        table.dropForeign('entity_id');
+      });
+
+      await knex<DbRefreshStateRow>('refresh_state').insert([
+        {
+          entity_id: 'other-id',
+          entity_ref: 'k:ns/n',
+          unprocessed_entity: JSON.stringify({}),
+          processed_entity: JSON.stringify({
+            apiVersion: 'a',
+            kind: 'k',
+            metadata: {
+              name: 'n',
+              namespace: 'ns',
+            },
+            spec: {
+              k: 'v',
+            },
+          }),
+          errors: '[]',
+          next_update_at: knex.fn.now(),
+          last_discovery_at: knex.fn.now(),
+        },
+      ]);
+      await knex<DbFinalEntitiesRow>('final_entities').insert([
+        {
+          entity_id: 'my-id',
+          entity_ref: 'k:ns/n',
+          hash: '',
+          stitch_ticket: 'old-ticket',
+          final_entity: JSON.stringify({}),
+        },
+      ]);
+
+      const stitchLogger = mockServices.logger.mock();
+      await expect(
+        performStitching({
+          knex,
+          logger: stitchLogger,
+          strategy: { mode: 'immediate' },
+          entityRef: 'k:ns/n',
+        }),
+      ).resolves.toBe('abandoned');
+
+      expect(stitchLogger.debug).toHaveBeenCalledWith(
+        'Skipping stitching of k:ns/n, conflict',
+        expect.anything(),
       );
     },
   );

@@ -15,24 +15,26 @@
  */
 import { useApi } from '@backstage/core-plugin-api';
 import {
-  scmIntegrationsApiRef,
   scmAuthApiRef,
+  scmIntegrationsApiRef,
 } from '@backstage/integration-react';
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { GithubRepoPicker } from './GithubRepoPicker';
-import { GiteaRepoPicker } from './GiteaRepoPicker';
-import { GitlabRepoPicker } from './GitlabRepoPicker';
+import { useTemplateSecrets } from '@backstage/plugin-scaffolder-react';
+import Box from '@material-ui/core/Box';
+import Divider from '@material-ui/core/Divider';
+import Typography from '@material-ui/core/Typography';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import useDebounce from 'react-use/esm/useDebounce';
 import { AzureRepoPicker } from './AzureRepoPicker';
 import { BitbucketRepoPicker } from './BitbucketRepoPicker';
 import { GerritRepoPicker } from './GerritRepoPicker';
+import { GiteaRepoPicker } from './GiteaRepoPicker';
+import { GithubRepoPicker } from './GithubRepoPicker';
+import { GitlabRepoPicker } from './GitlabRepoPicker';
 import { RepoUrlPickerHost } from './RepoUrlPickerHost';
 import { RepoUrlPickerRepoName } from './RepoUrlPickerRepoName';
-import { parseRepoPickerUrl, serializeRepoPickerUrl } from './utils';
-import { RepoUrlPickerProps } from './schema';
+import { RepoUrlPickerFieldSchema } from './schema';
 import { RepoUrlPickerState } from './types';
-import useDebounce from 'react-use/lib/useDebounce';
-import { useTemplateSecrets } from '@backstage/plugin-scaffolder-react';
-import { Box, Divider, Typography } from '@material-ui/core';
+import { parseRepoPickerUrl, serializeRepoPickerUrl } from './utils';
 
 export { RepoUrlPickerSchema } from './schema';
 
@@ -42,14 +44,19 @@ export { RepoUrlPickerSchema } from './schema';
  *
  * @public
  */
-export const RepoUrlPicker = (props: RepoUrlPickerProps) => {
+export const RepoUrlPicker = (
+  props: typeof RepoUrlPickerFieldSchema.TProps,
+) => {
   const { uiSchema, onChange, rawErrors, formData, schema } = props;
   const [state, setState] = useState<RepoUrlPickerState>(
     parseRepoPickerUrl(formData),
   );
+  const [credentialsHost, setCredentialsHost] = useState<string | undefined>(
+    undefined,
+  );
   const integrationApi = useApi(scmIntegrationsApiRef);
   const scmAuthApi = useApi(scmAuthApiRef);
-  const { setSecrets } = useTemplateSecrets();
+  const { secrets, setSecrets } = useTemplateSecrets();
   const allowedHosts = useMemo(
     () => uiSchema?.['ui:options']?.allowedHosts ?? [],
     [uiSchema],
@@ -122,27 +129,23 @@ export const RepoUrlPicker = (props: RepoUrlPickerProps) => {
     async () => {
       const { requestUserCredentials } = uiSchema?.['ui:options'] ?? {};
 
-      const workspace = state.owner ? state.owner : state.project;
-      if (
-        !requestUserCredentials ||
-        !(state.host && workspace && state.repoName)
-      ) {
+      if (!requestUserCredentials || !state.host) {
         return;
       }
 
-      // previously, we were encodeURI for state.host, workspace and state.repoName separately.
-      // That created an issue where GitLab workspace can be nested like groupA/subgroupB
-      // when we encodeURi separately and then join, the URL will be malformed and
-      // resulting in 400 request error from GitLab API
-      const [encodedHost, encodedRepoName] = [state.host, state.repoName].map(
-        encodeURIComponent,
-      );
+      // don't show login prompt if secret value is already in state for selected host
+      if (
+        secrets[requestUserCredentials.secretsKey] &&
+        credentialsHost === state.host
+      ) {
+        return;
+      }
 
       // user has requested that we use the users credentials
       // so lets grab them using the scmAuthApi and pass through
       // any additional scopes from the ui:options
       const { token } = await scmAuthApi.getCredentials({
-        url: `https://${encodedHost}/${workspace}/${encodedRepoName}`,
+        url: `https://${state.host}`,
         additionalScope: {
           repoWrite: true,
           customScopes: requestUserCredentials.additionalScopes,
@@ -152,6 +155,7 @@ export const RepoUrlPicker = (props: RepoUrlPickerProps) => {
       // set the secret using the key provided in the ui:options for use
       // in the templating the manifest with ${{ secrets[secretsKey] }}
       setSecrets({ [requestUserCredentials.secretsKey]: token });
+      setCredentialsHost(state.host);
     },
     500,
     [state, uiSchema],
@@ -199,6 +203,10 @@ export const RepoUrlPicker = (props: RepoUrlPickerProps) => {
           rawErrors={rawErrors}
           state={state}
           onChange={updateLocalState}
+          accessToken={
+            uiSchema?.['ui:options']?.requestUserCredentials?.secretsKey &&
+            secrets[uiSchema['ui:options'].requestUserCredentials.secretsKey]
+          }
         />
       )}
       {hostType === 'bitbucket' && (
@@ -208,12 +216,16 @@ export const RepoUrlPicker = (props: RepoUrlPickerProps) => {
           rawErrors={rawErrors}
           state={state}
           onChange={updateLocalState}
+          accessToken={
+            uiSchema?.['ui:options']?.requestUserCredentials?.secretsKey &&
+            secrets[uiSchema['ui:options'].requestUserCredentials.secretsKey]
+          }
         />
       )}
       {hostType === 'azure' && (
         <AzureRepoPicker
           allowedOrganizations={allowedOrganizations}
-          allowedOwners={allowedOwners}
+          allowedProject={allowedProjects}
           rawErrors={rawErrors}
           state={state}
           onChange={updateLocalState}
@@ -230,9 +242,14 @@ export const RepoUrlPicker = (props: RepoUrlPickerProps) => {
         repoName={state.repoName}
         allowedRepos={allowedRepos}
         onChange={repo =>
-          setState(prevState => ({ ...prevState, repoName: repo }))
+          setState(prevState => ({
+            ...prevState,
+            repoName: repo.name,
+            id: repo.id || '',
+          }))
         }
         rawErrors={rawErrors}
+        availableRepos={state.availableRepos}
       />
     </>
   );

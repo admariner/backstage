@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { V1ObjectMeta } from '@kubernetes/client-node/dist/gen/model/v1ObjectMeta';
 import {
-  V1HorizontalPodAutoscaler,
+  V1ObjectMeta,
+  V2HorizontalPodAutoscaler,
   V1Pod,
   V1ReplicaSet,
 } from '@kubernetes/client-node';
@@ -62,8 +62,8 @@ interface ResourceRef {
 
 export const getMatchingHpa = (
   owner: ResourceRef,
-  hpas: V1HorizontalPodAutoscaler[],
-): V1HorizontalPodAutoscaler | undefined => {
+  hpas: V2HorizontalPodAutoscaler[],
+): V2HorizontalPodAutoscaler | undefined => {
   return hpas.find(hpa => {
     return (
       (hpa.spec?.scaleTargetRef?.kind ?? '').toLocaleLowerCase('en-US') ===

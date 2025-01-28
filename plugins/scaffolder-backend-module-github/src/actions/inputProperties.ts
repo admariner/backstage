@@ -64,6 +64,11 @@ const requiredConversationResolution = {
     'Requires all conversations on code to be resolved before a pull request can be merged into this branch',
   type: 'boolean',
 };
+const requireLastPushApproval = {
+  title: 'Require last push approval',
+  type: 'boolean',
+  description: `Whether the most recent push to a PR must be approved by someone other than the person who pushed it. The default value is 'false'`,
+};
 const repoVisibility = {
   title: 'Repository Visibility',
   type: 'string',
@@ -265,6 +270,12 @@ const requiredCommitSigning = {
   description: `Require commit signing so that you must sign commits on this branch.`,
 };
 
+const requiredLinearHistory = {
+  title: 'Require linear history',
+  type: 'boolean',
+  description: `Prevent merge commits from being pushed to matching branches.`,
+};
+
 const repoVariables = {
   title: 'Repository Variables',
   description: `Variables attached to the repository`,
@@ -275,6 +286,41 @@ const secrets = {
   title: 'Repository Secrets',
   description: `Secrets attached to the repository`,
   type: 'object',
+};
+
+const oidcCustomization = {
+  title: 'Repository OIDC customization template',
+  description: `OIDC customization template attached to the repository.`,
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    useDefault: {
+      title: 'Use Default',
+      type: 'boolean',
+      description: `Whether to use the default OIDC template or not.`,
+    },
+    includeClaimKeys: {
+      title: 'Include claim keys',
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+      description: `Array of unique strings. Each claim key can only contain alphanumeric characters and underscores.`,
+    },
+  },
+};
+
+const customProperties = {
+  title: 'Custom Repository Properties',
+  description:
+    'Custom properties to be added to the repository (note, this only works for organization repositories)',
+  type: 'object',
+};
+
+const subscribe = {
+  title: 'Subscribe to repository',
+  description: `Subscribe to the repository. The default value is 'false'`,
+  type: 'boolean',
 };
 
 export { access };
@@ -304,6 +350,7 @@ export { dismissStaleReviews };
 export { requiredStatusCheckContexts };
 export { requireBranchesToBeUpToDate };
 export { requiredConversationResolution };
+export { requireLastPushApproval };
 export { hasProjects };
 export { hasIssues };
 export { hasWiki };
@@ -311,5 +358,9 @@ export { sourcePath };
 export { token };
 export { topics };
 export { requiredCommitSigning };
+export { requiredLinearHistory };
 export { repoVariables };
 export { secrets };
+export { oidcCustomization };
+export { customProperties };
+export { subscribe };

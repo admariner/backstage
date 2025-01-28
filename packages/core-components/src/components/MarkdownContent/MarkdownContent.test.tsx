@@ -45,6 +45,36 @@ describe('<MarkdownContent />', () => {
     ).toBeInTheDocument();
   });
 
+  it('Render MarkdownContent component without custom class', async () => {
+    await renderInTestApp(
+      <MarkdownContent content="https://example.com" dialect="common-mark" />,
+    );
+    const content = screen.getByText('https://example.com', { selector: 'p' });
+
+    expect(
+      Array.from(content.parentElement?.classList?.values() ?? []).map(cls =>
+        cls.replace(/-\d+$/, ''),
+      ),
+    ).toEqual(['BackstageMarkdownContent-markdown']);
+  });
+
+  it('Render MarkdownContent component with custom class', async () => {
+    await renderInTestApp(
+      <MarkdownContent
+        content="https://example.com"
+        dialect="common-mark"
+        className="custom-class"
+      />,
+    );
+    const content = screen.getByText('https://example.com', { selector: 'p' });
+
+    expect(
+      Array.from(content.parentElement?.classList?.values() ?? []).map(cls =>
+        cls.replace(/-\d+$/, ''),
+      ),
+    ).toEqual(['BackstageMarkdownContent-markdown', 'custom-class']);
+  });
+
   it('render MarkdownContent component with CodeSnippet for code blocks', async () => {
     await renderInTestApp(
       <MarkdownContent content={'```typescript\njest(test: string);\n```'} />,
@@ -88,6 +118,23 @@ describe('<MarkdownContent />', () => {
     expect(fp1.getAttribute('src')).toEqual(
       'https://example.com/blog/assets/6/header.png',
     );
+  });
+
+  it('render MarkdownContent component with link target set to _blank', async () => {
+    await renderInTestApp(
+      <MarkdownContent
+        content="Take a look at the [README](https://github.com/backstage/backstage/blob/master/README.md) file."
+        linkTarget="_blank"
+      />,
+    );
+    const readme = screen.getByText('README', {
+      selector: 'a',
+    });
+    expect(readme).toBeInTheDocument();
+    expect(readme.getAttribute('href')).toEqual(
+      'https://github.com/backstage/backstage/blob/master/README.md',
+    );
+    expect(readme.getAttribute('target')).toEqual('_blank');
   });
 
   it('render MarkdownContent component with headings given proper ids', async () => {

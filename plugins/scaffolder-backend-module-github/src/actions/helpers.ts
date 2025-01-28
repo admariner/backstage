@@ -23,7 +23,6 @@ import {
 } from '@backstage/integration';
 import { OctokitOptions } from '@octokit/core/dist-types/types';
 import { Octokit } from 'octokit';
-import { Logger } from 'winston';
 
 import {
   getRepoSourceDirectory,
@@ -36,9 +35,15 @@ import {
   enableBranchProtectionOnDefaultRepoBranch,
   entityRefToName,
 } from './gitHelpers';
+import { LoggerService } from '@backstage/backend-plugin-api';
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 
+/**
+ * Helper for generating octokit configuration options for given repoUrl.
+ * If no token is provided, it will attempt to get a token from the credentials provider.
+ * @public
+ */
 export async function getOctokitOptions(options: {
   integrations: ScmIntegrationRegistry;
   credentialsProvider?: GithubCredentialsProvider;
@@ -88,7 +93,7 @@ export async function getOctokitOptions(options: {
 
   if (!credentialProviderToken) {
     throw new InputError(
-      `No token available for host: ${host}, with owner ${owner}, and repo ${repo}`,
+      `No token available for host: ${host}, with owner ${owner}, and repo ${repo}. Make sure GitHub auth is configured correctly. See https://backstage.io/docs/auth/github/provider for more details.`,
     );
   }
 
@@ -137,7 +142,15 @@ export async function createGithubRepoWithCollaboratorsAndTopics(
   topics: string[] | undefined,
   repoVariables: { [key: string]: string } | undefined,
   secrets: { [key: string]: string } | undefined,
-  logger: Logger,
+  oidcCustomization:
+    | {
+        useDefault: boolean;
+        includeClaimKeys?: string[];
+      }
+    | undefined,
+  customProperties: { [key: string]: string } | undefined,
+  subscribe: boolean | undefined,
+  logger: LoggerService,
 ) {
   // eslint-disable-next-line testing-library/no-await-sync-queries
   const user = await client.rest.users.getByUsername({
@@ -168,6 +181,8 @@ export async function createGithubRepoWithCollaboratorsAndTopics(
           has_projects: hasProjects,
           has_wiki: hasWiki,
           has_issues: hasIssues,
+          // Custom properties only available on org repos
+          custom_properties: customProperties,
         })
       : client.rest.repos.createForAuthenticatedUser({
           name: repo,
@@ -304,6 +319,27 @@ export async function createGithubRepoWithCollaboratorsAndTopics(
     }
   }
 
+  if (oidcCustomization) {
+    await client.request(
+      'PUT /repos/{owner}/{repo}/actions/oidc/customization/sub',
+      {
+        owner,
+        repo,
+        use_default: oidcCustomization.useDefault,
+        include_claim_keys: oidcCustomization.includeClaimKeys,
+      },
+    );
+  }
+
+  if (subscribe) {
+    await client.rest.activity.setRepoSubscription({
+      subscribed: true,
+      ignored: false,
+      owner,
+      repo,
+    });
+  }
+
   return newRepo;
 }
 
@@ -337,6 +373,7 @@ export async function initRepoPushAndProtect(
   requiredStatusCheckContexts: string[],
   requireBranchesToBeUpToDate: boolean,
   requiredConversationResolution: boolean,
+  requireLastPushApproval: boolean,
   config: Config,
   logger: any,
   gitCommitMessage?: string,
@@ -344,6 +381,7 @@ export async function initRepoPushAndProtect(
   gitAuthorEmail?: string,
   dismissStaleReviews?: boolean,
   requiredCommitSigning?: boolean,
+  requiredLinearHistory?: boolean,
 ): Promise<{ commitHash: string }> {
   const gitAuthorInfo = {
     name: gitAuthorName
@@ -385,9 +423,11 @@ export async function initRepoPushAndProtect(
         requiredStatusCheckContexts,
         requireBranchesToBeUpToDate,
         requiredConversationResolution,
+        requireLastPushApproval,
         enforceAdmins: protectEnforceAdmins,
         dismissStaleReviews: dismissStaleReviews,
         requiredCommitSigning: requiredCommitSigning,
+        requiredLinearHistory: requiredLinearHistory,
       });
     } catch (e) {
       assertError(e);

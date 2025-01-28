@@ -28,6 +28,18 @@ export interface Config {
           clientSecret: string;
           domainHint?: string;
           callbackUrl?: string;
+          additionalScopes?: string | string[];
+          skipUserProfile?: boolean;
+          signIn?: {
+            resolvers: Array<
+              | { resolver: 'emailMatchingUserEntityAnnotation' }
+              | {
+                  resolver: 'emailLocalPartMatchingUserEntityName';
+                  allowedDomains?: string[];
+                }
+              | { resolver: 'emailMatchingUserEntityProfileEmail' }
+            >;
+          };
         };
       };
     };

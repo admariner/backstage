@@ -237,6 +237,10 @@ describe('CatalogClient', () => {
 
     it('handles ordering properly', async () => {
       expect.assertions(2);
+      const sortedEntities = [
+        { apiVersion: '1', kind: 'Component', metadata: { name: 'b' } },
+        { apiVersion: '1', kind: 'Component', metadata: { name: 'a' } },
+      ];
 
       server.use(
         rest.get(`${mockBaseUrl}/entities`, (req, res, ctx) => {
@@ -245,7 +249,7 @@ describe('CatalogClient', () => {
             'asc:kind',
             'desc:metadata.name',
           ]);
-          return res(ctx.json([]));
+          return res(ctx.json(sortedEntities));
         }),
       );
 
@@ -259,7 +263,7 @@ describe('CatalogClient', () => {
         { token },
       );
 
-      expect(response.items).toEqual([]);
+      expect(response.items).toEqual(sortedEntities);
     });
   });
 
@@ -275,6 +279,7 @@ describe('CatalogClient', () => {
       };
       server.use(
         rest.post(`${mockBaseUrl}/entities/by-refs`, async (req, res, ctx) => {
+          expect(req.url.search).toBe('?filter=kind%3DAPI%2Ckind%3DComponent');
           await expect(req.json()).resolves.toEqual({
             entityRefs: ['k:n/a', 'k:n/b'],
             fields: ['a', 'b'],
@@ -284,7 +289,13 @@ describe('CatalogClient', () => {
       );
 
       const response = await client.getEntitiesByRefs(
-        { entityRefs: ['k:n/a', 'k:n/b'], fields: ['a', 'b'] },
+        {
+          entityRefs: ['k:n/a', 'k:n/b'],
+          fields: ['a', 'b'],
+          filter: {
+            kind: ['API', 'Component'],
+          },
+        },
         { token },
       );
 
@@ -514,6 +525,18 @@ describe('CatalogClient', () => {
         '?cursor=prevcursor',
       );
     });
+
+    it('should handle errors', async () => {
+      const mockedEndpoint = jest
+        .fn()
+        .mockImplementation((_req, res, ctx) => res(ctx.status(401)));
+
+      server.use(rest.get(`${mockBaseUrl}/entities/by-query`, mockedEndpoint));
+
+      await expect(() => client.queryEntities()).rejects.toThrow(
+        /Request failed with 401 Unauthorized/,
+      );
+    });
   });
 
   describe('getEntityByRef', () => {
@@ -617,6 +640,71 @@ describe('CatalogClient', () => {
     });
   });
 
+  describe('getLocationByEntity', () => {
+    const defaultResponse = {
+      data: {
+        kind: 'c',
+        namespace: 'ns',
+        name: 'n',
+      },
+    };
+
+    beforeEach(() => {
+      server.use(
+        rest.get(`${mockBaseUrl}/locations/by-entity/c/ns/n`, (_, res, ctx) => {
+          return res(ctx.json(defaultResponse));
+        }),
+      );
+    });
+
+    it('should locations from correct endpoint', async () => {
+      const response = await client.getLocationByEntity(
+        { kind: 'c', namespace: 'ns', name: 'n' },
+        { token },
+      );
+      expect(response).toEqual(defaultResponse);
+    });
+
+    it('forwards authorization token', async () => {
+      expect.assertions(1);
+
+      server.use(
+        rest.get(
+          `${mockBaseUrl}/locations/by-entity/c/ns/n`,
+          (req, res, ctx) => {
+            expect(req.headers.get('authorization')).toBe(`Bearer ${token}`);
+            return res(ctx.json(defaultResponse));
+          },
+        ),
+      );
+
+      await client.getLocationByEntity(
+        { kind: 'c', namespace: 'ns', name: 'n' },
+        { token },
+      );
+    });
+
+    it('skips authorization header if token is omitted', async () => {
+      expect.assertions(1);
+
+      server.use(
+        rest.get(
+          `${mockBaseUrl}/locations/by-entity/c/ns/n`,
+          (req, res, ctx) => {
+            expect(req.headers.get('authorization')).toBeNull();
+            return res(ctx.json(defaultResponse));
+          },
+        ),
+      );
+
+      await client.getLocationByEntity({
+        kind: 'c',
+        namespace: 'ns',
+        name: 'n',
+      });
+    });
+  });
+
   describe('validateEntity', () => {
     it('returns valid false when validation fails', async () => {
       server.use(
@@ -696,7 +784,7 @@ describe('CatalogClient', () => {
           },
           'url:http://example.com',
         ),
-      ).rejects.toThrow(/Request failed with 500 Error/);
+      ).rejects.toThrow(/Request failed with 500 Internal Server Error/);
     });
   });
 });

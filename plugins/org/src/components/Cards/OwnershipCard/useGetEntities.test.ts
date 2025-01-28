@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { CompoundEntityRef, Entity } from '@backstage/catalog-model';
 import { useGetEntities } from './useGetEntities';
-import { CatalogApi } from '@backstage/catalog-client';
 import { renderHook, waitFor } from '@testing-library/react';
-import { getEntityRelations } from '@backstage/plugin-catalog-react';
+import { catalogApiMock } from '@backstage/plugin-catalog-react/testUtils';
 
 const givenParentGroup = 'team.squad1';
 const givenLeafGroup = 'team.squad2';
@@ -31,15 +31,14 @@ const givenUserEntity = {
   },
 } as Partial<Entity> as Entity;
 
-const getEntitiesByRefsMock = jest.fn();
-const catalogApiMock: Pick<CatalogApi, 'getEntities' | 'getEntitiesByRefs'> = {
+const catalogApi = catalogApiMock.mock({
   getEntities: jest.fn(async () => Promise.resolve({ items: [] })),
-  getEntitiesByRefs: getEntitiesByRefsMock,
-};
+});
 
-jest.mock('@backstage/core-plugin-api', () => ({
-  useApi: jest.fn(() => catalogApiMock),
-}));
+jest.mock('@backstage/core-plugin-api', () => {
+  const actual = jest.requireActual('@backstage/core-plugin-api');
+  return { ...actual, useApi: jest.fn(() => catalogApi) };
+});
 
 const getEntityRelationsMock: jest.Mock<
   CompoundEntityRef[],
@@ -50,7 +49,7 @@ jest.mock('@backstage/plugin-catalog-react', () => {
     catalogApiRef: {},
     getEntityRelations: jest.fn(entity => {
       return getEntityRelationsMock(entity);
-    }) as typeof getEntityRelations,
+    }) as any,
   };
 });
 
@@ -64,7 +63,7 @@ describe('useGetEntities', () => {
       ]),
     });
 
-  describe('given aggregated relationsType', () => {
+  describe('given aggregated relationAggregation', () => {
     const whenHookIsCalledWith = async (_entity: Entity) => {
       const { result } = renderHook(
         ({ entity }) => useGetEntities(entity, 'aggregated'),
@@ -77,16 +76,17 @@ describe('useGetEntities', () => {
     };
 
     beforeEach(() => {
-      getEntitiesByRefsMock.mockImplementation(async ({ entityRefs: [ref] }) =>
-        ref.includes(givenParentGroup)
-          ? { items: [givenParentGroupEntity] }
-          : { items: [givenLeafGroupEntity] },
+      catalogApi.getEntitiesByRefs.mockImplementation(
+        async ({ entityRefs: [ref] }) =>
+          ref.includes(givenParentGroup)
+            ? { items: [givenParentGroupEntity] }
+            : { items: [givenLeafGroupEntity] },
       );
     });
 
     afterEach(() => {
       getEntityRelationsMock.mockRestore();
-      getEntitiesByRefsMock.mockRestore();
+      catalogApi.getEntitiesByRefs.mockRestore();
     });
 
     describe('when given entity is a group', () => {
@@ -98,7 +98,7 @@ describe('useGetEntities', () => {
 
       it('should aggregate child ownership', async () => {
         await whenHookIsCalledWith(givenParentGroupEntity);
-        expect(catalogApiMock.getEntities).toHaveBeenCalledWith(
+        expect(catalogApi.getEntities).toHaveBeenCalledWith(
           ownersFilter(
             `group:default/${givenParentGroup}`,
             `group:default/${givenLeafGroup}`,
@@ -108,7 +108,7 @@ describe('useGetEntities', () => {
 
       it('should retrieve child with their relations', async () => {
         await whenHookIsCalledWith(givenParentGroupEntity);
-        expect(catalogApiMock.getEntitiesByRefs).toHaveBeenCalledWith({
+        expect(catalogApi.getEntitiesByRefs).toHaveBeenCalledWith({
           entityRefs: [`group:default/${givenLeafGroup}`],
           fields: ['kind', 'metadata.namespace', 'metadata.name', 'relations'],
         });
@@ -121,8 +121,8 @@ describe('useGetEntities', () => {
         );
 
         beforeEach(() => {
-          getEntitiesByRefsMock.mockRestore();
-          getEntitiesByRefsMock.mockImplementation(
+          catalogApi.getEntitiesByRefs.mockRestore();
+          catalogApi.getEntitiesByRefs.mockImplementation(
             async ({ entityRefs: [ref] }) => {
               if (ref.includes(givenParentGroup)) {
                 return { items: [givenParentGroupEntity] };
@@ -152,7 +152,7 @@ describe('useGetEntities', () => {
           });
 
           await whenHookIsCalledWith(givenParentGroupEntity);
-          expect(catalogApiMock.getEntities).toHaveBeenCalledWith(
+          expect(catalogApi.getEntities).toHaveBeenCalledWith(
             ownersFilter(
               `group:default/${givenParentGroup}`,
               `group:default/${givenIntermediateGroup}`,
@@ -177,7 +177,7 @@ describe('useGetEntities', () => {
           });
 
           await whenHookIsCalledWith(givenParentGroupEntity);
-          expect(catalogApiMock.getEntities).toHaveBeenCalledWith(
+          expect(catalogApi.getEntities).toHaveBeenCalledWith(
             ownersFilter(
               `group:default/${givenParentGroup}`,
               `group:default/${givenIntermediateGroup}`,
@@ -195,7 +195,7 @@ describe('useGetEntities', () => {
         ]);
 
         await whenHookIsCalledWith(givenUserEntity);
-        expect(catalogApiMock.getEntities).toHaveBeenCalledWith(
+        expect(catalogApi.getEntities).toHaveBeenCalledWith(
           ownersFilter(
             `group:default/${givenLeafGroup}`,
             `user:default/${givenUser}`,
@@ -205,7 +205,7 @@ describe('useGetEntities', () => {
     });
   });
 
-  describe('given direct relationsType', () => {
+  describe('given direct relationAggregation', () => {
     const whenHookIsCalledWith = async (_entity: Entity) => {
       const { result } = renderHook(
         ({ entity }) => useGetEntities(entity, 'direct'),
@@ -219,16 +219,122 @@ describe('useGetEntities', () => {
 
     it('given group entity should return directly owned entities', async () => {
       await whenHookIsCalledWith(givenLeafGroupEntity);
-      expect(catalogApiMock.getEntities).toHaveBeenCalledWith(
+      expect(catalogApi.getEntities).toHaveBeenCalledWith(
         ownersFilter(`group:default/${givenLeafGroup}`),
       );
     });
 
     it('given user entity should return directly owned entities', async () => {
       await whenHookIsCalledWith(givenUserEntity);
-      expect(catalogApiMock.getEntities).toHaveBeenCalledWith(
+      expect(catalogApi.getEntities).toHaveBeenCalledWith(
         ownersFilter(`user:default/${givenUser}`),
       );
+    });
+  });
+
+  describe('useGetEntities with 500+ relations', () => {
+    const manyGroups = Array.from({ length: 555 }, (_, i) =>
+      createGroupEntityFromName(`group${i + 1}`),
+    );
+
+    const givenUserWithManyGroups = {
+      kind: 'User',
+      metadata: {
+        name: givenUser,
+      },
+      spec: {
+        memberOf: manyGroups.map(
+          group => `group:default/${group.metadata.name}`,
+        ),
+      },
+    } as Partial<Entity> as Entity;
+
+    beforeEach(() => {
+      getEntityRelationsMock.mockImplementation(entity =>
+        entity?.kind === 'User'
+          ? manyGroups.map(group => createGroupRefFromName(group.metadata.name))
+          : [],
+      );
+      catalogApi.getEntities.mockClear();
+    });
+
+    it('should handle 500+ relations without exceeding URL length limits', async () => {
+      const { result } = renderHook(
+        ({ entity }) => useGetEntities(entity, 'aggregated'),
+        {
+          initialProps: { entity: givenUserWithManyGroups },
+        },
+      );
+
+      await waitFor(() => expect(result.current.loading).toBe(false), {
+        timeout: 5000,
+      });
+
+      const callArgs = catalogApi.getEntities.mock.calls[0][0];
+
+      expect(
+        (callArgs!.filter as any)[0]['relations.ownedBy'].length,
+      ).toBeLessThanOrEqual(100);
+
+      const owners = (callArgs!.filter as any)[0]['relations.ownedBy'];
+
+      expect(Array.isArray(owners)).toBeTruthy();
+      expect(owners.length).toBeLessThanOrEqual(100);
+    });
+  });
+
+  describe('useGetEntities exceeding default 16384 bytes header size', () => {
+    const largeNumberOfGroups = Array.from({ length: 600 }, (_, i) =>
+      createGroupEntityFromName(`very-long-group-name-${i + 1}`),
+    );
+
+    const givenUserWithLargeNumberOfGroups = {
+      kind: 'User',
+      metadata: {
+        name: givenUser,
+      },
+      spec: {
+        memberOf: largeNumberOfGroups.map(
+          group => `group:default/${group.metadata.name}`,
+        ),
+      },
+    } as Partial<Entity> as Entity;
+
+    beforeEach(() => {
+      getEntityRelationsMock.mockImplementation(entity =>
+        entity?.kind === 'User'
+          ? largeNumberOfGroups.map(group =>
+              createGroupRefFromName(group.metadata.name),
+            )
+          : [],
+      );
+      catalogApi.getEntities.mockClear();
+    });
+
+    it('should batch the request to avoid exceeding header size limits', async () => {
+      const { result } = renderHook(
+        ({ entity }) => useGetEntities(entity, 'aggregated'),
+        {
+          initialProps: { entity: givenUserWithLargeNumberOfGroups },
+        },
+      );
+
+      await waitFor(() => expect(result.current.loading).toBe(false), {
+        timeout: 5000,
+      });
+      const callArgs = catalogApi.getEntities.mock.calls[0][0];
+
+      const url = new URL(
+        `http://localhost/api/catalog/entities?${new URLSearchParams(
+          callArgs as any,
+        )}`,
+      );
+      const headerSize = url.href.length;
+      expect(headerSize).toBeLessThanOrEqual(16384);
+
+      const owners = (callArgs!.filter as any)[0]['relations.ownedBy'];
+      expect(Array.isArray(owners)).toBeTruthy();
+      expect(owners.length).toBeLessThanOrEqual(100);
     });
   });
 });

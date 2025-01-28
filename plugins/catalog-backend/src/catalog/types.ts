@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { BackstageCredentials } from '@backstage/backend-plugin-api';
 import { Entity } from '@backstage/catalog-model';
 import { EntityFilter } from '@backstage/plugin-catalog-node';
 
@@ -48,11 +49,25 @@ export type EntitiesRequest = {
   fields?: (entity: Entity) => Entity;
   order?: EntityOrder[];
   pagination?: EntityPagination;
-  authorizationToken?: string;
+  credentials: BackstageCredentials;
 };
 
+/**
+ * Encapsulates either a deserialized or serialized entities to be sent in a response.
+ * @internal
+ */
+export type EntitiesResponseItems =
+  | {
+      type: 'object';
+      entities: (Entity | null)[];
+    }
+  | {
+      type: 'raw';
+      entities: (string | null)[];
+    };
+
 export type EntitiesResponse = {
-  entities: Entity[];
+  entities: EntitiesResponseItems;
   pageInfo: PageInfo;
 };
 
@@ -75,9 +90,9 @@ export interface EntitiesBatchRequest {
    */
   fields?: (entity: Entity) => Entity;
   /**
-   * The optional token that authorizes the action.
+   * The credentials that authorizes the action.
    */
-  authorizationToken?: string;
+  credentials: BackstageCredentials;
 }
 
 export interface EntitiesBatchResponse {
@@ -85,7 +100,7 @@ export interface EntitiesBatchResponse {
    * The list of entities, in the same order as the refs in the request. Entries
    * that are null signify that no entity existed with that ref.
    */
-  items: Array<Entity | null>;
+  items: EntitiesResponseItems;
 }
 
 export type EntityAncestryResponse = {
@@ -115,9 +130,9 @@ export interface EntityFacetsRequest {
    */
   facets: string[];
   /**
-   * The optional token that authorizes the action.
+   * The credentials that authorizes the action.
    */
-  authorizationToken?: string;
+  credentials: BackstageCredentials;
 }
 
 /**
@@ -157,7 +172,7 @@ export interface EntitiesCatalog {
    */
   removeEntityByUid(
     uid: string,
-    options?: { authorizationToken?: string },
+    options: { credentials: BackstageCredentials },
   ): Promise<void>;
 
   /**
@@ -167,7 +182,7 @@ export interface EntitiesCatalog {
    */
   entityAncestry(
     entityRef: string,
-    options?: { authorizationToken?: string },
+    options: { credentials: BackstageCredentials },
   ): Promise<EntityAncestryResponse>;
 
   /**
@@ -192,15 +207,17 @@ export type QueryEntitiesRequest =
  * for the current and the next pagination requests.
  */
 export interface QueryEntitiesInitialRequest {
-  authorizationToken?: string;
+  credentials: BackstageCredentials;
   fields?: (entity: Entity) => Entity;
   limit?: number;
+  offset?: number;
   filter?: EntityFilter;
   orderFields?: EntityOrder[];
   fullTextFilter?: {
     term: string;
     fields?: string[];
   };
+  skipTotalItems?: boolean;
 }
 
 /**
@@ -208,7 +225,7 @@ export interface QueryEntitiesInitialRequest {
  * move forward or backward on the data.
  */
 export interface QueryEntitiesCursorRequest {
-  authorizationToken?: string;
+  credentials: BackstageCredentials;
   fields?: (entity: Entity) => Entity;
   limit?: number;
   cursor: Cursor;
@@ -221,7 +238,7 @@ export interface QueryEntitiesResponse {
   /**
    * The entities for the current pagination request
    */
-  items: Entity[];
+  items: EntitiesResponseItems;
 
   pageInfo: {
     /**

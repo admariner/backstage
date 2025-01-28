@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: '@backstage/plugin-catalog-backend'
+  title: catalog
   version: '1'
   description: The Backstage backend plugin that provides the Backstage catalog
   license:
@@ -9,7 +9,6 @@ info:
   contact: {}
 servers:
   - url: /
-  - url: catalog
 components:
   examples: {}
   headers: {}
@@ -863,6 +862,8 @@ paths:
                     - component:default/backstage
                   fields:
                     - metadata.annotations
+      parameters:
+        - $ref: '#/components/parameters/filter'
   /entities/by-query:
     get:
       operationId: GetEntitiesByQuery
@@ -884,6 +885,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/fields'
         - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
         - $ref: '#/components/parameters/orderField'
         - $ref: '#/components/parameters/cursor'
         - $ref: '#/components/parameters/filter'
@@ -1057,6 +1059,41 @@ paths:
           allowReserved: true
           schema:
             type: string
+  /locations/by-entity/{kind}/{namespace}/{name}:
+    get:
+      operationId: getLocationByEntity
+      description: Get a location for entity.
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+      security:
+        - {}
+        - JWT: []
+      parameters:
+        - in: path
+          name: kind
+          required: true
+          allowReserved: true
+          schema:
+            type: string
+        - in: path
+          name: namespace
+          required: true
+          allowReserved: true
+          schema:
+            type: string
+        - in: path
+          name: name
+          required: true
+          allowReserved: true
+          schema:
+            type: string
   /analyze-location:
     post:
       operationId: AnalyzeLocation
@@ -1099,7 +1136,7 @@ paths:
         '400':
           description: Validation errors.
           content:
-            application/json; charset=utf-8:
+            application/json:
               schema:
                 type: object
                 properties:

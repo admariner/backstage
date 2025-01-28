@@ -33,6 +33,8 @@ PR is merged. This is typically done every Tuesday around noon CET.
 
 Merging the `Version Packages (next)` Pull Request will trigger the deployment workflows. Follow along the [deployment workflow](https://github.com/backstage/backstage/actions/workflows/deploy_packages.yml). If you notice flakiness (e.g. if the build is flaky or if the release step runs into an error with releasing to npm) just restart the workflow.
 
+When the release is ready to be published, maintainers will be notified in the private `#maintainers` channel on the Backstage Discord Server. They will then start the publishing workflow on the publishing workflows page linked in the notification message. On the publishing workflows page there is a dropdown menu called "Run workflow", this opens a form where the person responsible for the release should paste the SHA received in the Discord notification and click to run the workflow.
+
 Congratulations on the release! There should be now a post in the [`#announcements` channel](https://discord.com/channels/687207715902193673/705123584468582400) in Discord linking to the release tag - check if links & tag look as expected. Once the notification has gone out on Discord you can unlock the main branch & the release is complete.
 
 ## Main Line Release Process
@@ -51,8 +53,9 @@ Additional steps for the main line release
   - Mention any security fixes
 - Create Release Notes PR
   - Add the release note file as [`/docs/releases/vx.y.0.md`](./releases)
-  - Add an entry to [`/microsite/sidebar.json`](https://github.com/backstage/backstage/blob/master/microsite/sidebars.json) for the release note
-  - Update the navigation bar item in [`/microsite/docusaurus.config.js`](https://github.com/backstage/backstage/blob/master/microsite/docusaurus.config.js) to point to the new release note
+  - Add an entry to [`/microsite/sidebar.js`](https://github.com/backstage/backstage/blob/master/microsite/sidebars.js) for the release note
+  - Update the navigation bar item in [`/microsite/docusaurus.config.ts`](https://github.com/backstage/backstage/blob/master/microsite/docusaurus.config.ts) to point to the new release note
+  - Finally copy the content, without the metadata header, into the description of the [`Version Packages` Pull Request](https://github.com/backstage/backstage/pulls?q=is%3Aopen+is%3Apr+in%3Atitle+%22Version+Packages)
 
 Once the release has been published edit the newly created release in the [GitHub repository](https://github.com/backstage/backstage/releases) and replace the text content with the release notes.
 
@@ -74,7 +77,7 @@ Given one or more PRs towards master that we want to create a patch release for,
 ./scripts/patch-release-for-pr.js <pr-number> <pr-number-2> ...
 ```
 
-Wait until the script has finished executing, at the end of the output you will find a link of the format `https://github.com/backstage/backstage/compare/patch/...`. Open this link in your browser to create a PR for the patch release. Finish the sentence "This release fixes an issue where..." and create the PR.
+Wait until the script has finished executing, at the end of the output you will find a link of the format `https://github.com/backstage/backstage/pull/new/patch-release-pr-...`. Open this link in your browser to create a PR for the patch release. Finish the sentence "This release fixes an issue where..." and create the PR.
 
 Once the PR has been approved and merged, the patch release will be automatically created. The patch release is complete when a notification has been posted to Discord in the `#announcements` channel. Keep an eye on "Deploy Packages" workflow and re-trigger if it fails. It is safe to re-trigger any part of this workflow, including the release step.
 
@@ -134,3 +137,31 @@ process is used to release an emergency fix as version `6.5.1` in the patch rele
   - [ ] The fix, which you can likely cherry-pick from your patch branch: `git cherry-pick origin/patch/v1.18.0^`
   - [ ] An updated `CHANGELOG.md` of all patched packages from the tip of the patch branch, `git checkout origin/patch/v1.18.0 -- {packages,plugins}/*/CHANGELOG.md`. Note that if the patch happens after any next-line releases you'll need to restore those entries in the changelog, placing the patch release entry beneath any next-line release entries.
   - [ ] A changeset with the message "Applied the fix from version `6.5.1` of this package, which is part of the `v1.18.1` release of Backstage."
+
+## Troubleshooting
+
+### When the release workflow is not triggered for some reason, such as a GitHub incident
+
+Ask one of the maintainers to trigger [the Deploy packages](https://github.com/backstage/backstage/actions/workflows/deploy_packages.yml) workflow with the "Unconditionally trigger the release job to run" checkbox set, on the `master` branch. Please validate first that nothing substantial has been pushed to master since the original failed release attempt! For this reason, it is wise to have the master branch locked until each release has gone through.
+
+### The release successfully published packages but failed when finalizing the release
+
+If it's an intermittent failure then it is safe to re-trigger the release workflow again.
+
+If re-triggering doesn't or won't help, the following steps can be taken to complete the release:
+
+- Manually create a git tag for the release if it doesn't already exist
+- Manually create a [new GitHub release](https://github.com/backstage/backstage/releases/new).
+- Trigger the repository dispatch workflow using the following request, replace `<VERSION>` with the release version **without** the `v` prefix:
+
+  ```shell
+  curl -L \
+    -X POST \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $(gh auth token)" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    https://api.github.com/repos/backstage/backstage/dispatches \
+    -d '{"event_type":"release-published","client_payload":{"version":"<VERSION>"}}'
+  ```
+
+- Manually post a message on Discord in the #announcements channel

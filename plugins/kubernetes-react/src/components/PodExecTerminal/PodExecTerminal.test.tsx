@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { DiscoveryApi, discoveryApiRef } from '@backstage/core-plugin-api';
+import { discoveryApiRef } from '@backstage/core-plugin-api';
 import {
+  mockApis,
   renderInTestApp,
   TestApiProvider,
   textContentMatcher,
@@ -32,20 +33,18 @@ global.TextEncoder = require('util').TextEncoder;
 const textEncoder = new TextEncoder();
 
 describe('PodExecTerminal', () => {
-  const clusterName = 'cluster1';
+  const cluster = { name: 'cluster1' };
   const containerName = 'container2';
   const podName = 'pod1';
   const podNamespace = 'podNamespace';
 
-  const mockDiscoveryApi: Partial<DiscoveryApi> = {
-    getBaseUrl: () => Promise.resolve('http://localhost'),
-  };
+  const mockDiscoveryApi = mockApis.discovery();
 
   it('Should render an XTerm web terminal', async () => {
     await renderInTestApp(
       <TestApiProvider apis={[[discoveryApiRef, mockDiscoveryApi]]}>
         <PodExecTerminal
-          clusterName={clusterName}
+          cluster={cluster}
           containerName={containerName}
           podName={podName}
           podNamespace={podNamespace}
@@ -62,13 +61,13 @@ describe('PodExecTerminal', () => {
 
   it('Should connect to WebSocket server & render response', async () => {
     const server = new WS(
-      'ws://localhost/proxy/api/v1/namespaces/podNamespace/pods/pod1/exec?container=container2&stdin=true&stdout=true&stderr=true&tty=true&command=%2Fbin%2Fsh',
+      'ws://example.com/api/kubernetes/proxy/api/v1/namespaces/podNamespace/pods/pod1/exec?container=container2&stdin=true&stdout=true&stderr=true&tty=true&command=%2Fbin%2Fsh',
     );
 
     await renderInTestApp(
       <TestApiProvider apis={[[discoveryApiRef, mockDiscoveryApi]]}>
         <PodExecTerminal
-          clusterName={clusterName}
+          cluster={cluster}
           containerName={containerName}
           podName={podName}
           podNamespace={podNamespace}

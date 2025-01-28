@@ -15,16 +15,14 @@
  */
 
 import { AlphaEntity } from '@backstage/catalog-model/alpha';
-import {
-  Box,
-  DialogContentText,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemSecondaryAction,
-  makeStyles,
-  Typography,
-} from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 import groupBy from 'lodash/groupBy';
 import sortBy from 'lodash/sortBy';
 import React from 'react';
@@ -36,9 +34,10 @@ import {
   ListItemText,
   ListSubheader,
 } from './common';
-import { EntityKindIcon } from './EntityKindIcon';
 import { stringifyEntityRef } from '@backstage/catalog-model';
 import { CopyTextButton } from '@backstage/core-components';
+import { catalogReactTranslationRef } from '../../../translation';
+import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
 
 const useStyles = makeStyles({
   root: {
@@ -62,11 +61,14 @@ export function OverviewPage(props: { entity: AlphaEntity }) {
     sortBy(relations, r => r.targetRef),
     'type',
   );
+  const { t } = useTranslationRef(catalogReactTranslationRef);
 
   const entityRef = stringifyEntityRef(props.entity);
   return (
     <>
-      <DialogContentText variant="h2">Overview</DialogContentText>
+      <DialogContentText variant="h2">
+        {t('inspectEntityDialog.overviewPage.title')}
+      </DialogContentText>
       <div className={classes.root}>
         <Container title="Identity">
           <List dense>
@@ -155,9 +157,6 @@ export function OverviewPage(props: { entity: AlphaEntity }) {
                   <List dense subheader={<ListSubheader>{type}</ListSubheader>}>
                     {groupRelations.map(group => (
                       <ListItem key={group.targetRef}>
-                        <ListItemIcon>
-                          <EntityKindIcon entityRef={group.targetRef} />
-                        </ListItemIcon>
                         <ListItemText
                           primary={
                             <EntityRefLink entityRef={group.targetRef} />

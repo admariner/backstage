@@ -16,6 +16,7 @@
 
 import {
   CompoundEntityRef,
+  Entity,
   stringifyEntityRef,
 } from '@backstage/catalog-model';
 import {
@@ -23,7 +24,8 @@ import {
   DependencyGraphTypes,
 } from '@backstage/core-components';
 import { errorApiRef, useApi } from '@backstage/core-plugin-api';
-import { CircularProgress, makeStyles, useTheme } from '@material-ui/core';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import React, { MouseEvent, useEffect, useMemo } from 'react';
 import { DefaultRenderLabel } from './DefaultRenderLabel';
@@ -31,6 +33,9 @@ import { DefaultRenderNode } from './DefaultRenderNode';
 import { ALL_RELATION_PAIRS, RelationPairs } from './relations';
 import { Direction, EntityEdge, EntityNode } from './types';
 import { useEntityRelationNodesAndEdges } from './useEntityRelationNodesAndEdges';
+
+/** @public */
+export type EntityRelationsGraphClassKey = 'progress' | 'container' | 'graph';
 
 const useStyles = makeStyles(
   theme => ({
@@ -76,6 +81,7 @@ export type EntityRelationsGraphProps = {
   mergeRelations?: boolean;
   kinds?: string[];
   relations?: string[];
+  entityFilter?: (entity: Entity) => boolean;
   direction?: Direction;
   onNodeClick?: (value: EntityNode, event: MouseEvent<unknown>) => void;
   relationPairs?: RelationPairs;
@@ -84,6 +90,7 @@ export type EntityRelationsGraphProps = {
   renderNode?: DependencyGraphTypes.RenderNodeFunction<EntityNode>;
   renderLabel?: DependencyGraphTypes.RenderLabelFunction<EntityEdge>;
   curve?: 'curveStepBefore' | 'curveMonotoneX';
+  showArrowHeads?: boolean;
 };
 
 /**
@@ -99,6 +106,7 @@ export const EntityRelationsGraph = (props: EntityRelationsGraphProps) => {
     mergeRelations = true,
     kinds,
     relations,
+    entityFilter,
     direction = Direction.LEFT_RIGHT,
     onNodeClick,
     relationPairs = ALL_RELATION_PAIRS,
@@ -107,6 +115,7 @@ export const EntityRelationsGraph = (props: EntityRelationsGraphProps) => {
     renderNode,
     renderLabel,
     curve,
+    showArrowHeads,
   } = props;
 
   const theme = useTheme();
@@ -127,6 +136,7 @@ export const EntityRelationsGraph = (props: EntityRelationsGraphProps) => {
     mergeRelations,
     kinds,
     relations,
+    entityFilter,
     onNodeClick,
     relationPairs,
   });
@@ -154,6 +164,7 @@ export const EntityRelationsGraph = (props: EntityRelationsGraphProps) => {
           labelOffset={theme.spacing(1)}
           zoom={zoom}
           curve={curve}
+          showArrowHeads={showArrowHeads}
         />
       )}
     </div>

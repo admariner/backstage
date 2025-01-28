@@ -62,6 +62,7 @@ describe('pluginWeb factory', () => {
         modified = true;
       },
       createTemporaryDirectory: () => fs.mkdtemp('test'),
+      license: 'Apache-2.0',
     });
 
     expect(modified).toBe(true);
@@ -72,7 +73,7 @@ describe('pluginWeb factory', () => {
       `availability  plugins${sep}test-react`,
       'creating      temp dir',
       'Executing Template:',
-      'copying       .eslintrc.js',
+      'templating    .eslintrc.js.hbs',
       'templating    README.md.hbs',
       'templating    package.json.hbs',
       'templating    index.ts.hbs',

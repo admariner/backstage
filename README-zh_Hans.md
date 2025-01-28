@@ -10,7 +10,6 @@
 ![Code style](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)
 [![Codecov](https://img.shields.io/codecov/c/github/backstage/backstage)](https://codecov.io/gh/backstage/backstage)
 [![](https://img.shields.io/github/v/release/backstage/backstage)](https://github.com/backstage/backstage/releases)
-[![Uffizzi](https://img.shields.io/endpoint?url=https%3A%2F%2Fapp.uffizzi.com%2Fapi%2Fv1%2Fpublic%2Fshields%2Fgithub.com%2Fbackstage%2Fbackstage)](https://app.uffizzi.com/ephemeral-environments/backstage/backstage)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/7678/badge)](https://bestpractices.coreinfrastructure.org/projects/7678)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/backstage/backstage/badge)](https://securityscorecards.dev/viewer/?uri=github.com/backstage/backstage)
 
@@ -56,8 +55,8 @@ Backstage 的文档包括：
 - [Discord 聊天室](https://discord.gg/backstage-687207715902193673) - 获得支持或讨论项目
 - [参与贡献 Backstage](https://github.com/backstage/backstage/blob/master/CONTRIBUTING.md) - 如果您想做出贡献，请从这里开始
 - [RFCs](https://github.com/backstage/backstage/labels/rfc) - 帮助制定技术方向
-- [FAQ](https://backstage.io/docs/FAQ) - n.: 常问问题
-- [行为准则](CODE_OF_CONDUCT.md) - 这是我们的刑事方式
+- [FAQ](https://backstage.io/docs/FAQ) - 常问问题
+- [行为准则](CODE_OF_CONDUCT.md) - 这是我们的行事方式
 - [采纳者](ADOPTERS.md) - 已经在使用 Backstage 的公司
 - [博客](https://backstage.io/blog/) - 公告和更新
 - [通讯](https://spoti.fi/backstagenewsletter) - 订阅我们的电子邮件通讯
@@ -66,7 +65,7 @@ Backstage 的文档包括：
 
 ## 许可
 
-版权所有 2020-2023 © Backstage 作者。版权所有。Linux 基金会已注册商标并使用商标。有关 Linux 基金会的商标列表，请参阅我们的商标使用页面：https://www.linuxfoundation.org/trademark-usage
+版权所有 2020-2024 © Backstage 作者。版权所有。Linux 基金会已注册商标并使用商标。有关 Linux 基金会的商标列表，请参阅我们的商标使用页面：https://www.linuxfoundation.org/trademark-usage
 
 采用 Apache v2.0 许可：http://www.apache.org/licenses/LICENSE-2.0
 

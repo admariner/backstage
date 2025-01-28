@@ -1,5 +1,314 @@
 # @backstage/integration-react
 
+## 1.2.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@1.10.3
+  - @backstage/integration@1.16.1
+  - @backstage/config@1.3.2
+
+## 1.2.3-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@1.10.3-next.0
+  - @backstage/config@1.3.2-next.0
+  - @backstage/integration@1.16.1-next.0
+
+## 1.2.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.16.0
+  - @backstage/config@1.3.1
+  - @backstage/core-plugin-api@1.10.2
+
+## 1.2.2-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.3.1-next.0
+  - @backstage/core-plugin-api@1.10.2-next.0
+  - @backstage/integration@1.16.0-next.1
+
+## 1.2.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.16.0-next.0
+  - @backstage/config@1.3.0
+  - @backstage/core-plugin-api@1.10.1
+
+## 1.2.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.3.0
+  - @backstage/core-plugin-api@1.10.1
+  - @backstage/integration@1.15.2
+
+## 1.2.0
+
+### Minor Changes
+
+- a11495a: Added new ScmAuth method `forBitbucketServer` that uses correct OAuth scopes by default. Also updated `forBitbucket` method to allow overriding the default OAuth scopes.
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+- 3dbac17: Revert of change #26430
+- Updated dependencies
+  - @backstage/core-plugin-api@1.10.0
+  - @backstage/integration@1.15.1
+  - @backstage/config@1.2.0
+
+## 1.2.0-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.15.1-next.1
+  - @backstage/config@1.2.0
+  - @backstage/core-plugin-api@1.10.0-next.1
+
+## 1.2.0-next.1
+
+### Minor Changes
+
+- a11495a: Added new ScmAuth method `forBitbucketServer` that uses correct OAuth scopes by default. Also updated `forBitbucket` method to allow overriding the default OAuth scopes.
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+- 3dbac17: Revert of change #26430
+- Updated dependencies
+  - @backstage/core-plugin-api@1.10.0-next.1
+  - @backstage/integration@1.15.1-next.0
+  - @backstage/config@1.2.0
+
+## 1.1.32-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@1.10.0-next.0
+  - @backstage/config@1.2.0
+  - @backstage/integration@1.15.0
+
+## 1.1.31
+
+### Patch Changes
+
+- 8a9d797: Remove unnecessary broad permissions from Gitlab `SCMAuth`
+
+  Newer versions of Gitlab (after 2019) do not require the broad api permissions to write to repos.
+
+- Updated dependencies
+  - @backstage/integration@1.15.0
+  - @backstage/core-plugin-api@1.9.4
+  - @backstage/config@1.2.0
+
+## 1.1.31-next.0
+
+### Patch Changes
+
+- 8a9d797: Remove unnecessary broad permissions from Gitlab `SCMAuth`
+
+  Newer versions of Gitlab (after 2019) do not require the broad api permissions to write to repos.
+
+- Updated dependencies
+  - @backstage/integration@1.15.0-next.0
+  - @backstage/core-plugin-api@1.9.4-next.0
+  - @backstage/config@1.2.0
+
+## 1.1.30
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.14.0
+  - @backstage/config@1.2.0
+  - @backstage/core-plugin-api@1.9.3
+
+## 1.1.30-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.14.0-next.0
+  - @backstage/config@1.2.0
+  - @backstage/core-plugin-api@1.9.3
+
+## 1.1.29
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.13.0
+  - @backstage/config@1.2.0
+  - @backstage/core-plugin-api@1.9.3
+
+## 1.1.29-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.13.0-next.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/config@1.2.0
+
+## 1.1.28
+
+### Patch Changes
+
+- 23ee9ab: Fix AWS CodeCommit integration by allowing to change the host
+- Updated dependencies
+  - @backstage/integration@1.12.0
+  - @backstage/core-plugin-api@1.9.3
+  - @backstage/config@1.2.0
+
+## 1.1.28-next.1
+
+### Patch Changes
+
+- 23ee9ab: Fix AWS CodeCommit integration by allowing to change the host
+- Updated dependencies
+  - @backstage/integration@1.12.0-next.1
+  - @backstage/config@1.2.0
+  - @backstage/core-plugin-api@1.9.3-next.0
+
+## 1.1.28-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@1.9.3-next.0
+  - @backstage/integration@1.12.0-next.0
+  - @backstage/config@1.2.0
+
+## 1.1.27
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.11.0
+
+## 1.1.27-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.11.0-next.0
+
+## 1.1.26
+
+### Patch Changes
+
+- cb1e3b0: Updated dependency `@testing-library/dom` to `^10.0.0`.
+- Updated dependencies
+  - @backstage/core-plugin-api@1.9.2
+  - @backstage/integration@1.10.0
+  - @backstage/config@1.2.0
+
+## 1.1.26-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.10.0-next.0
+  - @backstage/config@1.2.0
+  - @backstage/core-plugin-api@1.9.1
+
+## 1.1.25
+
+### Patch Changes
+
+- b38dc55: Updated `microsoftAuthApi` scopes for Azure DevOps to be fully qualified.
+- Updated dependencies
+  - @backstage/integration@1.9.1
+  - @backstage/config@1.2.0
+  - @backstage/core-plugin-api@1.9.1
+
+## 1.1.25-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.9.1-next.2
+  - @backstage/config@1.2.0-next.1
+  - @backstage/core-plugin-api@1.9.1-next.1
+
+## 1.1.25-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.2.0-next.1
+  - @backstage/core-plugin-api@1.9.1-next.1
+  - @backstage/integration@1.9.1-next.1
+
+## 1.1.25-next.0
+
+### Patch Changes
+
+- b38dc55: Updated `microsoftAuthApi` scopes for Azure DevOps to be fully qualified.
+- Updated dependencies
+  - @backstage/config@1.1.2-next.0
+  - @backstage/core-plugin-api@1.9.1-next.0
+  - @backstage/integration@1.9.1-next.0
+
+## 1.1.24
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.9.0
+  - @backstage/core-plugin-api@1.9.0
+  - @backstage/config@1.1.1
+
+## 1.1.24-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/integration@1.9.0-next.1
+  - @backstage/config@1.1.1
+  - @backstage/core-plugin-api@1.9.0-next.1
+
+## 1.1.24-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@1.9.0-next.1
+  - @backstage/config@1.1.1
+  - @backstage/integration@1.9.0-next.0
+
+## 1.1.24-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@1.8.3-next.0
+  - @backstage/integration@1.9.0-next.0
+  - @backstage/config@1.1.1
+
+## 1.1.23
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/core-plugin-api@1.8.2
+  - @backstage/config@1.1.1
+  - @backstage/integration@1.8.0
+
 ## 1.1.23-next.0
 
 ### Patch Changes

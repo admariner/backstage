@@ -35,18 +35,21 @@ import {
   useStarredEntities,
 } from '@backstage/plugin-catalog-react';
 import Typography from '@material-ui/core/Typography';
-import { withStyles } from '@material-ui/core/styles';
 import { visuallyHidden } from '@mui/utils';
 import Edit from '@material-ui/icons/Edit';
 import OpenInNew from '@material-ui/icons/OpenInNew';
-import Star from '@material-ui/icons/Star';
-import StarBorder from '@material-ui/icons/StarBorder';
 import { capitalize } from 'lodash';
 import pluralize from 'pluralize';
 import React, { ReactNode, useMemo } from 'react';
 import { columnFactories } from './columns';
 import { CatalogTableColumnsFunc, CatalogTableRow } from './types';
-import { PaginatedCatalogTable } from './PaginatedCatalogTable';
+import { OffsetPaginatedCatalogTable } from './OffsetPaginatedCatalogTable';
+import { CursorPaginatedCatalogTable } from './CursorPaginatedCatalogTable';
+import { defaultCatalogTableColumnsFunc } from './defaultCatalogTableColumnsFunc';
+import { useTranslationRef } from '@backstage/core-plugin-api/alpha';
+import { catalogTranslationRef } from '../../alpha/translation';
+import { FavoriteToggleIcon } from '@backstage/core-components';
+import { CatalogTableToolbar } from './CatalogTableToolbar';
 
 /**
  * Props for {@link CatalogTable}.
@@ -58,14 +61,13 @@ export interface CatalogTableProps {
   actions?: TableProps<CatalogTableRow>['actions'];
   tableOptions?: TableProps<CatalogTableRow>['options'];
   emptyContent?: ReactNode;
+  /**
+   * A static title to use for the table. If not provided, a title will be
+   * generated based on the current Kind and Type filters and total number of items.
+   */
+  title?: string;
   subtitle?: string;
 }
-
-const YellowStar = withStyles({
-  root: {
-    color: '#f3ba37',
-  },
-})(Star);
 
 const refCompare = (a: Entity, b: Entity) => {
   const toRef = (entity: Entity) =>
@@ -77,73 +79,49 @@ const refCompare = (a: Entity, b: Entity) => {
   return toRef(a).localeCompare(toRef(b));
 };
 
-const defaultColumnsFunc: CatalogTableColumnsFunc = ({ filters, entities }) => {
-  const showTypeColumn = filters.type === undefined;
-
-  return [
-    columnFactories.createTitleColumn({ hidden: true }),
-    columnFactories.createNameColumn({ defaultKind: filters.kind?.value }),
-    ...createEntitySpecificColumns(),
-    columnFactories.createMetadataDescriptionColumn(),
-    columnFactories.createTagsColumn(),
-  ];
-
-  function createEntitySpecificColumns(): TableColumn<CatalogTableRow>[] {
-    const baseColumns = [
-      columnFactories.createSystemColumn(),
-      columnFactories.createOwnerColumn(),
-      columnFactories.createSpecTypeColumn({ hidden: !showTypeColumn }),
-      columnFactories.createSpecLifecycleColumn(),
-    ];
-    switch (filters.kind?.value) {
-      case 'user':
-        return [];
-      case 'domain':
-      case 'system':
-        return [columnFactories.createOwnerColumn()];
-      case 'group':
-      case 'template':
-        return [
-          columnFactories.createSpecTypeColumn({ hidden: !showTypeColumn }),
-        ];
-      case 'location':
-        return [
-          columnFactories.createSpecTypeColumn({ hidden: !showTypeColumn }),
-          columnFactories.createSpecTargetsColumn(),
-        ];
-      default:
-        return entities.every(entity => entity.metadata.namespace === 'default')
-          ? baseColumns
-          : [...baseColumns, columnFactories.createNamespaceColumn()];
-    }
-  }
-};
-
-/** @public */
+/**
+ * CatalogTable is a wrapper around the Table component that is pre-configured
+ * to display catalog entities.
+ *
+ * @remarks
+ *
+ * See {@link https://backstage.io/docs/features/software-catalog/catalog-customization}
+ *
+ * @public
+ */
 export const CatalogTable = (props: CatalogTableProps) => {
   const {
-    columns = defaultColumnsFunc,
+    columns = defaultCatalogTableColumnsFunc,
     tableOptions,
     subtitle,
     emptyContent,
   } = props;
   const { isStarredEntity, toggleStarredEntity } = useStarredEntities();
   const entityListContext = useEntityList();
-  const { loading, error, entities, filters, pageInfo } = entityListContext;
-  const enablePagination = !!pageInfo;
+
+  const {
+    loading,
+    error,
+    entities,
+    filters,
+    pageInfo,
+    totalItems,
+    paginationMode,
+  } = entityListContext;
 
   const tableColumns = useMemo(
     () =>
       typeof columns === 'function' ? columns(entityListContext) : columns,
     [columns, entityListContext],
   );
+  const { t } = useTranslationRef(catalogTranslationRef);
 
   if (error) {
     return (
       <div>
         <WarningPanel
           severity="error"
-          title="Could not fetch catalog entities."
+          title={t('catalogTable.warningPanelTitle')}
         >
           <CodeSnippet language="text" text={error.toString()} />
         </WarningPanel>
@@ -154,7 +132,7 @@ export const CatalogTable = (props: CatalogTableProps) => {
   const defaultActions: TableProps<CatalogTableRow>['actions'] = [
     ({ entity }) => {
       const url = entity.metadata.annotations?.[ANNOTATION_VIEW_URL];
-      const title = 'View';
+      const title = t('catalogTable.viewActionTitle');
 
       return {
         icon: () => (
@@ -173,7 +151,7 @@ export const CatalogTable = (props: CatalogTableProps) => {
     },
     ({ entity }) => {
       const url = entity.metadata.annotations?.[ANNOTATION_EDIT_URL];
-      const title = 'Edit';
+      const title = t('catalogTable.editActionTitle');
 
       return {
         icon: () => (
@@ -192,31 +170,30 @@ export const CatalogTable = (props: CatalogTableProps) => {
     },
     ({ entity }) => {
       const isStarred = isStarredEntity(entity);
-      const title = isStarred ? 'Remove from favorites' : 'Add to favorites';
+      const title = isStarred
+        ? t('catalogTable.unStarActionTitle')
+        : t('catalogTable.starActionTitle');
 
       return {
         cellStyle: { paddingLeft: '1em' },
-        icon: () => (
-          <>
-            <Typography style={visuallyHidden}>{title}</Typography>
-            {isStarred ? <YellowStar /> : <StarBorder />}
-          </>
-        ),
+        icon: () => <FavoriteToggleIcon isFavorite={isStarred} />,
         tooltip: title,
         onClick: () => toggleStarredEntity(entity),
       };
     },
   ];
 
-  const currentKind = filters.kind?.value || '';
+  const currentKind = filters.kind?.label || '';
   const currentType = filters.type?.value || '';
+  const currentCount = typeof totalItems === 'number' ? `(${totalItems})` : '';
   // TODO(timbonicus): remove the title from the CatalogTable once using EntitySearchBar
   const titlePreamble = capitalize(filters.user?.value ?? 'all');
-  const titleDisplay = [titlePreamble, currentType, pluralize(currentKind)]
-    .filter(s => s)
-    .join(' ');
+  const title =
+    props.title ||
+    [titlePreamble, currentType, pluralize(currentKind), currentCount]
+      .filter(s => s)
+      .join(' ');
 
-  const title = `${titleDisplay} (${entities.length})`;
   const actions = props.actions || defaultActions;
   const options = {
     actionsColumnIndex: -1,
@@ -226,9 +203,9 @@ export const CatalogTable = (props: CatalogTableProps) => {
     ...tableOptions,
   };
 
-  if (enablePagination) {
+  if (paginationMode === 'cursor') {
     return (
-      <PaginatedCatalogTable
+      <CursorPaginatedCatalogTable
         columns={tableColumns}
         emptyContent={emptyContent}
         isLoading={loading}
@@ -237,8 +214,21 @@ export const CatalogTable = (props: CatalogTableProps) => {
         subtitle={subtitle}
         options={options}
         data={entities.map(toEntityRow)}
-        next={pageInfo.next}
-        prev={pageInfo.prev}
+        next={pageInfo?.next}
+        prev={pageInfo?.prev}
+      />
+    );
+  } else if (paginationMode === 'offset') {
+    return (
+      <OffsetPaginatedCatalogTable
+        columns={tableColumns}
+        emptyContent={emptyContent}
+        isLoading={loading}
+        title={title}
+        actions={actions}
+        subtitle={subtitle}
+        options={options}
+        data={entities.map(toEntityRow)}
       />
     );
   }
@@ -257,7 +247,10 @@ export const CatalogTable = (props: CatalogTableProps) => {
         pageSizeOptions: [20, 50, 100],
         ...options,
       }}
-      title={`${titleDisplay} (${entities.length})`}
+      components={{
+        Toolbar: CatalogTableToolbar,
+      }}
+      title={title}
       data={rows}
       actions={actions}
       subtitle={subtitle}
@@ -267,6 +260,7 @@ export const CatalogTable = (props: CatalogTableProps) => {
 };
 
 CatalogTable.columns = columnFactories;
+CatalogTable.defaultColumnsFunc = defaultCatalogTableColumnsFunc;
 
 function toEntityRow(entity: Entity) {
   const partOfSystemRelations = getEntityRelations(entity, RELATION_PART_OF, {

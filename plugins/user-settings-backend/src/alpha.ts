@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Backstage Authors
+ * Copyright 2024 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,8 @@
  * limitations under the License.
  */
 
-import {
-  createBackendPlugin,
-  coreServices,
-} from '@backstage/backend-plugin-api';
-import { createRouter } from './service/router';
+import { default as feature } from './plugin';
 
-/**
- * The user settings backend plugin.
- *
- * @alpha
- */
-export default createBackendPlugin({
-  pluginId: 'user-settings',
-  register(env) {
-    env.registerInit({
-      deps: {
-        database: coreServices.database,
-        identity: coreServices.identity,
-        httpRouter: coreServices.httpRouter,
-      },
-      async init({ database, identity, httpRouter }) {
-        httpRouter.use(await createRouter({ database, identity }));
-      },
-    });
-  },
-});
+/** @alpha */
+const _feature = feature;
+export default _feature;

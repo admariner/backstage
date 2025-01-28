@@ -1,5 +1,246 @@
 # @backstage/core-plugin-api
 
+## 1.10.3
+
+### Patch Changes
+
+- b40eb41: Move `Expand` and `ExpandRecursive` to `@backstage/types`
+- Updated dependencies
+  - @backstage/types@1.2.1
+  - @backstage/config@1.3.2
+  - @backstage/errors@1.2.7
+  - @backstage/version-bridge@1.0.10
+
+## 1.10.3-next.0
+
+### Patch Changes
+
+- b40eb41: Move `Expand` and `ExpandRecursive` to `@backstage/types`
+- Updated dependencies
+  - @backstage/types@1.2.1-next.0
+  - @backstage/config@1.3.2-next.0
+  - @backstage/errors@1.2.7-next.0
+  - @backstage/version-bridge@1.0.10
+
+## 1.10.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.6
+  - @backstage/config@1.3.1
+  - @backstage/types@1.2.0
+  - @backstage/version-bridge@1.0.10
+
+## 1.10.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.6-next.0
+  - @backstage/config@1.3.1-next.0
+  - @backstage/types@1.2.0
+  - @backstage/version-bridge@1.0.10
+
+## 1.10.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.3.0
+  - @backstage/types@1.2.0
+  - @backstage/errors@1.2.5
+  - @backstage/version-bridge@1.0.10
+
+## 1.10.0
+
+### Minor Changes
+
+- bfd4bec: **BREAKING PRODUCERS**: The `IconComponent` no longer accepts `fontSize="default"`. This has effectively been removed from Material-UI since its last two major versions, and has not worked properly for them in a long time.
+
+  This change should not have an effect on neither users of MUI4 nor MUI5/6, since the updated interface should still let you send the respective `SvgIcon` types into interfaces where relevant (e.g. as app icons).
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+- 39001f4: Fixing issue with types for `ParamKeys` leading to type mismatches across versions
+- Updated dependencies
+  - @backstage/version-bridge@1.0.10
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.10.0-next.1
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+- Updated dependencies
+  - @backstage/version-bridge@1.0.10-next.0
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.10.0-next.0
+
+### Minor Changes
+
+- bfd4bec: **BREAKING PRODUCERS**: The `IconComponent` no longer accepts `fontSize="default"`. This has effectively been removed from Material-UI since its last two major versions, and has not worked properly for them in a long time.
+
+  This change should not have an effect on neither users of MUI4 nor MUI5/6, since the updated interface should still let you send the respective `SvgIcon` types into interfaces where relevant (e.g. as app icons).
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.9
+
+## 1.9.4
+
+### Patch Changes
+
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+- Updated dependencies
+  - @backstage/version-bridge@1.0.9
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.9.4-next.0
+
+### Patch Changes
+
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+- Updated dependencies
+  - @backstage/version-bridge@1.0.9-next.0
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.9.3
+
+### Patch Changes
+
+- 35fbe09: A new `defaultTarget` option has been added to `createExternalRouteRef`. This allows one to specify a default target of the route by name, for example `'catalog.catalogIndex'`, which will be used if the target route is present in the app and there is no explicit route binding.
+- Updated dependencies
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.8
+
+## 1.9.3-next.0
+
+### Patch Changes
+
+- 35fbe09: Added a new `defaultTarget` option to `createExternalRouteRef`. I lets you specify a default target of the route by name, for example `'catalog.catalogIndex'`, which will be used if the target route is present in the app and there is no explicit route binding.
+- Updated dependencies
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.8
+
+## 1.9.2
+
+### Patch Changes
+
+- abfbcfc: Updated dependency `@testing-library/react` to `^15.0.0`.
+- cb1e3b0: Updated dependency `@testing-library/dom` to `^10.0.0`.
+- Updated dependencies
+  - @backstage/version-bridge@1.0.8
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.9.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.7
+
+## 1.9.1-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.2.0-next.1
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.7
+
+## 1.9.1-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/config@1.1.2-next.0
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.7
+
+## 1.9.0
+
+### Minor Changes
+
+- f919be9: Added a utility API for VMware Cloud auth; the API ref is available in the
+  `@backstage/core-plugin-api` and `@backstage/frontend-plugin-api` packages, the
+  implementation is in `@backstage/core-app-api` and a factory has been added to
+  `@backstage/app-defaults`.
+
+### Patch Changes
+
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+- e586f79: Throw a more specific exception `NotImplementedError` when an API implementation cannot be found.
+- Updated dependencies
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.7
+
+## 1.9.0-next.1
+
+### Minor Changes
+
+- f919be9: Added a utility API for VMware Cloud auth; the API ref is available in the
+  `@backstage/core-plugin-api` and `@backstage/frontend-plugin-api` packages, the
+  implementation is in `@backstage/core-app-api` and a factory has been added to
+  `@backstage/app-defaults`.
+
+### Patch Changes
+
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+- Updated dependencies
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.7
+
+## 1.8.3-next.0
+
+### Patch Changes
+
+- e586f79: Throw a more specific exception `NotImplementedError` when an API implementation cannot be found.
+- Updated dependencies
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.7
+
+## 1.8.2
+
+### Patch Changes
+
+- 6878b1d: Removed unnecessary `i18next` dependency.
+- Updated dependencies
+  - @backstage/config@1.1.1
+  - @backstage/types@1.1.1
+  - @backstage/version-bridge@1.0.7
+
 ## 1.8.2-next.0
 
 ### Patch Changes

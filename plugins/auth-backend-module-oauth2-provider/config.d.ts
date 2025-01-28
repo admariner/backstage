@@ -27,9 +27,21 @@ export interface Config {
           clientSecret: string;
           authorizationUrl: string;
           tokenUrl: string;
+          /** @deprecated use `additionalScopes` instead */
           scope?: string;
+          additionalScopes?: string | string[];
           disableRefresh?: boolean;
           includeBasicAuth?: boolean;
+          signIn?: {
+            resolvers: Array<
+              | { resolver: 'usernameMatchingUserEntityName' }
+              | {
+                  resolver: 'emailLocalPartMatchingUserEntityName';
+                  allowedDomains?: string[];
+                }
+              | { resolver: 'emailMatchingUserEntityProfileEmail' }
+            >;
+          };
         };
       };
     };

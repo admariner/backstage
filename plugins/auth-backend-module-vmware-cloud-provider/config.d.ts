@@ -24,6 +24,16 @@ export interface Config {
           organizationId: string;
           scope?: string;
           consoleEndpoint?: string;
+          additionalScopes?: string | string[];
+          signIn?: {
+            resolvers: Array<
+              | {
+                  resolver: 'emailLocalPartMatchingUserEntityName';
+                  allowedDomains?: string[];
+                }
+              | { resolver: 'emailMatchingUserEntityProfileEmail' }
+            >;
+          };
         };
       };
     };

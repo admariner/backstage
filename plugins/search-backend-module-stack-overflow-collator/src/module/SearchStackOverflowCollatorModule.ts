@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { loggerToWinstonLogger } from '@backstage/backend-common';
-import { readTaskScheduleDefinitionFromConfig } from '@backstage/backend-tasks';
+import { readSchedulerServiceTaskScheduleDefinitionFromConfig } from '@backstage/backend-plugin-api';
 import {
   coreServices,
   createBackendModule,
@@ -47,7 +46,7 @@ export const searchStackOverflowCollatorModule = createBackendModule({
         };
 
         const schedule = config.has('stackoverflow.schedule')
-          ? readTaskScheduleDefinitionFromConfig(
+          ? readSchedulerServiceTaskScheduleDefinitionFromConfig(
               config.getConfig('stackoverflow.schedule'),
             )
           : defaultSchedule;
@@ -55,7 +54,7 @@ export const searchStackOverflowCollatorModule = createBackendModule({
         indexRegistry.addCollator({
           schedule: scheduler.createScheduledTaskRunner(schedule),
           factory: StackOverflowQuestionsCollatorFactory.fromConfig(config, {
-            logger: loggerToWinstonLogger(logger),
+            logger,
           }),
         });
       },

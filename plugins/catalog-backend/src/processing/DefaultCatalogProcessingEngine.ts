@@ -23,14 +23,12 @@ import { assertError, serializeError, stringifyError } from '@backstage/errors';
 import { Hash } from 'crypto';
 import stableStringify from 'fast-json-stable-stringify';
 import { Knex } from 'knex';
-import { Logger } from 'winston';
 import { metrics, trace } from '@opentelemetry/api';
 import { ProcessingDatabase, RefreshStateItem } from '../database/types';
 import { createCounterMetric, createSummaryMetric } from '../util/metrics';
 import { CatalogProcessingOrchestrator, EntityProcessingResult } from './types';
 import { Stitcher, stitchingStrategyFromConfig } from '../stitching/types';
 import { startTaskPipeline } from './TaskPipeline';
-import { PluginTaskScheduler } from '@backstage/backend-tasks';
 import { Config } from '@backstage/config';
 import {
   addEntityAttributes,
@@ -38,6 +36,9 @@ import {
   withActiveSpan,
 } from '../util/opentelemetry';
 import { deleteOrphanedEntities } from '../database/operations/util/deleteOrphanedEntities';
+import { EventBroker, EventsService } from '@backstage/plugin-events-node';
+import { CATALOG_ERRORS_TOPIC } from '../constants';
+import { LoggerService, SchedulerService } from '@backstage/backend-plugin-api';
 
 const CACHE_TTL = 5;
 
@@ -53,8 +54,8 @@ export type ProgressTracker = ReturnType<typeof progressTracker>;
 // is just one.
 export class DefaultCatalogProcessingEngine {
   private readonly config: Config;
-  private readonly scheduler?: PluginTaskScheduler;
-  private readonly logger: Logger;
+  private readonly scheduler?: SchedulerService;
+  private readonly logger: LoggerService;
   private readonly knex: Knex;
   private readonly processingDatabase: ProcessingDatabase;
   private readonly orchestrator: CatalogProcessingOrchestrator;
@@ -67,13 +68,14 @@ export class DefaultCatalogProcessingEngine {
     errors: Error[];
   }) => Promise<void> | void;
   private readonly tracker: ProgressTracker;
+  private readonly eventBroker?: EventBroker | EventsService;
 
   private stopFunc?: () => void;
 
   constructor(options: {
     config: Config;
-    scheduler?: PluginTaskScheduler;
-    logger: Logger;
+    scheduler?: SchedulerService;
+    logger: LoggerService;
     knex: Knex;
     processingDatabase: ProcessingDatabase;
     orchestrator: CatalogProcessingOrchestrator;
@@ -86,6 +88,7 @@ export class DefaultCatalogProcessingEngine {
       errors: Error[];
     }) => Promise<void> | void;
     tracker?: ProgressTracker;
+    eventBroker?: EventBroker | EventsService;
   }) {
     this.config = options.config;
     this.scheduler = options.scheduler;
@@ -99,6 +102,7 @@ export class DefaultCatalogProcessingEngine {
     this.orphanCleanupIntervalMs = options.orphanCleanupIntervalMs ?? 30_000;
     this.onProcessingError = options.onProcessingError;
     this.tracker = options.tracker ?? progressTracker();
+    this.eventBroker = options.eventBroker;
 
     this.stopFunc = undefined;
   }
@@ -131,13 +135,10 @@ export class DefaultCatalogProcessingEngine {
       pollingIntervalMs: this.pollingIntervalMs,
       loadTasks: async count => {
         try {
-          const { items } = await this.processingDatabase.transaction(
-            async tx => {
-              return this.processingDatabase.getProcessableEntities(tx, {
-                processBatchSize: count,
-              });
-            },
-          );
+          const { items } =
+            await this.processingDatabase.getProcessableEntities(this.knex, {
+              processBatchSize: count,
+            });
           return items;
         } catch (error) {
           this.logger.warn('Failed to load processing items', error);
@@ -194,10 +195,14 @@ export class DefaultCatalogProcessingEngine {
 
             const location =
               unprocessedEntity?.metadata?.annotations?.[ANNOTATION_LOCATION];
-            for (const error of result.errors) {
-              this.logger.warn(error.message, {
-                entity: entityRef,
-                location,
+            if (result.errors.length) {
+              this.eventBroker?.publish({
+                topic: CATALOG_ERRORS_TOPIC,
+                eventPayload: {
+                  entity: entityRef,
+                  location,
+                  errors: result.errors,
+                },
               });
             }
             const errorsString = JSON.stringify(
@@ -287,7 +292,7 @@ export class DefaultCatalogProcessingEngine {
                 });
               oldRelationSources = new Map(
                 previous.relations.map(r => [
-                  `${r.source_entity_ref}:${r.type}`,
+                  `${r.source_entity_ref}:${r.type}->${r.target_entity_ref}`,
                   r.source_entity_ref,
                 ]),
               );
@@ -296,7 +301,11 @@ export class DefaultCatalogProcessingEngine {
             const newRelationSources = new Map<string, string>(
               result.relations.map(relation => {
                 const sourceEntityRef = stringifyEntityRef(relation.source);
-                return [`${sourceEntityRef}:${relation.type}`, sourceEntityRef];
+                const targetEntityRef = stringifyEntityRef(relation.target);
+                return [
+                  `${sourceEntityRef}:${relation.type}->${targetEntityRef}`,
+                  sourceEntityRef,
+                ];
               }),
             );
 
@@ -428,7 +437,7 @@ function progressTracker() {
     },
   );
 
-  function processStart(item: RefreshStateItem, logger: Logger) {
+  function processStart(item: RefreshStateItem, logger: LoggerService) {
     const startTime = process.hrtime();
     const endOverallTimer = promProcessingDuration.startTimer();
     const endProcessorsTimer = promProcessorsDuration.startTimer();

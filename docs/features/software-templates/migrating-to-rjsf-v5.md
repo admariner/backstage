@@ -5,7 +5,11 @@ title: 'Migrating to react-jsonschema-form@v5'
 description: Docs on migrating to `react-jsonschema-form`@v5 and the new designs
 ---
 
-> Note: If you were previously using the `/alpha` imports to test out the `scaffolder/next` work, those imports have been promoted to the default exports from the respective packages. You should just have to remove the `/alpha` from the import path, and remove the `Next` from the import name. `NextScaffolderPage` -> `ScaffolderPage`, `createNextScaffolderFieldExtension` -> `createScaffolderFieldExtension` etc.
+:::note Note
+
+If you were previously using the `/alpha` imports to test out the `scaffolder/next` work, those imports have been promoted to the default exports from the respective packages. You should just have to remove the `/alpha` from the import path, and remove the `Next` from the import name. `NextScaffolderPage` -> `ScaffolderPage`, `createNextScaffolderFieldExtension` -> `createScaffolderFieldExtension` etc.
+
+:::
 
 ## What's `react-jsonschema-form`?
 
@@ -40,7 +44,7 @@ It's possible that if you have a hard dependency on any of the `@rjsf/*` librari
 /* highlight-remove-next-line */
 import { FieldValidation } from '@rjsf/core';
 /* highlight-add-next-line */
-import { FieldValidation } from '@rjsf/utils;
+import { FieldValidation } from '@rjsf/utils';
 ```
 
 ## Escape hatch

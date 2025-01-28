@@ -14,77 +14,51 @@
  * limitations under the License.
  */
 
-import React, { lazy, ComponentType } from 'react';
-import {
-  AnyExtensionInputMap,
-  ResolvedExtensionInputs,
-  createExtension,
-  createExtensionDataRef,
-} from '../wiring';
-import { Expand } from '../types';
-import { PortableSchema } from '../schema';
-import { ExtensionBoundary, ComponentRef } from '../components';
+import { lazy, ComponentType } from 'react';
+import { createExtension, createExtensionDataRef } from '../wiring';
+import { ComponentRef } from '../components';
 
 /** @public */
-export function createComponentExtension<
-  TProps extends {},
-  TConfig extends {},
-  TInputs extends AnyExtensionInputMap,
->(options: {
+export function createComponentExtension<TProps extends {}>(options: {
   ref: ComponentRef<TProps>;
   name?: string;
   disabled?: boolean;
-  inputs?: TInputs;
-  configSchema?: PortableSchema<TConfig>;
   loader:
     | {
-        lazy: (values: {
-          config: TConfig;
-          inputs: Expand<ResolvedExtensionInputs<TInputs>>;
-        }) => Promise<ComponentType<TProps>>;
+        lazy: () => Promise<ComponentType<TProps>>;
       }
     | {
-        sync: (values: {
-          config: TConfig;
-          inputs: Expand<ResolvedExtensionInputs<TInputs>>;
-        }) => ComponentType<TProps>;
+        sync: () => ComponentType<TProps>;
       };
 }) {
   return createExtension({
     kind: 'component',
-    namespace: options.ref.id,
-    name: options.name,
-    attachTo: { id: 'app', input: 'components' },
-    inputs: options.inputs,
+    name: options.name ?? options.ref.id,
+    attachTo: { id: 'api:app/components', input: 'components' },
     disabled: options.disabled,
-    configSchema: options.configSchema,
-    output: {
-      component: createComponentExtension.componentDataRef,
-    },
-    factory({ config, inputs, node }) {
-      let ExtensionComponent: ComponentType<TProps>;
-
+    output: [createComponentExtension.componentDataRef],
+    factory() {
       if ('sync' in options.loader) {
-        ExtensionComponent = options.loader.sync({ config, inputs });
-      } else {
-        const lazyLoader = options.loader.lazy;
-        ExtensionComponent = lazy(() =>
-          lazyLoader({ config, inputs }).then(Component => ({
-            default: Component,
-          })),
-        ) as unknown as ComponentType<TProps>;
+        return [
+          createComponentExtension.componentDataRef({
+            ref: options.ref,
+            impl: options.loader.sync() as ComponentType,
+          }),
+        ];
       }
+      const lazyLoader = options.loader.lazy;
+      const ExtensionComponent = lazy(() =>
+        lazyLoader().then(Component => ({
+          default: Component,
+        })),
+      ) as unknown as ComponentType;
 
-      return {
-        component: {
+      return [
+        createComponentExtension.componentDataRef({
           ref: options.ref,
-          impl: props => (
-            <ExtensionBoundary node={node}>
-              <ExtensionComponent {...(props as TProps)} />
-            </ExtensionBoundary>
-          ),
-        },
-      };
+          impl: ExtensionComponent,
+        }),
+      ];
     },
   });
 }
@@ -94,5 +68,5 @@ export namespace createComponentExtension {
   export const componentDataRef = createExtensionDataRef<{
     ref: ComponentRef;
     impl: ComponentType;
-  }>('core.component.component');
+  }>().with({ id: 'core.component.component' });
 }

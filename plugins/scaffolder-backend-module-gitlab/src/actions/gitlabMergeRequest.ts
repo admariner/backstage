@@ -17,14 +17,69 @@
 import {
   createTemplateAction,
   parseRepoUrl,
+  SerializedFile,
   serializeDirectoryContents,
 } from '@backstage/plugin-scaffolder-node';
-import { Gitlab } from '@gitbeaker/node';
-import { Types } from '@gitbeaker/core';
+import {
+  Gitlab,
+  RepositoryTreeSchema,
+  CommitAction,
+  SimpleUserSchema,
+} from '@gitbeaker/rest';
 import path from 'path';
 import { ScmIntegrationRegistry } from '@backstage/integration';
 import { InputError } from '@backstage/errors';
-import { resolveSafeChildPath } from '@backstage/backend-common';
+import {
+  LoggerService,
+  resolveSafeChildPath,
+} from '@backstage/backend-plugin-api';
+import { createGitlabApi, getErrorMessage } from './helpers';
+import { examples } from './gitlabMergeRequest.examples';
+import { createHash } from 'crypto';
+
+function computeSha256(file: SerializedFile): string {
+  const hash = createHash('sha256');
+  hash.update(file.content);
+  return hash.digest('hex');
+}
+
+async function getFileAction(
+  fileInfo: { file: SerializedFile; targetPath?: string },
+  target: { repoID: string; branch: string },
+  api: InstanceType<typeof Gitlab>,
+  logger: LoggerService,
+  remoteFiles: RepositoryTreeSchema[],
+  defaultCommitAction:
+    | 'create'
+    | 'delete'
+    | 'update'
+    | 'skip'
+    | 'auto' = 'auto',
+): Promise<'create' | 'delete' | 'update' | 'skip'> {
+  if (defaultCommitAction === 'auto') {
+    const filePath = path.join(fileInfo.targetPath ?? '', fileInfo.file.path);
+
+    if (remoteFiles?.some(remoteFile => remoteFile.path === filePath)) {
+      try {
+        const targetFile = await api.RepositoryFiles.show(
+          target.repoID,
+          filePath,
+          target.branch,
+        );
+        if (computeSha256(fileInfo.file) === targetFile.content_sha256) {
+          return 'skip';
+        }
+      } catch (error) {
+        logger.warn(
+          `Unable to retrieve detailed information for remote file ${filePath}`,
+        );
+      }
+      return 'update';
+    }
+    return 'create';
+  }
+  return defaultCommitAction;
+}
 
 /**
  * Create a new action that creates a gitlab merge request.
@@ -45,13 +100,15 @@ export const createPublishGitlabMergeRequestAction = (options: {
     sourcePath?: string;
     targetPath?: string;
     token?: string;
-    commitAction?: 'create' | 'delete' | 'update';
+    commitAction?: 'create' | 'delete' | 'update' | 'skip' | 'auto';
     /** @deprecated projectID passed as query parameters in the repoUrl */
     projectid?: string;
     removeSourceBranch?: boolean;
     assignee?: string;
+    reviewers?: string[];
   }>({
     id: 'publish:gitlab:merge-request',
+    examples,
     schema: {
       input: {
         required: ['repoUrl', 'branchName'],
@@ -60,7 +117,9 @@ export const createPublishGitlabMergeRequestAction = (options: {
           repoUrl: {
             type: 'string',
             title: 'Repository Location',
-            description: `Accepts the format 'gitlab.com?repo=project_name&owner=group_name' where 'project_name' is the repository name and 'group_name' is a group or username`,
+            description: `\
+Accepts the format 'gitlab.com?repo=project_name&owner=group_name' where \
+'project_name' is the repository name and 'group_name' is a group or username`,
           },
           /** @deprecated projectID is passed as query parameters in the repoUrl */
           projectid: {
@@ -91,8 +150,11 @@ export const createPublishGitlabMergeRequestAction = (options: {
           sourcePath: {
             type: 'string',
             title: 'Working Subdirectory',
-            description:
-              'Subdirectory of working directory to copy changes from',
+            description: `\
+Subdirectory of working directory to copy changes from. \
+For reasons of backward compatibility, any specified 'targetPath' input will \
+be applied in place of an absent/falsy value for this input. \
+Circumvent this behavior using '.'`,
           },
           targetPath: {
             type: 'string',
@@ -107,9 +169,10 @@ export const createPublishGitlabMergeRequestAction = (options: {
           commitAction: {
             title: 'Commit action',
             type: 'string',
-            enum: ['create', 'update', 'delete'],
-            description:
-              'The action to be used for git commit. Defaults to create.',
+            enum: ['create', 'update', 'delete', 'auto'],
+            description: `\
+The action to be used for git commit. Defaults to the custom 'auto' action provided by backstage,
+which uses additional API calls in order to detect whether to 'create', 'update' or 'skip' each source file.`,
           },
           removeSourceBranch: {
             title: 'Delete source branch',
@@ -121,6 +184,14 @@ export const createPublishGitlabMergeRequestAction = (options: {
             title: 'Merge Request Assignee',
             type: 'string',
             description: 'User this merge request will be assigned to',
+          },
+          reviewers: {
+            title: 'Merge Request Reviewers',
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+            description: 'Users that will be assigned as reviewers',
           },
         },
       },
@@ -150,6 +221,7 @@ export const createPublishGitlabMergeRequestAction = (options: {
     async handler(ctx) {
       const {
         assignee,
+        reviewers,
         branchName,
         targetBranchName,
         description,
@@ -158,46 +230,52 @@ export const createPublishGitlabMergeRequestAction = (options: {
         targetPath,
         sourcePath,
         title,
-        token: providedToken,
+        token,
       } = ctx.input;
 
-      const { host, owner, repo, project } = parseRepoUrl(
-        repoUrl,
-        integrations,
-      );
+      const { owner, repo, project } = parseRepoUrl(repoUrl, integrations);
       const repoID = project ? project : `${owner}/${repo}`;
 
-      const integrationConfig = integrations.gitlab.byHost(host);
-
-      if (!integrationConfig) {
-        throw new InputError(
-          `No matching integration configuration for host ${host}, please check your integrations config`,
-        );
-      }
-
-      if (!integrationConfig.config.token && !providedToken) {
-        throw new InputError(`No token available for host ${host}`);
-      }
-
-      const token = providedToken ?? integrationConfig.config.token!;
-      const tokenType = providedToken ? 'oauthToken' : 'token';
-
-      const api = new Gitlab({
-        host: integrationConfig.config.baseUrl,
-        [tokenType]: token,
+      const api = createGitlabApi({
+        integrations,
+        token,
+        repoUrl,
       });
 
       let assigneeId = undefined;
 
       if (assignee !== undefined) {
         try {
-          const assigneeUser = await api.Users.username(assignee);
+          const assigneeUser = await api.Users.all({ username: assignee });
           assigneeId = assigneeUser[0].id;
         } catch (e) {
           ctx.logger.warn(
-            `Failed to find gitlab user id for ${assignee}: ${e}. Proceeding with MR creation without an assignee.`,
+            `Failed to find gitlab user id for ${assignee}: ${getErrorMessage(
+              e,
+            )}. Proceeding with MR creation without an assignee.`,
           );
         }
+      }
+
+      let reviewerIds: number[] | undefined = undefined; // Explicitly set to undefined. Strangely, passing an empty array to the API will result the other options being undefined also being explicity passed to the Gitlab API call (e.g. assigneeId)
+      if (reviewers !== undefined) {
+        reviewerIds = (
+          await Promise.all(
+            reviewers.map(async reviewer => {
+              try {
+                const reviewerUser = await api.Users.all({
+                  username: reviewer,
+                });
+                return reviewerUser[0].id;
+              } catch (e) {
+                ctx.logger.warn(
+                  `Failed to find gitlab user id for ${reviewer}: ${e}. Proceeding with MR creation without reviewer.`,
+                );
+                return undefined;
+              }
+            }),
+          )
+        ).filter(id => id !== undefined) as number[];
       }
 
       let fileRoot: string;
@@ -214,42 +292,106 @@ export const createPublishGitlabMergeRequestAction = (options: {
         gitignore: true,
       });
 
-      const actions: Types.CommitAction[] = fileContents.map(file => ({
-        action: ctx.input.commitAction ?? 'create',
-        filePath: targetPath
-          ? path.posix.join(targetPath, file.path)
-          : file.path,
-        encoding: 'base64',
-        content: file.content.toString('base64'),
-        execute_filemode: file.executable,
-      }));
-
       let targetBranch = targetBranchName;
       if (!targetBranch) {
         const projects = await api.Projects.show(repoID);
-
-        const { default_branch: defaultBranch } = projects;
-        targetBranch = defaultBranch!;
+        const defaultBranch = projects.default_branch ?? projects.defaultBranch;
+        if (typeof defaultBranch !== 'string' || !defaultBranch) {
+          throw new InputError(
+            `The branch creation failed. Target branch was not provided, and could not find default branch from project settings. Project: ${JSON.stringify(
+              project,
+            )}`,
+          );
+        }
+        targetBranch = defaultBranch;
       }
 
-      try {
-        await api.Branches.create(repoID, branchName, String(targetBranch));
-      } catch (e) {
-        throw new InputError(
-          `The branch creation failed. Please check that your repo does not already contain a branch named '${branchName}'. ${e}`,
-        );
+      let remoteFiles: RepositoryTreeSchema[] = [];
+      if ((ctx.input.commitAction ?? 'auto') === 'auto') {
+        try {
+          remoteFiles = await api.Repositories.allRepositoryTrees(repoID, {
+            ref: targetBranch,
+            recursive: true,
+            path: targetPath ?? undefined,
+          });
+        } catch (e) {
+          ctx.logger.warn(
+            `Could not retrieve the list of files for ${repoID} (branch: ${targetBranch}) : ${getErrorMessage(
+              e,
+            )}`,
+          );
+        }
       }
+      const actions: CommitAction[] =
+        ctx.input.commitAction === 'skip'
+          ? []
+          : (
+              (
+                await Promise.all(
+                  fileContents.map(async file => {
+                    const action = await getFileAction(
+                      { file, targetPath },
+                      { repoID, branch: targetBranch! },
+                      api,
+                      ctx.logger,
+                      remoteFiles,
+                      ctx.input.commitAction,
+                    );
+                    return { file, action };
+                  }),
+                )
+              ).filter(o => o.action !== 'skip') as {
+                file: SerializedFile;
+                action: CommitAction['action'];
+              }[]
+            ).map(({ file, action }) => ({
+              action,
+              filePath: targetPath
+                ? path.posix.join(targetPath, file.path)
+                : file.path,
+              encoding: 'base64',
+              content: file.content.toString('base64'),
+              execute_filemode: file.executable,
+            }));
 
-      try {
-        await api.Commits.create(repoID, branchName, ctx.input.title, actions);
-      } catch (e) {
-        throw new InputError(
-          `Committing the changes to ${branchName} failed. Please check that none of the files created by the template already exists. ${e}`,
-        );
+      let createBranch: boolean;
+      if (actions.length) {
+        createBranch = true;
+      } else {
+        try {
+          await api.Branches.show(repoID, branchName);
+          createBranch = false;
+          ctx.logger.info(
+            `Using existing branch ${branchName} without modification.`,
+          );
+        } catch (e) {
+          createBranch = true;
+        }
       }
-
+      if (createBranch) {
+        try {
+          await api.Branches.create(repoID, branchName, String(targetBranch));
+        } catch (e) {
+          throw new InputError(
+            `The branch creation failed. Please check that your repo does not already contain a branch named '${branchName}'. ${getErrorMessage(
+              e,
+            )}`,
+          );
+        }
+      }
+      if (actions.length) {
+        try {
+          await api.Commits.create(repoID, branchName, title, actions);
+        } catch (e) {
+          throw new InputError(
+            `Committing the changes to ${branchName} failed. Please check that none of the files created by the template already exists. ${getErrorMessage(
+              e,
+            )}`,
+          );
+        }
+      }
       try {
-        const mergeRequestUrl = await api.MergeRequests.create(
+        let mergeRequest = await api.MergeRequests.create(
           repoID,
           branchName,
           String(targetBranch),
@@ -258,16 +400,63 @@ export const createPublishGitlabMergeRequestAction = (options: {
             description,
             removeSourceBranch: removeSourceBranch ? removeSourceBranch : false,
             assigneeId,
+            reviewerIds,
           },
-        ).then((mergeRequest: { web_url: string }) => {
-          return mergeRequest.web_url;
-        });
+        );
+
+        // Because we don't know the code owners before the MR is created, we can't check the approval rules beforehand.
+        // Getting the approval rules beforehand is very difficult, especially, because of the inheritance rules for groups.
+        // Code owners take a moment to be processed and added to the approval rules after the MR is created.
+
+        while (
+          mergeRequest.detailed_merge_status === 'preparing' ||
+          mergeRequest.detailed_merge_status === 'approvals_syncing' ||
+          mergeRequest.detailed_merge_status === 'checking'
+        ) {
+          mergeRequest = await api.MergeRequests.show(repoID, mergeRequest.iid);
+          ctx.logger.info(`${mergeRequest.detailed_merge_status}`);
+        }
+
+        const approvalRules = await api.MergeRequestApprovals.allApprovalRules(
+          repoID,
+          {
+            mergerequestIId: mergeRequest.iid,
+          },
+        );
+
+        if (approvalRules.length !== 0) {
+          const eligibleApprovers = approvalRules
+            .filter(rule => rule.eligible_approvers !== undefined)
+            .map(rule => {
+              return rule.eligible_approvers as SimpleUserSchema[];
+            })
+            .flat();
+
+          const eligibleUserIds = new Set([
+            ...eligibleApprovers.map(user => user.id),
+            ...(reviewerIds ?? []),
+          ]);
+
+          mergeRequest = await api.MergeRequests.edit(
+            repoID,
+            mergeRequest.iid,
+            {
+              reviewerIds: Array.from(eligibleUserIds),
+            },
+          );
+        }
+
         ctx.output('projectid', repoID);
         ctx.output('targetBranchName', targetBranch);
         ctx.output('projectPath', repoID);
-        ctx.output('mergeRequestUrl', mergeRequestUrl);
+        ctx.output(
+          'mergeRequestUrl',
+          mergeRequest.web_url ?? mergeRequest.webUrl,
+        );
       } catch (e) {
-        throw new InputError(`Merge request creation failed${e}`);
+        throw new InputError(
+          `Merge request creation failed. ${getErrorMessage(e)}`,
+        );
       }
     },
   });

@@ -29,6 +29,18 @@ import { isLocationMatch } from './utils';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 
+/** @public */
+export type SidebarSubmenuItemClassKey =
+  | 'item'
+  | 'itemContainer'
+  | 'selected'
+  | 'label'
+  | 'subtitle'
+  | 'dropdownArrow'
+  | 'dropdown'
+  | 'dropdownItem'
+  | 'textContent';
+
 const useStyles = makeStyles(
   theme => ({
     item: {
@@ -131,6 +143,7 @@ export type SidebarSubmenuItemProps = {
   icon?: IconComponent;
   dropdownItems?: SidebarSubmenuItemDropdownItem[];
   exact?: boolean;
+  initialShowDropdown?: boolean;
 };
 
 /**
@@ -149,7 +162,9 @@ export const SidebarSubmenuItem = (props: SidebarSubmenuItemProps) => {
   const currentLocation = useLocation();
   let isActive = isLocationMatch(currentLocation, toLocation, exact);
 
-  const [showDropDown, setShowDropDown] = useState(false);
+  const [showDropDown, setShowDropDown] = useState(
+    props.initialShowDropdown ?? false,
+  );
   const handleClickDropdown = () => {
     setShowDropDown(!showDropDown);
   };

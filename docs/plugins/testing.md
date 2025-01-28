@@ -24,11 +24,15 @@ Running an individual test (e.g. `MyComponent.test.tsx`):
 
 To run both `MyComponent.test.tsx` and `MyControl.test.tsx` suite of tests:
 
-    yarn test MyCo
+    yarn test MyComponent MyControl
 
-Note: if `console.logs` are not appearing, run only the individual test you are
+:::note Note
+
+if `console.log`s are not appearing, run only the individual test you are
 working on.
 [This is a bug in Jest](https://github.com/facebook/jest/issues/2441).
+
+:::
 
 ## Naming Test Files
 
@@ -47,10 +51,6 @@ import a third-party library if you needed (like Chai or
 We use the light-weight
 [react-testing-library](https://github.com/kentcdodds/react-testing-library) to
 render React components.
-
-## Testing Utilities
-
-TODO.
 
 ## Writing Unit Tests
 
@@ -365,4 +365,4 @@ Note: wrapping in the test application **requires** you to do a `find()` or
 
 ## Debugging Jest Tests
 
-You can find it [here](https://backstage.io/docs/local-dev/cli-build-system#debugging-jest-tests)
+You can find it [here](https://backstage.io/docs/tooling/cli/build-system#debugging-jest-tests)

@@ -15,14 +15,14 @@
  */
 
 import {
-  IndexableDocument,
   DocumentCollatorFactory,
+  IndexableDocument,
 } from '@backstage/plugin-search-common';
 import { Config } from '@backstage/config';
 import { Readable } from 'stream';
-import fetch from 'node-fetch';
+
 import qs from 'qs';
-import { Logger } from 'winston';
+import { LoggerService } from '@backstage/backend-plugin-api';
 
 /**
  * Extended IndexableDocument with stack overflow specific properties
@@ -55,9 +55,11 @@ export type StackOverflowQuestionsCollatorFactoryOptions = {
   apiAccessToken?: string;
   teamName?: string;
   requestParams?: StackOverflowQuestionsRequestParams;
-  logger: Logger;
+  logger: LoggerService;
 };
 
+const DEFAULT_BASE_URL = 'https://api.stackexchange.com/2.3';
+const DEFAULT_MAX_PAGE = 100;
 /**
  * Search collator responsible for collecting stack overflow questions to index.
  *
@@ -72,7 +74,7 @@ export class StackOverflowQuestionsCollatorFactory
   private readonly apiAccessToken: string | undefined;
   private readonly teamName: string | undefined;
   private readonly maxPage: number | undefined;
-  private readonly logger: Logger;
+  private readonly logger: LoggerService;
   public readonly type: string = 'stack-overflow';
 
   private constructor(options: StackOverflowQuestionsCollatorFactoryOptions) {
@@ -81,15 +83,19 @@ export class StackOverflowQuestionsCollatorFactory
     this.apiAccessToken = options.apiAccessToken;
     this.teamName = options.teamName;
     this.maxPage = options.maxPage;
+    this.logger = options.logger.child({ documentType: this.type });
+
     // Sets the same default request parameters as the official API documentation
     // See https://api.stackexchange.com/docs/questions
-    this.requestParams = options.requestParams ?? {
+    this.requestParams = {
       order: 'desc',
       sort: 'activity',
-      site: 'stackoverflow',
       ...(options.requestParams ?? {}),
     };
-    this.logger = options.logger.child({ documentType: this.type });
+
+    if (!options.requestParams?.site && this.baseUrl === DEFAULT_BASE_URL) {
+      this.requestParams.site = 'stackoverflow';
+    }
   }
 
   static fromConfig(
@@ -102,12 +108,12 @@ export class StackOverflowQuestionsCollatorFactory
     );
     const teamName = config.getOptionalString('stackoverflow.teamName');
     const baseUrl =
-      config.getOptionalString('stackoverflow.baseUrl') ||
-      'https://api.stackexchange.com/2.3';
-    const maxPage = options.maxPage || 100;
+      config.getOptionalString('stackoverflow.baseUrl') || DEFAULT_BASE_URL;
+    const maxPage = options.maxPage || DEFAULT_MAX_PAGE;
     const requestParams = config
       .getOptionalConfig('stackoverflow.requestParams')
       ?.get<StackOverflowQuestionsRequestParams>();
+
     return new StackOverflowQuestionsCollatorFactory({
       baseUrl,
       maxPage,

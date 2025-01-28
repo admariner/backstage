@@ -6,8 +6,12 @@ sidebar_label: Overview
 description: Building backends using the new backend system
 ---
 
-> NOTE: If you have an existing backend that is not yet using the new backend
-> system, see [migrating](./08-migrating.md).
+:::note Note
+
+If you have an existing backend that is not yet using the new backend
+system, see [migrating](./08-migrating.md).
+
+:::
 
 This section covers how to set up and customize your own Backstage backend. It covers some aspects of how backend instances fit into the larger system, but for a more in-depth explanation of the role of backends in the backend system, see [the architecture section](../architecture/02-backends.md).
 
@@ -22,9 +26,9 @@ import { createBackend } from '@backstage/backend-defaults'; // Omitted in the e
 
 const backend = createBackend();
 
-backend.add(import('@backstage/plugin-app-backend/alpha'));
-backend.add(import('@backstage/plugin-catalog-backend/alpha'));
-backend.add(import('@backstage/plugin-scaffolder-backend/alpha'));
+backend.add(import('@backstage/plugin-app-backend'));
+backend.add(import('@backstage/plugin-catalog-backend'));
+backend.add(import('@backstage/plugin-scaffolder-backend'));
 backend.add(
   import('@backstage/plugin-catalog-backend-module-scaffolder-entity-model'),
 );
@@ -42,7 +46,7 @@ Apart from installing existing plugins and modules in the backend, there are a c
 
 ### Configuration
 
-Perhaps the most accessible way is though static configuration, which you can read more about in the documentation for how to [write configuration](../../conf/writing.md). Many different aspects of the backend can be configured, including both the behavior of the backend itself, as well as many plugins or modules. You'll need to refer to the documentation of each plugin or module to see what configuration is available. Also be sure to check out the documentation of the [core services](../core-services/01-index.md), as that also covers how to configure those.
+Perhaps the most accessible way is through static configuration, which you can read more about in the documentation for how to [write configuration](../../conf/writing.md). Many different aspects of the backend can be configured, including both the behavior of the backend itself, as well as many plugins or modules. You'll need to refer to the documentation of each plugin or module to see what configuration is available. Also be sure to check out the documentation of the [core services](../core-services/01-index.md), as that also covers how to configure those.
 
 ### Services
 
@@ -103,7 +107,7 @@ This example touches on the fact that services can have different scopes, being 
 
 A more advanced way to deploy Backstage is to split the backend plugins into multiple different backend deployments. Both the [deployment documentation](../../deployment/scaling.md) and [Threat Model](../../overview/threat-model.md#trust-model) explain the benefits of this, so here we'll focus on how to do it.
 
-To create a separate backend we need to create an additional backend package. This package will be built and deployed separately from your existing backend. There is currently no template to create a backend via `yarn new`, so the quickest way is to copy the new package and modify. The naming is up to you and it depends on how you are splitting things and up. For this example we'll just use a simple suffix. You might end up with a directory structure like this:
+To create a separate backend we need to create an additional backend package. This package will be built and deployed separately from your existing backend. There is currently no template to create a backend via `yarn new`, so the quickest way is to copy the new package and modify. The naming is up to you and it depends on how you are splitting things up. For this example we'll just use a simple suffix. You might end up with a directory structure like this:
 
 ```text
 packages/
@@ -122,8 +126,8 @@ You can now trim down the `src/index.ts` files to only include the plugins and m
 ```ts
 const backend = createBackend();
 
-backend.add(import('@backstage/plugin-app-backend/alpha'));
-backend.add(import('@backstage/plugin-catalog-backend/alpha'));
+backend.add(import('@backstage/plugin-app-backend'));
+backend.add(import('@backstage/plugin-catalog-backend'));
 backend.add(
   import('@backstage/plugin-catalog-backend-module-scaffolder-entity-model'),
 );
@@ -135,8 +139,18 @@ And `backend-b`, don't forget to clean up dependencies in `package.json` as well
 ```ts
 const backend = createBackend();
 
-backend.add(import('@backstage/plugin-scaffolder-backend/alpha'));
+backend.add(import('@backstage/plugin-scaffolder-backend'));
 backend.start();
 ```
 
 We've now split the backend into two separate deployments, but we still need to make sure that they can communicate with each other. This is the hard and somewhat tedious part, as Backstage currently doesn't provide an out of the box solution that solves this. You'll need to manually configure the two backends with custom implementations of the `DiscoveryService` and have them return the correct URLs for each other. Likewise, you'll also need to provide a custom implementation of the `DiscoveryApi` in the frontend, unless you surface the two backends via a proxy that handles the routing instead.
+
+### Split backend deployments architecture example
+
+Below is an example of a more elaborate setup where we have three different backend deployments, each with their own set of plugins and modules. Between our frontend app and the backend instances we have a reverse proxy that routes the traffic to the appropriate instance. As an option for securing the Backstage deployment the proxy can be set up as an authenticating reverse proxy as well, denying unauthenticated users access to the backend instances.
+
+![diagram of a backstage deployment with three separate horizontally scaled backend systems](../../assets/backend-system/scaled-deployments.drawio.svg)
+
+In this example we have split out the Catalog and Search plugins into one backend deployment. The proxy routes all traffic for `/api/catalog/` and `/api/search/` to this instance. With this separation we're able to scale and deploy these two plugins independently, and they are also isolated from both a performance and security perspective. Likewise the TechDocs and Scaffolder plugins are split out as well, and then we route the rest of the traffic to our instance that contains the App, Auth, and Proxy plugins.
+
+We also see how each of the plugins have their own logical database, but are often set up to share the actual Database Management System (DBMS) instance. This is of course not a requirement, and you can choose to further divide or consolidate the databases as you see fit.

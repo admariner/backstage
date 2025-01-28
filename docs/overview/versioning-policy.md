@@ -34,7 +34,7 @@ their own release cadence and versioning policy.
 
 Release cadence: Monthly, specifically on the Tuesday before the third Wednesday of each month. The first release took place in March 2022.
 
-The main release line in versioned with a major, minor and patch version but
+The main release line is versioned with a major, minor and patch version but
 does **not** adhere to [semver](https://semver.org). The version format is
 `<major>.<minor>.<patch>`, for example `1.3.0`.
 
@@ -68,7 +68,9 @@ The following versioning policy applies to the main-line releases only.
   done when necessary and with the goal of having minimal impact. When possible,
   there will always be a deprecation path for a breaking change.
 - Security fixes **may** be backported to older releases based on the simplicity
-  of the upgrade path, and the severity of the vulnerability.
+  of the upgrade path, and the severity of the vulnerability. Vulnerabilities
+  with a severity of `high` or `critical` will always be backported to releases
+  for the last 6 months if feasible.
 - Bug reports are valid only if reproducible in the most recent release, and bug
   fixes are only applied to the next release.
 - We will do our best to adhere to this policy.
@@ -79,18 +81,20 @@ In order for Backstage to function properly the following versioning rules must
 be followed. The rules are referring to the
 [Package Architecture](https://backstage.io/docs/overview/architecture-overview#package-architecture).
 
-- The versions of all the packages in the `Frontend App Core` must be from the
-  same release, and it is recommended to keep `Common Tooling` on that release
-  too.
-- The Backstage dependencies of any given plugin should be from the same
-  release. This includes the packages from `Common Libraries`,
-  `Frontend Plugin Core`, and `Frontend Libraries`, or alternatively the
-  `Backend Libraries`.
-- There must be no package that is from a newer release than the
-  `Frontend App Core` packages in the app.
+- The versions of all packages for each of the "App Core" groups must be from the
+  same Backstage release.
+- For each frontend and backend setup, the "App Core" packages must be ahead of or on the same Backstage release as the "Plugin Core" packages, including transitive dependencies of all installed plugins and modules.
+- For any given plugin, the versions of all packages from the "Plugin Core" and
+  "Library" groups must be from the same Backstage release.
 - Frontend plugins with a corresponding backend plugin should be from the same
   release. The update to the backend plugin **MUST** be deployed before or
   together with the update to the frontend plugin.
+
+It is allowed and often expected that the "Plugin Core" and "Library" packages
+are from older releases than the "App Core" packages. It is also allowed to have
+duplicate installations of the "Plugin Core" and "Library" packages. This is all
+to make sure that upgrading Backstage is as smooth as possible and allows for
+more flexibility across the entire plugin ecosystem.
 
 ## Package Versioning Policy
 
@@ -104,7 +108,7 @@ The following versioning policy applies to all packages:
 - Breaking changes are noted in the changelog, and documentation is updated.
 - Breaking changes are prefixed with `**BREAKING**: ` in the changelog.
 - All public exports are considered stable and will have an entry in the
-  changelog
+  changelog.
 - Breaking changes are recommended to document a clear upgrade path in the
   changelog. This may be omitted for newly introduced or unstable packages.
 
@@ -172,6 +176,8 @@ When we say _Supporting_ a Node.js release, that means the following:
 - The CI pipeline in the main Backstage repo tests towards the supported releases, and we encourage any other Backstage related projects to do the same.
 - New Backstage projects created with `@backstage/create-app` will have their `engines.node` version set accordingly.
 - Dropping compatibility with unsupported releases is not considered a breaking change. This includes using new syntax or APIs, as well as bumping dependencies that drop support for these versions.
+
+Based on the above Backstage supports Node.js 20 and 22 as of the `1.33.0` release.
 
 ## TypeScript Releases
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { setupRequestMockHandlers } from '@backstage/backend-test-utils';
+import { registerMswTestHooks } from '@backstage/backend-test-utils';
 import { ConfigReader } from '@backstage/config';
 import {
   AuthResolverContext,
@@ -37,7 +37,7 @@ jest.mock('uid2', () => jest.fn().mockReturnValue('sessionid'));
 
 describe('vmwareCloudAuthenticator', () => {
   const server = setupServer();
-  setupRequestMockHandlers(server);
+  registerMswTestHooks(server);
 
   let oAuthState: OAuthState = {
     nonce: 'nonce',
@@ -163,9 +163,9 @@ describe('vmwareCloudAuthenticator', () => {
       expect(searchParams.get('redirect_uri')).toBe('http://callbackUrl');
     });
 
-    it('requests scopes for ID and refresh token', async () => {
+    it('forwards scopes for ID and refresh token', async () => {
       const startResponse = await vmwareCloudAuthenticator.start(
-        startRequest,
+        { ...startRequest, scope: 'openid offline_access' },
         authenticatorCtx,
       );
       const { searchParams } = new URL(startResponse.url);

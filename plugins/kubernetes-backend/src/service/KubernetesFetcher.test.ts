@@ -15,7 +15,6 @@
  */
 
 import { ANNOTATION_KUBERNETES_AUTH_PROVIDER } from '@backstage/plugin-kubernetes-common';
-import { getVoidLogger } from '@backstage/backend-common';
 import { KubernetesClientBasedFetcher } from './KubernetesFetcher';
 import { ObjectToFetch } from '../types/types';
 import {
@@ -28,9 +27,9 @@ import {
 import { setupServer } from 'msw/node';
 import {
   createMockDirectory,
-  setupRequestMockHandlers,
+  mockServices,
+  registerMswTestHooks,
 } from '@backstage/backend-test-utils';
-import { Config } from '@kubernetes/client-node';
 
 const mockCertDir = createMockDirectory({
   content: {
@@ -71,7 +70,7 @@ const POD_METRICS_FIXTURE = [
 
 describe('KubernetesFetcher', () => {
   const worker = setupServer();
-  setupRequestMockHandlers(worker);
+  registerMswTestHooks(worker);
 
   const labels = (req: MockedRequest): object => {
     const selectorParam = req.url.searchParams.get('labelSelector');
@@ -115,7 +114,7 @@ describe('KubernetesFetcher', () => {
 
   describe('fetchObjectsForService', () => {
     let sut: KubernetesClientBasedFetcher;
-    const logger = getVoidLogger();
+    const logger = mockServices.logger.mock();
 
     const testErrorResponse = async (
       errorResponse: any,
@@ -651,6 +650,7 @@ describe('KubernetesFetcher', () => {
     });
     describe('when server uses TLS', () => {
       let httpsRequest: jest.SpyInstance;
+      const initialCAPath = process.env.KUBERNETES_CA_FILE_PATH;
       beforeAll(() => {
         httpsRequest = jest.spyOn(
           // this is pretty egregious reverse engineering of msw.
@@ -662,7 +662,13 @@ describe('KubernetesFetcher', () => {
       });
       beforeEach(() => {
         httpsRequest.mockClear();
+        process.env.KUBERNETES_CA_FILE_PATH = mockCertDir.resolve('ca.crt');
       });
+
+      afterEach(() => {
+        process.env.KUBERNETES_CA_FILE_PATH = initialCAPath;
+      });
+
       it('should trust specified caData', async () => {
         worker.use(
           rest.get('https://localhost:9999/api/v1/pods', (req, res, ctx) =>
@@ -755,7 +761,7 @@ describe('KubernetesFetcher', () => {
               name: 'cluster1',
               url: 'https://localhost:9999',
               authMetadata: {},
-              caFile: mockCertDir.resolve('ca.crt'),
+              caFile: process.env.KUBERNETES_CA_FILE_PATH,
             },
             credential: { type: 'bearer token', token: 'token' },
             objectTypesToFetch: new Set<ObjectToFetch>([
@@ -811,6 +817,129 @@ describe('KubernetesFetcher', () => {
         expect(httpsRequest).toHaveBeenCalledTimes(1);
         const [[{ agent }]] = httpsRequest.mock.calls;
         expect(agent.options.rejectUnauthorized).toBe(false);
+      });
+
+      it('fetchObjectsForService authenticates with k8s using x509 client cert from authentication strategy', async () => {
+        worker.use(
+          rest.get('https://localhost:9999/api/v1/pods', (req, res, ctx) =>
+            res(
+              checkToken(req, ctx, 'token'),
+              withLabels(req, ctx, {
+                items: [{ metadata: { name: 'pod-name' } }],
+              }),
+            ),
+          ),
+        );
+
+        const myCert = 'MOCKCert';
+        const myKey = 'MOCKKey';
+
+        const result = sut.fetchObjectsForService({
+          serviceId: 'some-service',
+          clusterDetails: {
+            name: 'cluster1',
+            url: 'https://localhost:9999',
+            authMetadata: {},
+            caData: 'MOCKCA',
+          },
+          credential: {
+            type: 'x509 client certificate',
+            cert: myCert,
+            key: myKey,
+          },
+          objectTypesToFetch: new Set<ObjectToFetch>([
+            {
+              group: '',
+              apiVersion: 'v1',
+              plural: 'pods',
+              objectType: 'pods',
+            },
+          ]),
+          labelSelector: '',
+          customResources: [],
+        });
+
+        await expect(result).rejects.toThrow(/PEM/);
+
+        expect(httpsRequest).toHaveBeenCalledTimes(1);
+        const [[{ agent }]] = httpsRequest.mock.calls;
+        expect(agent.options.ca.toString('base64')).toMatch('MOCKCA');
+        expect(agent.options.cert).toEqual(myCert);
+        expect(agent.options.key).toEqual(myKey);
+      });
+
+      it('fetchPodMetricsByNamespaces authenticates with k8s using x509 client cert from authentication strategy', async () => {
+        worker.use(
+          rest.get(
+            'https://localhost:9999/api/v1/namespaces/:namespace/pods',
+            (req, res, ctx) =>
+              res(
+                withLabels(req, ctx, {
+                  items: [
+                    {
+                      metadata: { name: 'pod-name' },
+                      spec: {
+                        containers: [
+                          {
+                            name: 'container-name',
+                            resources: {
+                              requests: { cpu: '500m', memory: '512M' },
+                              limits: { cpu: '1000m', memory: '1G' },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                }),
+              ),
+          ),
+          rest.get(
+            'https://localhost:9999/apis/metrics.k8s.io/v1beta1/namespaces/:namespace/pods',
+            (req, res, ctx) =>
+              res(
+                withLabels(req, ctx, {
+                  items: [
+                    {
+                      metadata: { name: 'pod-name' },
+                      containers: [
+                        {
+                          name: 'container-name',
+                          usage: { cpu: '0', memory: '0' },
+                        },
+                      ],
+                    },
+                  ],
+                }),
+              ),
+          ),
+        );
+
+        const myCert = 'MOCKCert';
+        const myKey = 'MOCKKey';
+
+        const result = sut.fetchPodMetricsByNamespaces(
+          {
+            name: 'cluster1',
+            url: 'https://localhost:9999',
+            authMetadata: {},
+            caData: 'MOCKCA',
+          },
+          {
+            type: 'x509 client certificate',
+            cert: myCert,
+            key: myKey,
+          },
+          new Set(['ns-a']),
+        );
+
+        await expect(result).rejects.toThrow(/PEM/);
+
+        expect(httpsRequest).toHaveBeenCalledTimes(2);
+        const [[{ agent }]] = httpsRequest.mock.calls;
+        expect(agent.options.ca.toString('base64')).toMatch('MOCKCA');
+        expect(agent.options.cert).toEqual(myCert);
+        expect(agent.options.key).toEqual(myKey);
       });
     });
 
@@ -886,7 +1015,7 @@ describe('KubernetesFetcher', () => {
           serviceId: 'some-service',
           clusterDetails: {
             name: 'unauthenticated-cluster',
-            url: 'http://ignored',
+            url: 'https://10.10.10.10',
             authMetadata: {},
           },
           credential: { type: 'anonymous' },
@@ -895,25 +1024,28 @@ describe('KubernetesFetcher', () => {
           customResources: [],
         });
         return expect(result).rejects.toThrow(
-          "no bearer token for cluster 'unauthenticated-cluster' and not running in Kubernetes",
+          "no bearer token or client cert for cluster 'unauthenticated-cluster' and not running in Kubernetes",
         );
       });
     });
     describe('Backstage running on k8s', () => {
       const initialHost = process.env.KUBERNETES_SERVICE_HOST;
       const initialPort = process.env.KUBERNETES_SERVICE_PORT;
-      const initialCaPath = Config.SERVICEACCOUNT_CA_PATH;
+      const initialCAPath = process.env.KUBERNETES_CA_FILE_PATH;
+
+      beforeEach(() => {
+        process.env.KUBERNETES_CA_FILE_PATH = mockCertDir.resolve('ca.crt');
+      });
 
       afterEach(() => {
         process.env.KUBERNETES_SERVICE_HOST = initialHost;
         process.env.KUBERNETES_SERVICE_PORT = initialPort;
-        Config.SERVICEACCOUNT_CA_PATH = initialCaPath;
+        process.env.KUBERNETES_CA_FILE_PATH = initialCAPath;
       });
 
       it('makes in-cluster requests when cluster details has no token', async () => {
         process.env.KUBERNETES_SERVICE_HOST = '10.10.10.10';
         process.env.KUBERNETES_SERVICE_PORT = '443';
-        Config.SERVICEACCOUNT_CA_PATH = mockCertDir.resolve('ca.crt');
         worker.use(
           rest.get('https://10.10.10.10/api/v1/pods', (req, res, ctx) =>
             res(
@@ -929,7 +1061,7 @@ describe('KubernetesFetcher', () => {
           serviceId: 'some-service',
           clusterDetails: {
             name: 'overridden-to-in-cluster',
-            url: 'http://ignored',
+            url: 'https://10.10.10.10',
             authMetadata: {
               [ANNOTATION_KUBERNETES_AUTH_PROVIDER]: 'serviceAccount',
             },
@@ -972,7 +1104,7 @@ describe('KubernetesFetcher', () => {
 
     beforeEach(() => {
       sut = new KubernetesClientBasedFetcher({
-        logger: getVoidLogger(),
+        logger: mockServices.logger.mock(),
       });
     });
 

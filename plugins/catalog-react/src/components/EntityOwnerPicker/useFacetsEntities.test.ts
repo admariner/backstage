@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { renderHook, waitFor } from '@testing-library/react';
 import { useFacetsEntities } from './useFacetsEntities';
-import { CatalogApi } from '@backstage/catalog-client';
+import { catalogApiMock } from '@backstage/plugin-catalog-react/testUtils';
 
-const mockedGetEntityFacets: jest.MockedFn<CatalogApi['getEntityFacets']> =
-  jest.fn();
-
-const mockCatalogApi: Partial<CatalogApi> = {
-  getEntityFacets: mockedGetEntityFacets,
-};
+const mockCatalogApi = catalogApiMock.mock();
 
 jest.mock('@backstage/core-plugin-api', () => ({
   ...jest.requireActual('@backstage/core-plugin-api'),
@@ -34,21 +30,38 @@ describe('useFacetsEntities', () => {
     jest.resetAllMocks();
   });
 
+  const facetsFromEntityRefs = (entityRefs: string[]) => ({
+    facets: {
+      'relations.ownedBy': entityRefs.map(value => ({ count: 1, value })),
+    },
+  });
+
   it(`should return empty items when facets are loading`, () => {
-    mockedGetEntityFacets.mockReturnValue(new Promise(() => {}));
+    mockCatalogApi.getEntityFacets.mockReturnValue(new Promise(() => {}));
     const { result } = renderHook(() => useFacetsEntities({ enabled: true }));
     expect(result.current[0]).toEqual({ value: { items: [] }, loading: true });
   });
 
-  it(`should return the owners`, async () => {
-    mockedGetEntityFacets.mockResolvedValue({
-      facets: {
-        'relations.ownedBy': [
-          { count: 1, value: 'component:default/e2' },
-          { count: 1, value: 'component:default/e1' },
-        ],
-      },
+  it(`should return empty response when facet is not present`, async () => {
+    mockCatalogApi.getEntityFacets.mockResolvedValueOnce({
+      facets: { 'metadata.tags': [{ value: 'tag', count: 1 }] },
     });
+    mockCatalogApi.getEntitiesByRefs.mockResolvedValueOnce({ items: [] });
+    const { result } = renderHook(() => useFacetsEntities({ enabled: true }));
+    result.current[1]({ text: '' });
+    await waitFor(() => {
+      expect(result.current[0]).toEqual({
+        value: { items: [] },
+        loading: false,
+      });
+    });
+  });
+
+  it(`should return the owners`, async () => {
+    const entityRefs = ['component:default/e1', 'component:default/e2'];
+    mockCatalogApi.getEntityFacets.mockResolvedValue(
+      facetsFromEntityRefs(entityRefs),
+    );
 
     const { result } = renderHook(() => useFacetsEntities({ enabled: true }));
 
@@ -74,20 +87,20 @@ describe('useFacetsEntities', () => {
     });
   });
 
-  it(`should return the owners sorted by namespace, name and kind`, async () => {
+  it(`should return the owners sorted by kind, namespace and name`, async () => {
     const entityRefs = [
       'group:namespace/team-b',
-      'component:default/c',
+      'user:default/c',
       'group:default/a',
-      'component:default/a',
-      'component:default/b',
+      'user:default/a',
+      'user:default/b',
+      'group:default/d',
+      'group:default/e',
     ];
 
-    mockedGetEntityFacets.mockResolvedValue({
-      facets: {
-        'relations.ownedBy': entityRefs.map(value => ({ count: 1, value })),
-      },
-    });
+    mockCatalogApi.getEntityFacets.mockResolvedValue(
+      facetsFromEntityRefs(entityRefs),
+    );
 
     const { result } = renderHook(() => useFacetsEntities({ enabled: true }));
 
@@ -98,28 +111,47 @@ describe('useFacetsEntities', () => {
           items: [
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'a', namespace: 'default' },
-            },
-            {
-              apiVersion: 'backstage.io/v1beta1',
               kind: 'group',
               metadata: { name: 'a', namespace: 'default' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'b', namespace: 'default' },
+              kind: 'group',
+              metadata: { name: 'd', namespace: 'default' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'c', namespace: 'default' },
+              kind: 'group',
+              metadata: { name: 'e', namespace: 'default' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',
               kind: 'group',
               metadata: { name: 'team-b', namespace: 'namespace' },
+            },
+            {
+              apiVersion: 'backstage.io/v1beta1',
+              kind: 'user',
+              metadata: {
+                name: 'a',
+                namespace: 'default',
+              },
+            },
+            {
+              apiVersion: 'backstage.io/v1beta1',
+              kind: 'user',
+              metadata: {
+                name: 'b',
+                namespace: 'default',
+              },
+            },
+            {
+              apiVersion: 'backstage.io/v1beta1',
+              kind: 'user',
+              metadata: {
+                name: 'c',
+                namespace: 'default',
+              },
             },
           ],
         },
@@ -131,17 +163,15 @@ describe('useFacetsEntities', () => {
   it(`should paginate the data accordingly`, async () => {
     const entityRefs = [
       'group:namespace/team-b',
-      'component:default/c',
+      'user:default/c',
       'group:default/a',
-      'component:default/a',
-      'component:default/b',
+      'user:default/a',
+      'user:default/b',
     ];
 
-    mockedGetEntityFacets.mockResolvedValue({
-      facets: {
-        'relations.ownedBy': entityRefs.map(value => ({ count: 1, value })),
-      },
-    });
+    mockCatalogApi.getEntityFacets.mockResolvedValue(
+      facetsFromEntityRefs(entityRefs),
+    );
 
     const { result } = renderHook(() => useFacetsEntities({ enabled: true }));
 
@@ -152,13 +182,13 @@ describe('useFacetsEntities', () => {
           items: [
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
+              kind: 'group',
               metadata: { name: 'a', namespace: 'default' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',
               kind: 'group',
-              metadata: { name: 'a', namespace: 'default' },
+              metadata: { name: 'team-b', namespace: 'namespace' },
             },
           ],
           cursor: 'eyJ0ZXh0IjoiIiwic3RhcnQiOjJ9',
@@ -174,23 +204,23 @@ describe('useFacetsEntities', () => {
           items: [
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'a', namespace: 'default' },
-            },
-            {
-              apiVersion: 'backstage.io/v1beta1',
               kind: 'group',
               metadata: { name: 'a', namespace: 'default' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'b', namespace: 'default' },
+              kind: 'group',
+              metadata: { name: 'team-b', namespace: 'namespace' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'c', namespace: 'default' },
+              kind: 'user',
+              metadata: { name: 'a', namespace: 'default' },
+            },
+            {
+              apiVersion: 'backstage.io/v1beta1',
+              kind: 'user',
+              metadata: { name: 'b', namespace: 'default' },
             },
           ],
           cursor: 'eyJ0ZXh0IjoiIiwic3RhcnQiOjR9',
@@ -206,28 +236,28 @@ describe('useFacetsEntities', () => {
           items: [
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'a', namespace: 'default' },
-            },
-            {
-              apiVersion: 'backstage.io/v1beta1',
               kind: 'group',
               metadata: { name: 'a', namespace: 'default' },
-            },
-            {
-              apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'b', namespace: 'default' },
-            },
-            {
-              apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'c', namespace: 'default' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',
               kind: 'group',
               metadata: { name: 'team-b', namespace: 'namespace' },
+            },
+            {
+              apiVersion: 'backstage.io/v1beta1',
+              kind: 'user',
+              metadata: { name: 'a', namespace: 'default' },
+            },
+            {
+              apiVersion: 'backstage.io/v1beta1',
+              kind: 'user',
+              metadata: { name: 'b', namespace: 'default' },
+            },
+            {
+              apiVersion: 'backstage.io/v1beta1',
+              kind: 'user',
+              metadata: { name: 'c', namespace: 'default' },
             },
           ],
         },
@@ -249,15 +279,14 @@ describe('useFacetsEntities', () => {
       'component:default/nade',
     ];
 
-    mockedGetEntityFacets.mockResolvedValue({
-      facets: {
-        'relations.ownedBy': entityRefs.map(value => ({ count: 1, value })),
-      },
-    });
+    mockCatalogApi.getEntityFacets.mockResolvedValue(
+      facetsFromEntityRefs(entityRefs),
+    );
 
     const { result } = renderHook(() => useFacetsEntities({ enabled: true }));
 
     result.current[1]({ text: 'der  ' });
+
     await waitFor(() => {
       expect(result.current[0]).toEqual({
         value: {
@@ -269,13 +298,13 @@ describe('useFacetsEntities', () => {
             },
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'group',
-              metadata: { name: 'spiderman', namespace: 'namespace' },
+              kind: 'component',
+              metadata: { name: 'a-component', namespace: 'spiders' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',
-              kind: 'component',
-              metadata: { name: 'a-component', namespace: 'spiders' },
+              kind: 'group',
+              metadata: { name: 'spiderman', namespace: 'namespace' },
             },
             {
               apiVersion: 'backstage.io/v1beta1',

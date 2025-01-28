@@ -26,16 +26,15 @@ import {
   EntityRefPresentation,
   EntityRefPresentationSnapshot,
 } from '@backstage/plugin-catalog-react';
-import { HumanDuration, durationToMilliseconds } from '@backstage/types';
+import { durationToMilliseconds, HumanDuration } from '@backstage/types';
 import DataLoader from 'dataloader';
 import ExpiryMap from 'expiry-map';
 import ObservableImpl from 'zen-observable';
 import {
+  createDefaultRenderer,
   DEFAULT_BATCH_DELAY,
   DEFAULT_CACHE_TTL,
   DEFAULT_ICONS,
-  UNKNOWN_KIND_ICON,
-  createDefaultRenderer,
 } from './defaults';
 
 /**
@@ -261,47 +260,65 @@ export class DefaultEntityPresentationApi implements EntityPresentationApi {
       };
     }
 
-    // And then the following snapshot
-    const observable = !needsLoad
-      ? undefined
-      : new ObservableImpl<EntityRefPresentationSnapshot>(subscriber => {
-          let aborted = false;
+    if (!needsLoad) {
+      return {
+        snapshot: initialSnapshot,
+        promise: Promise.resolve(initialSnapshot),
+      };
+    }
 
-          Promise.resolve()
-            .then(() => this.#loader?.load(entityRef))
-            .then(newEntity => {
-              if (
-                !aborted &&
-                newEntity &&
-                newEntity.metadata.etag !== entity?.metadata.etag
-              ) {
-                const updatedSnapshot = render({
-                  loading: false,
-                  entity: newEntity,
-                });
-                subscriber.next(updatedSnapshot);
-              }
-            })
-            .catch(() => {
-              // Intentionally ignored - we do not propagate errors to the
-              // observable here. The presentation API should be error free and
-              // always return SOMETHING that makes sense to render, and we have
-              // already ensured above that the initial snapshot was that.
-            })
-            .finally(() => {
-              if (!aborted) {
-                subscriber.complete();
-              }
-            });
-
-          return () => {
-            aborted = true;
-          };
+    // Load the entity and render it
+    const maybeUpdatedSnapshot = Promise.resolve()
+      .then(() => {
+        return this.#loader?.load(entityRef);
+      })
+      .then(newEntity => {
+        // We re-render no matter if we get back a new entity or the old
+        // one or nothing, because of the now false loading state - in
+        // case the renderer outputs different data depending on that
+        return render({
+          loading: false,
+          entity: newEntity ?? entity,
         });
+      })
+      .catch(() => {
+        // Intentionally ignored - we do not propagate errors to the
+        // caller here. The presentation API should be error free and
+        // always return SOMETHING that makes sense to render, and we have
+        // already ensured above that the initial snapshot was that.
+        return undefined;
+      });
+
+    const observable = new ObservableImpl<EntityRefPresentationSnapshot>(
+      subscriber => {
+        let aborted = false;
+
+        maybeUpdatedSnapshot
+          .then(updatedSnapshot => {
+            if (updatedSnapshot) {
+              subscriber.next(updatedSnapshot);
+            }
+          })
+          .finally(() => {
+            if (!aborted) {
+              subscriber.complete();
+            }
+          });
+
+        return () => {
+          aborted = true;
+        };
+      },
+    );
+
+    const promise = maybeUpdatedSnapshot.then(updatedSnapshot => {
+      return updatedSnapshot ?? initialSnapshot;
+    });
 
     return {
       snapshot: initialSnapshot,
       update$: observable,
+      promise: promise,
     };
   }
 
@@ -354,6 +371,15 @@ export class DefaultEntityPresentationApi implements EntityPresentationApi {
       async (entityRefs: readonly string[]) => {
         const { items } = await options.catalogApi!.getEntitiesByRefs({
           entityRefs: entityRefs as string[],
+          fields: [
+            'kind',
+            'metadata.name',
+            'metadata.namespace',
+            'metadata.title',
+            'metadata.description',
+            'spec.profile.displayName',
+            'spec.type',
+          ],
         });
 
         const now = Date.now();
@@ -395,8 +421,6 @@ export class DefaultEntityPresentationApi implements EntityPresentationApi {
       return false;
     }
 
-    return (
-      this.#kindIcons[kind.toLocaleLowerCase('en-US')] ?? UNKNOWN_KIND_ICON
-    );
+    return this.#kindIcons[kind.toLocaleLowerCase('en-US')];
   }
 }

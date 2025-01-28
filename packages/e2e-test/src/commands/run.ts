@@ -34,6 +34,7 @@ import mysql from 'mysql2/promise';
 import pgtools from 'pgtools';
 
 import { findPaths } from '@backstage/cli-common';
+import { OptionValues } from 'commander';
 
 // eslint-disable-next-line no-restricted-syntax
 const paths = findPaths(__dirname);
@@ -45,7 +46,7 @@ const templatePackagePaths = [
   'packages/create-app/templates/default-app/packages/backend/package.json.hbs',
 ];
 
-export async function run() {
+export async function run(opts: OptionValues) {
   const rootDir = await fs.mkdtemp(resolvePath(os.tmpdir(), 'backstage-e2e-'));
   print(`CLI E2E test root: ${rootDir}\n`);
 
@@ -66,6 +67,20 @@ export async function run() {
   await createPlugin({ appDir, pluginId, select: 'backend-plugin' });
 
   print(`Running 'yarn test:e2e' in newly created app with new plugin`);
+  await runPlain(['yarn', 'test:e2e'], {
+    cwd: appDir,
+    env: { ...process.env, CI: undefined },
+  });
+
+  await switchToReact17(appDir);
+
+  print(`Running 'yarn install' to install React 17`);
+  await runPlain(['yarn', 'install'], { cwd: appDir });
+
+  print(`Running 'yarn tsc' with React 17`);
+  await runPlain(['yarn', 'tsc'], { cwd: appDir });
+
+  print(`Running 'yarn test:e2e' with React 17`);
   await runPlain(['yarn', 'test:e2e'], {
     cwd: appDir,
     env: { ...process.env, CI: undefined },
@@ -95,8 +110,12 @@ export async function run() {
     // runner will be destroyed anyway
     print('All tests successful');
   } else {
-    print('All tests successful, removing test dir');
-    await fs.remove(rootDir);
+    if (opts.keep) {
+      print(`All tests successful, app dir available at ${appDir}`);
+    } else {
+      print('All tests successful, removing test dir');
+      await fs.remove(rootDir);
+    }
   }
 
   // Just in case some child process was left hanging
@@ -263,6 +282,9 @@ async function createApp(
 
     const appDir = resolvePath(rootDir, appName);
 
+    print('Overriding yarn.lock with seed file from the create-app package');
+    overrideYarnLockSeed(appDir);
+
     print('Rewriting module resolutions of app to use workspace packages');
     await overrideModuleResolutions(appDir, workspaceDir);
 
@@ -303,6 +325,22 @@ async function createApp(
   } finally {
     child.kill();
   }
+}
+
+/**
+ * Overrides the downloaded yarn.lock file with the seed file packages/create-app/seed-yarn.lock
+ * This ensures that the E2E tests use the same seed file as users would receive when creating a new app
+ */
+async function overrideYarnLockSeed(appDir: string) {
+  const content = await fs.readFile(
+    paths.resolveOwnRoot('packages/create-app/seed-yarn.lock'),
+    'utf8',
+  );
+  const trimmedContent = content
+    .split('\n')
+    .filter(l => !l.startsWith('//'))
+    .join('\n');
+  await fs.writeFile(resolvePath(appDir, 'yarn.lock'), trimmedContent, 'utf8');
 }
 
 /**
@@ -374,6 +412,38 @@ async function createPlugin(options: {
   }
 }
 
+/**
+ * Switch the entire project to use React 17
+ */
+async function switchToReact17(appDir: string) {
+  const rootPkg = await fs.readJson(resolvePath(appDir, 'package.json'));
+  rootPkg.resolutions = {
+    ...(rootPkg.resolutions || {}),
+    react: '^17.0.0',
+    'react-dom': '^17.0.0',
+    '@types/react': '^17.0.0',
+    '@types/react-dom': '^17.0.0',
+    'swagger-ui-react/react': '17.0.2',
+    'swagger-ui-react/react-dom': '17.0.2',
+    'swagger-ui-react/react-redux': '^8',
+  };
+  await fs.writeJson(resolvePath(appDir, 'package.json'), rootPkg, {
+    spaces: 2,
+  });
+
+  await fs.writeFile(
+    resolvePath(appDir, 'packages/app/src/index.tsx'),
+    `import '@backstage/cli/asset-types';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+
+ReactDOM.render(<App />, document.getElementById('root'));
+`,
+    'utf8',
+  );
+}
+
 /** Drops PG databases */
 async function dropDB(database: string, client: string) {
   try {
@@ -432,6 +502,8 @@ async function testBackendStart(appDir: string, ...args: string[]) {
     env: {
       ...process.env,
       GITHUB_TOKEN: 'abc',
+      // TODO: Default auth policy is disabled for e2e tests - replace this with external service auth
+      APP_CONFIG_backend_auth_dangerouslyDisableDefaultAuthPolicy: 'true',
     },
   });
 
@@ -459,13 +531,19 @@ async function testBackendStart(appDir: string, ...args: string[]) {
         !l.includes(
           'ExperimentalWarning: `globalPreload` is planned for removal in favor of `initialize`.', // Node 18
         ) &&
-        !l.includes('node --trace-warnings ...'),
+        !l.includes(
+          'DeprecationWarning: The `punycode` module is deprecated.', // Node 22
+        ) &&
+        !l.includes('node --trace-warnings ...') &&
+        !l.includes('node --trace-deprecation ...'),
     );
   };
 
   try {
     await waitFor(
-      () => stdout.includes('Listening on ') || filterStderr(stderr).length > 0,
+      () =>
+        stdout.includes('Plugin initialization complete') ||
+        filterStderr(stderr).length > 0,
     );
     const stderrLines = filterStderr(stderr);
     if (stderrLines.length > 0) {
@@ -477,13 +555,24 @@ async function testBackendStart(appDir: string, ...args: string[]) {
       // Skipping the whole block
       throw new Error(stderr);
     }
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     print('Try to fetch entities from the backend');
     // Try fetch entities, should be ok
-    await fetch('http://localhost:7007/api/catalog/entities').then(res =>
-      res.json(),
-    );
+    const res = await fetch('http://localhost:7007/api/catalog/entities');
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch entities: ${res.status} ${res.statusText}`,
+      );
+    }
+    const content = await res.text();
+    try {
+      JSON.parse(content);
+    } catch (error) {
+      throw new Error(
+        `Failed to parse entities JSON response: ${error}\n${content}`,
+      );
+    }
     print('Entities fetched successfully');
     successful = true;
   } catch (error) {

@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-import { RELATION_HAS_PART, RELATION_PART_OF } from '@backstage/catalog-model';
+import {
+  Entity,
+  RELATION_HAS_PART,
+  RELATION_PART_OF,
+} from '@backstage/catalog-model';
 import { analyticsApiRef } from '@backstage/core-plugin-api';
 import { catalogApiRef, entityRouteRef } from '@backstage/plugin-catalog-react';
+import { catalogApiMock } from '@backstage/plugin-catalog-react/testUtils';
 import {
-  MockAnalyticsApi,
+  mockApis,
   renderInTestApp,
   TestApiProvider,
 } from '@backstage/test-utils';
@@ -26,6 +31,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { CatalogGraphPage } from './CatalogGraphPage';
+import { GetEntitiesByRefsRequest } from '@backstage/catalog-client';
 
 const navigate = jest.fn();
 
@@ -111,19 +117,11 @@ describe.skip('<CatalogGraphPage/>', () => {
       },
     ],
   };
-  const catalog = {
-    getEntities: jest.fn(),
-    getEntityByRef: jest.fn(),
-    removeEntityByUid: jest.fn(),
-    getLocationById: jest.fn(),
-    getLocationByRef: jest.fn(),
-    addLocation: jest.fn(),
-    removeLocationById: jest.fn(),
-    refreshEntity: jest.fn(),
-    getEntityAncestors: jest.fn(),
-    getEntityFacets: jest.fn(),
-    validateEntity: jest.fn(),
+  const allEntities: Record<string, Entity> = {
+    'b:d/c': entityC,
+    'b:d/e': entityE,
   };
+  const catalog = catalogApiMock.mock();
 
   beforeEach(() => {
     wrapper = (
@@ -142,8 +140,10 @@ describe.skip('<CatalogGraphPage/>', () => {
   afterEach(() => jest.resetAllMocks());
 
   test('should render without exploding', async () => {
-    catalog.getEntityByRef.mockImplementation(async (n: any) =>
-      n === 'b:d/e' ? entityE : entityC,
+    catalog.getEntitiesByRefs.mockImplementation(
+      async ({ entityRefs }: GetEntitiesByRefsRequest) => ({
+        items: entityRefs.map(ref => allEntities[ref]),
+      }),
     );
 
     await renderInTestApp(wrapper, {
@@ -156,12 +156,14 @@ describe.skip('<CatalogGraphPage/>', () => {
     await expect(screen.findByText('b:d/c')).resolves.toBeInTheDocument();
     await expect(screen.findByText('b:d/e')).resolves.toBeInTheDocument();
     await expect(screen.findAllByTestId('node')).resolves.toHaveLength(2);
-    expect(catalog.getEntityByRef).toHaveBeenCalledTimes(2);
+    expect(catalog.getEntitiesByRefs).toHaveBeenCalledTimes(2);
   });
 
   test('should toggle filters', async () => {
-    catalog.getEntityByRef.mockImplementation(async (n: any) =>
-      n === 'b:d/e' ? entityE : entityC,
+    catalog.getEntitiesByRefs.mockImplementation(
+      async ({ entityRefs }: GetEntitiesByRefsRequest) => ({
+        items: entityRefs.map(ref => allEntities[ref]),
+      }),
     );
 
     await renderInTestApp(wrapper, {
@@ -178,8 +180,10 @@ describe.skip('<CatalogGraphPage/>', () => {
   });
 
   test('should select other entity', async () => {
-    catalog.getEntityByRef.mockImplementation(async (n: any) =>
-      n === 'b:d/e' ? entityE : entityC,
+    catalog.getEntitiesByRefs.mockImplementation(
+      async ({ entityRefs }: GetEntitiesByRefsRequest) => ({
+        items: entityRefs.map(ref => allEntities[ref]),
+      }),
     );
 
     await renderInTestApp(wrapper, {
@@ -196,8 +200,10 @@ describe.skip('<CatalogGraphPage/>', () => {
   });
 
   test('should navigate to entity', async () => {
-    catalog.getEntityByRef.mockImplementation(async (n: any) =>
-      n === 'b:d/e' ? entityE : entityC,
+    catalog.getEntitiesByRefs.mockImplementation(
+      async ({ entityRefs }: GetEntitiesByRefsRequest) => ({
+        items: entityRefs.map(ref => allEntities[ref]),
+      }),
     );
 
     await renderInTestApp(wrapper, {
@@ -215,13 +221,15 @@ describe.skip('<CatalogGraphPage/>', () => {
   });
 
   test('should capture analytics event when selecting other entity', async () => {
-    catalog.getEntityByRef.mockImplementation(async (n: any) =>
-      n === 'b:d/e' ? entityE : entityC,
+    catalog.getEntitiesByRefs.mockImplementation(
+      async ({ entityRefs }: GetEntitiesByRefsRequest) => ({
+        items: entityRefs.map(ref => allEntities[ref]),
+      }),
     );
 
-    const analyticsSpy = new MockAnalyticsApi();
+    const analyticsApi = mockApis.analytics();
     await renderInTestApp(
-      <TestApiProvider apis={[[analyticsApiRef, analyticsSpy]]}>
+      <TestApiProvider apis={[[analyticsApiRef, analyticsApi]]}>
         {wrapper}
       </TestApiProvider>,
       {
@@ -235,20 +243,24 @@ describe.skip('<CatalogGraphPage/>', () => {
 
     await userEvent.click(screen.getByText('b:d/e'));
 
-    expect(analyticsSpy.getEvents()[0]).toMatchObject({
-      action: 'click',
-      subject: 'b:d/e',
-    });
+    expect(analyticsApi.captureEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'click',
+        subject: 'b:d/e',
+      }),
+    );
   });
 
   test('should capture analytics event when navigating to entity', async () => {
-    catalog.getEntityByRef.mockImplementation(async (n: any) =>
-      n === 'b:d/e' ? entityE : entityC,
+    catalog.getEntitiesByRefs.mockImplementation(
+      async ({ entityRefs }: GetEntitiesByRefsRequest) => ({
+        items: entityRefs.map(ref => allEntities[ref]),
+      }),
     );
 
-    const analyticsSpy = new MockAnalyticsApi();
+    const analyticsApi = mockApis.analytics();
     await renderInTestApp(
-      <TestApiProvider apis={[[analyticsApiRef, analyticsSpy]]}>
+      <TestApiProvider apis={[[analyticsApiRef, analyticsApi]]}>
         {wrapper}
       </TestApiProvider>,
       {
@@ -264,12 +276,14 @@ describe.skip('<CatalogGraphPage/>', () => {
     await user.keyboard('{Shift>}');
     await user.click(screen.getByText('b:d/e'));
 
-    expect(analyticsSpy.getEvents()[0]).toMatchObject({
-      action: 'click',
-      subject: 'b:d/e',
-      attributes: {
-        to: '/entity/b/d/e',
-      },
-    });
+    expect(analyticsApi.captureEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'click',
+        subject: 'b:d/e',
+        attributes: {
+          to: '/entity/b/d/e',
+        },
+      }),
+    );
   });
 });

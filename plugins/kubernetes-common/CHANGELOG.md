@@ -1,5 +1,272 @@
 # @backstage/plugin-kubernetes-common
 
+## 0.9.3-next.0
+
+### Patch Changes
+
+- ac0e1ac: Fixed the lack of `secrets` to fetch from the kubernetes api by adding option to specify additional Objects which are not part of Default Objects
+- Updated dependencies
+  - @backstage/catalog-model@1.7.3
+  - @backstage/types@1.2.1
+  - @backstage/plugin-permission-common@0.8.4
+
+## 0.9.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.1
+  - @backstage/catalog-model@1.7.3
+  - @backstage/plugin-permission-common@0.8.4
+
+## 0.9.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.1-next.0
+  - @backstage/catalog-model@1.7.3-next.0
+  - @backstage/plugin-permission-common@0.8.4-next.0
+
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@1.7.2
+  - @backstage/types@1.2.0
+  - @backstage/plugin-permission-common@0.8.3
+
+## 0.9.1-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@1.7.2-next.0
+  - @backstage/types@1.2.0
+  - @backstage/plugin-permission-common@0.8.3-next.0
+
+## 0.9.0
+
+### Minor Changes
+
+- 71b8704: Bumping @kubernetes/client-node to 1.0.0-rc7 to mitigate CVEs related to the request and tough-cookie packages
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.0
+  - @backstage/plugin-permission-common@0.8.2
+  - @backstage/catalog-model@1.7.1
+
+## 0.9.0-next.0
+
+### Minor Changes
+
+- 71b8704: Bumping @kubernetes/client-node to 1.0.0-rc7 to mitigate CVEs related to the request and tough-cookie packages
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@1.7.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-common@0.8.1
+
+## 0.8.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@1.7.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-common@0.8.1
+
+## 0.8.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.1
+  - @backstage/catalog-model@1.6.0
+  - @backstage/types@1.1.1
+
+## 0.8.2-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@1.6.0-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-common@0.8.1-next.1
+
+## 0.8.2-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.1-next.1
+  - @backstage/catalog-model@1.5.0
+  - @backstage/types@1.1.1
+
+## 0.8.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.1-next.0
+  - @backstage/catalog-model@1.5.0
+  - @backstage/types@1.1.1
+
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.0
+  - @backstage/catalog-model@1.5.0
+  - @backstage/types@1.1.1
+
+## 0.8.0
+
+### Minor Changes
+
+- 0177f75: Update kubernetes plugins to use autoscaling/v2
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.14
+  - @backstage/catalog-model@1.5.0
+  - @backstage/types@1.1.1
+
+## 0.8.0-next.1
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.14-next.0
+  - @backstage/catalog-model@1.5.0
+  - @backstage/types@1.1.1
+
+## 0.8.0-next.0
+
+### Minor Changes
+
+- 0177f75: Update kubernetes plugins to use autoscaling/v2
+
+## 0.7.6
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@1.5.0
+
+## 0.7.6-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@1.5.0-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-common@0.7.13
+
+## 0.7.5
+
+### Patch Changes
+
+- 4642cb7: Add support to fetch data for Daemon Sets and display an accordion in the same way as with Deployments
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.13
+  - @backstage/catalog-model@1.4.5
+  - @backstage/types@1.1.1
+
+## 0.7.5-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.13-next.1
+  - @backstage/catalog-model@1.4.5-next.0
+  - @backstage/types@1.1.1
+
+## 0.7.5-next.0
+
+### Patch Changes
+
+- 4642cb7: Add support to fetch data for Daemon Sets and display an accordion in the same way as with Deployments
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.13-next.0
+  - @backstage/catalog-model@1.4.5-next.0
+  - @backstage/types@1.1.1
+
+## 0.7.4
+
+### Patch Changes
+
+- a643af8: The `ClusterAttributes` type now includes the cluster title.
+- daad576: Clusters configured with the `aws` authentication strategy can now customize the
+  `x-k8s-aws-id` header value used to generate tokens. This value can be specified
+  specified via the `kubernetes.io/x-k8s-aws-id` parameter (in
+  `metadata.annotations` for clusters in the catalog, or the `authMetadata` block
+  on clusters in the app-config). This is particularly helpful when a Backstage
+  instance contains multiple AWS clusters with the same name in different regions
+  -- using this new parameter, the clusters can be given different logical names
+  to distinguish them but still use the same ID for the purposes of generating
+  tokens.
+- Updated dependencies
+  - @backstage/catalog-model@1.4.4
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-common@0.7.12
+
+## 0.7.4-next.2
+
+### Patch Changes
+
+- a643af8: The `ClusterAttributes` type now includes the cluster title.
+- Updated dependencies
+  - @backstage/catalog-model@1.4.4-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-common@0.7.12
+
+## 0.7.4-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/catalog-model@1.4.4-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-common@0.7.12
+
+## 0.7.4-next.0
+
+### Patch Changes
+
+- daad576: Clusters configured with the `aws` authentication strategy can now customize the
+  `x-k8s-aws-id` header value used to generate tokens. This value can be specified
+  specified via the `kubernetes.io/x-k8s-aws-id` parameter (in
+  `metadata.annotations` for clusters in the catalog, or the `authMetadata` block
+  on clusters in the app-config). This is particularly helpful when a Backstage
+  instance contains multiple AWS clusters with the same name in different regions
+  -- using this new parameter, the clusters can be given different logical names
+  to distinguish them but still use the same ID for the purposes of generating
+  tokens.
+- Updated dependencies
+  - @backstage/catalog-model@1.4.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-common@0.7.12
+
+## 0.7.3
+
+### Patch Changes
+
+- 4016f21: Remove some unused dependencies
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.12
+  - @backstage/catalog-model@1.4.3
+  - @backstage/types@1.1.1
+
 ## 0.7.3-next.0
 
 ### Patch Changes

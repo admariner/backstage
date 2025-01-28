@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { loggerToWinstonLogger } from '@backstage/backend-common';
 import {
   coreServices,
   createBackendPlugin,
@@ -27,21 +26,25 @@ import { createRouter } from './service/router';
  * @public
  */
 export const exampleTodoListPlugin = createBackendPlugin({
-  pluginId: 'exampleTodoList',
+  pluginId: 'todolist',
   register(env) {
     env.registerInit({
       deps: {
-        identity: coreServices.identity,
+        httpAuth: coreServices.httpAuth,
         logger: coreServices.logger,
         httpRouter: coreServices.httpRouter,
       },
-      async init({ identity, logger, httpRouter }) {
+      async init({ httpAuth, logger, httpRouter }) {
         httpRouter.use(
           await createRouter({
-            identity,
-            logger: loggerToWinstonLogger(logger),
+            httpAuth,
+            logger,
           }),
         );
+        httpRouter.addAuthPolicy({
+          path: '/health',
+          allow: 'unauthenticated',
+        });
       },
     });
   },

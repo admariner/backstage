@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { TaskScheduleDefinitionConfig } from '@backstage/backend-tasks';
+import { SchedulerServiceTaskScheduleDefinitionConfig } from '@backstage/backend-plugin-api';
 
 export interface Config {
   catalog?: {
@@ -116,7 +116,7 @@ export interface Config {
             /**
              * (Optional) TaskScheduleDefinition for the refresh.
              */
-            schedule?: TaskScheduleDefinitionConfig;
+            schedule?: SchedulerServiceTaskScheduleDefinitionConfig;
           }
         | {
             [name: string]: {
@@ -135,6 +135,11 @@ export interface Config {
                * Default: `/catalog-info.yaml`.
                */
               catalogPath?: string;
+              /**
+               * (Optional) Whether to validate locations that exist before emitting them.
+               * Default: `false`.
+               */
+              validateLocationsExist?: boolean;
               /**
                * (Optional) Filter configuration.
                */
@@ -180,7 +185,7 @@ export interface Config {
               /**
                * (Optional) TaskScheduleDefinition for the refresh.
                */
-              schedule?: TaskScheduleDefinitionConfig;
+              schedule?: SchedulerServiceTaskScheduleDefinitionConfig;
             };
           };
 
@@ -215,7 +220,7 @@ export interface Config {
             /**
              * The refresh schedule to use.
              */
-            schedule: TaskScheduleDefinitionConfig;
+            schedule: SchedulerServiceTaskScheduleDefinitionConfig;
           }
         | Array<{
             /**
@@ -244,7 +249,7 @@ export interface Config {
             /**
              * The refresh schedule to use.
              */
-            schedule: TaskScheduleDefinitionConfig;
+            schedule: SchedulerServiceTaskScheduleDefinitionConfig;
           }>;
     };
   };

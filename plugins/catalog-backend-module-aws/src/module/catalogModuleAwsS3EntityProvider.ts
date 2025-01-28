@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { loggerToWinstonLogger } from '@backstage/backend-common';
 import {
   coreServices,
   createBackendModule,
@@ -25,7 +24,7 @@ import { AwsS3EntityProvider } from '../providers';
 /**
  * Registers the AwsS3EntityProvider with the catalog processing extension point.
  *
- * @alpha
+ * @public
  */
 export const catalogModuleAwsS3EntityProvider = createBackendModule({
   pluginId: 'catalog',
@@ -41,7 +40,7 @@ export const catalogModuleAwsS3EntityProvider = createBackendModule({
       async init({ config, catalog, logger, scheduler }) {
         catalog.addEntityProvider(
           AwsS3EntityProvider.fromConfig(config, {
-            logger: loggerToWinstonLogger(logger),
+            logger,
             scheduler,
           }),
         );

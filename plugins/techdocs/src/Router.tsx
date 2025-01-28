@@ -25,10 +25,10 @@ import {
   useEntity,
   MissingAnnotationEmptyState,
 } from '@backstage/plugin-catalog-react';
-
-const TECHDOCS_ANNOTATION = 'backstage.io/techdocs-ref';
-
-const TECHDOCS_EXTERNAL_ANNOTATION = 'backstage.io/techdocs-entity';
+import {
+  TECHDOCS_ANNOTATION,
+  TECHDOCS_EXTERNAL_ANNOTATION,
+} from '@backstage/plugin-techdocs-common';
 
 /**
  * Helper that takes in entity and returns true/false if TechDocs is available for the entity
@@ -56,20 +56,20 @@ export const Router = () => {
   );
 };
 
-/**
- * Responsible for registering route to view docs on Entity page
- *
- * @public
- */
-export const EmbeddedDocsRouter = (props: PropsWithChildren<{}>) => {
-  const { children } = props;
+export const EmbeddedDocsRouter = (
+  props: PropsWithChildren<{
+    emptyState?: React.ReactElement;
+    withSearch?: boolean;
+  }>,
+) => {
+  const { children, emptyState, withSearch = true } = props;
   const { entity } = useEntity();
 
   // Using objects instead of <Route> elements, otherwise "outlet" will be null on sub-pages and add-ons won't render
   const element = useRoutes([
     {
       path: '/*',
-      element: <EntityPageDocs entity={entity} />,
+      element: <EntityPageDocs entity={entity} withSearch={withSearch} />,
       children: [
         {
           path: '*',
@@ -84,8 +84,26 @@ export const EmbeddedDocsRouter = (props: PropsWithChildren<{}>) => {
     entity.metadata.annotations?.[TECHDOCS_EXTERNAL_ANNOTATION];
 
   if (!projectId) {
-    return <MissingAnnotationEmptyState annotation={[TECHDOCS_ANNOTATION]} />;
+    return (
+      emptyState ?? (
+        <MissingAnnotationEmptyState annotation={[TECHDOCS_ANNOTATION]} />
+      )
+    );
   }
 
   return element;
+};
+
+/**
+ * Responsible for registering route to view docs on Entity page
+ *
+ * @public
+ */
+export const LegacyEmbeddedDocsRouter = ({
+  children,
+  withSearch = true,
+}: PropsWithChildren<{ withSearch?: boolean }>) => {
+  // Wrap the Router to avoid exposing the emptyState prop in the non-alpha
+  // public API and make it easier for us to change later.
+  return <EmbeddedDocsRouter children={children} withSearch={withSearch} />;
 };

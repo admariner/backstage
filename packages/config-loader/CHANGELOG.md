@@ -1,5 +1,313 @@
 # @backstage/config-loader
 
+## 1.9.6-next.0
+
+### Patch Changes
+
+- f866b86: Internal refactor to use explicit `require` for lazy-loading dependency.
+- Updated dependencies
+  - @backstage/cli-common@0.1.15
+  - @backstage/config@1.3.2
+  - @backstage/errors@1.2.7
+  - @backstage/types@1.2.1
+
+## 1.9.5
+
+### Patch Changes
+
+- 8ecf8cb: Exclude `@backstage/backend-common` from schema collection if `@backstage/backend-defaults` is present
+- Updated dependencies
+  - @backstage/types@1.2.1
+  - @backstage/cli-common@0.1.15
+  - @backstage/config@1.3.2
+  - @backstage/errors@1.2.7
+
+## 1.9.5-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.1-next.0
+  - @backstage/config@1.3.2-next.0
+  - @backstage/errors@1.2.7-next.0
+  - @backstage/cli-common@0.1.15
+
+## 1.9.5-next.0
+
+### Patch Changes
+
+- 8ecf8cb: Exclude `@backstage/backend-common` from schema collection if `@backstage/backend-defaults` is present
+- Updated dependencies
+  - @backstage/cli-common@0.1.15
+  - @backstage/config@1.3.1
+  - @backstage/errors@1.2.6
+  - @backstage/types@1.2.0
+
+## 1.9.3
+
+### Patch Changes
+
+- 5c9cc05: Use native fetch instead of node-fetch
+- Updated dependencies
+  - @backstage/errors@1.2.6
+  - @backstage/cli-common@0.1.15
+  - @backstage/config@1.3.1
+  - @backstage/types@1.2.0
+
+## 1.9.3-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.6-next.0
+  - @backstage/cli-common@0.1.15
+  - @backstage/config@1.3.1-next.0
+  - @backstage/types@1.2.0
+
+## 1.9.3-next.0
+
+### Patch Changes
+
+- 5c9cc05: Use native fetch instead of node-fetch
+- Updated dependencies
+  - @backstage/cli-common@0.1.15
+  - @backstage/config@1.3.0
+  - @backstage/errors@1.2.5
+  - @backstage/types@1.2.0
+
+## 1.9.2
+
+### Patch Changes
+
+- c5e39e7: Internal refactor to use the deferred from the types package
+- Updated dependencies
+  - @backstage/config@1.3.0
+  - @backstage/types@1.2.0
+  - @backstage/cli-common@0.1.15
+  - @backstage/errors@1.2.5
+
+## 1.9.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli-common@0.1.15-next.0
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.9.1
+
+### Patch Changes
+
+- ef3c507: Updated dependency `typescript-json-schema` to `^0.65.0`.
+- Updated dependencies
+  - @backstage/cli-common@0.1.14
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.9.1-next.0
+
+### Patch Changes
+
+- ef3c507: Updated dependency `typescript-json-schema` to `^0.65.0`.
+- Updated dependencies
+  - @backstage/cli-common@0.1.14
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.9.0
+
+### Minor Changes
+
+- 274428f: Add configuration key to File and Remote `ConfigSource`s that enables configuration of parsing logic. Previously limited to yaml, these `ConfigSource`s now allow for a multitude of parsing options (e.g. JSON).
+
+### Patch Changes
+
+- 93095ee: Make sure node-fetch is version 2.7.0 or greater
+- 1edd6c2: The `env` option of `ConfigSources.default` now correctly allows undefined members.
+- 493feac: Add boolean `allowMissingDefaultConfig` option to `ConfigSources.default` and
+  `ConfigSources.defaultForTargets`, which results in omission of a ConfigSource
+  for the default app-config.yaml configuration file if it's not present.
+- Updated dependencies
+  - @backstage/cli-common@0.1.14
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.9.0-next.2
+
+### Patch Changes
+
+- 93095ee: Make sure node-fetch is version 2.7.0 or greater
+- Updated dependencies
+  - @backstage/cli-common@0.1.14
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.9.0-next.1
+
+### Minor Changes
+
+- 274428f: Add configuration key to File and Remote `ConfigSource`s that enables configuration of parsing logic. Previously limited to yaml, these `ConfigSource`s now allow for a multitude of parsing options (e.g. JSON).
+
+### Patch Changes
+
+- 1edd6c2: The `env` option of `ConfigSources.default` now correctly allows undefined members.
+- Updated dependencies
+  - @backstage/cli-common@0.1.14
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.8.2-next.0
+
+### Patch Changes
+
+- 493feac: Add boolean `allowMissingDefaultConfig` option to `ConfigSources.default` and
+  `ConfigSources.defaultForTargets`, which results in omission of a ConfigSource
+  for the default app-config.yaml configuration file if it's not present.
+- Updated dependencies
+  - @backstage/cli-common@0.1.14
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.8.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli-common@0.1.14
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.8.1-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli-common@0.1.14-next.0
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.8.0
+
+### Minor Changes
+
+- 2ce31b3: The default environment variable substitution function will now trim whitespace characters from the substituted value. This alleviates bugs where whitespace characters are mistakenly included in environment variables.
+
+  If you depend on the old behavior, you can override the default substitution function with your own, for example:
+
+  ```ts
+  ConfigSources.default({
+    substitutionFunc: async name => process.env[name],
+  });
+  ```
+
+- 99bab65: Support parameter substitution for environment variables
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.8.0-next.0
+
+### Minor Changes
+
+- 99bab65: Support parameter substitution for environment variables
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/types@1.1.1
+
+## 1.7.0
+
+### Minor Changes
+
+- db8358d: Forward `null` values read from configuration files in configuration data, rather than treating them as an absence of config.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.2.0
+  - @backstage/errors@1.2.4
+  - @backstage/cli-common@0.1.13
+  - @backstage/types@1.1.1
+
+## 1.7.0-next.1
+
+### Minor Changes
+
+- db8358d: Forward `null` values read from configuration files in configuration data, rather than treating them as an absence of config.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.2.0-next.1
+  - @backstage/cli-common@0.1.13
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/types@1.1.1
+
+## 1.6.3-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/config@1.1.2-next.0
+  - @backstage/cli-common@0.1.13
+  - @backstage/types@1.1.1
+
+## 1.6.2
+
+### Patch Changes
+
+- 0a9a03c: Make schema processing gracefully handle an empty config.
+- 6bb6f3e: Updated dependency `fs-extra` to `^11.2.0`.
+  Updated dependency `@types/fs-extra` to `^11.0.0`.
+- bf3da16: Updated dependency `typescript-json-schema` to `^0.63.0`.
+- Updated dependencies
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 1.6.2-next.0
+
+### Patch Changes
+
+- 0a9a03c: Make schema processing gracefully handle an empty config.
+- Updated dependencies
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 1.6.1
+
+### Patch Changes
+
+- 7acbb5a: Removed `mock-fs` dev dependency.
+- Updated dependencies
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
 ## 1.6.1-next.0
 
 ### Patch Changes

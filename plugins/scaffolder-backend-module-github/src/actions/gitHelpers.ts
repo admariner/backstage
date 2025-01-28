@@ -16,13 +16,13 @@
 
 import { assertError } from '@backstage/errors';
 import { Octokit } from 'octokit';
-import { Logger } from 'winston';
+import { LoggerService } from '@backstage/backend-plugin-api';
 
 type BranchProtectionOptions = {
   client: Octokit;
   owner: string;
   repoName: string;
-  logger: Logger;
+  logger: LoggerService;
   requireCodeOwnerReviews: boolean;
   requiredStatusCheckContexts?: string[];
   bypassPullRequestAllowances?: {
@@ -38,10 +38,12 @@ type BranchProtectionOptions = {
   };
   requireBranchesToBeUpToDate?: boolean;
   requiredConversationResolution?: boolean;
+  requireLastPushApproval: boolean;
   defaultBranch?: string;
   enforceAdmins?: boolean;
   dismissStaleReviews?: boolean;
   requiredCommitSigning?: boolean;
+  requiredLinearHistory?: boolean;
 };
 
 export const enableBranchProtectionOnDefaultRepoBranch = async ({
@@ -56,10 +58,12 @@ export const enableBranchProtectionOnDefaultRepoBranch = async ({
   requiredStatusCheckContexts = [],
   requireBranchesToBeUpToDate = true,
   requiredConversationResolution = false,
+  requireLastPushApproval = false,
   defaultBranch = 'master',
   enforceAdmins = true,
   dismissStaleReviews = false,
   requiredCommitSigning = false,
+  requiredLinearHistory = false,
 }: BranchProtectionOptions): Promise<void> => {
   const tryOnce = async () => {
     try {
@@ -88,8 +92,10 @@ export const enableBranchProtectionOnDefaultRepoBranch = async ({
           require_code_owner_reviews: requireCodeOwnerReviews,
           bypass_pull_request_allowances: bypassPullRequestAllowances,
           dismiss_stale_reviews: dismissStaleReviews,
+          require_last_push_approval: requireLastPushApproval,
         },
         required_conversation_resolution: requiredConversationResolution,
+        required_linear_history: requiredLinearHistory,
       });
 
       if (requiredCommitSigning) {

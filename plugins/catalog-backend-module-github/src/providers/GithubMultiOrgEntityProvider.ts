@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { TaskRunner } from '@backstage/backend-tasks';
 import {
   ANNOTATION_LOCATION,
   ANNOTATION_ORIGIN_LOCATION,
@@ -38,15 +37,15 @@ import {
   EntityProvider,
   EntityProviderConnection,
 } from '@backstage/plugin-catalog-node';
-import { EventBroker, EventParams } from '@backstage/plugin-events-node';
+import { EventParams, EventsService } from '@backstage/plugin-events-node';
 import { graphql } from '@octokit/graphql';
 import {
   InstallationCreatedEvent,
   InstallationEvent,
+  MembershipEvent,
   OrganizationEvent,
   OrganizationMemberAddedEvent,
   OrganizationMemberRemovedEvent,
-  MembershipEvent,
   TeamCreatedEvent,
   TeamDeletedEvent,
   TeamEditedEvent,
@@ -54,7 +53,6 @@ import {
 } from '@octokit/webhooks-types';
 import { merge } from 'lodash';
 import * as uuid from 'uuid';
-import { Logger } from 'winston';
 
 import {
   assignGroupsToUsers,
@@ -79,6 +77,17 @@ import {
 } from '../lib/github';
 import { splitTeamSlug } from '../lib/util';
 import { areGroupEntities, areUserEntities } from '../lib/guards';
+import {
+  LoggerService,
+  SchedulerServiceTaskRunner,
+} from '@backstage/backend-plugin-api';
+
+const EVENT_TOPICS = [
+  'github.installation',
+  'github.membership',
+  'github.organization',
+  'github.team',
+];
 
 /**
  * Options for {@link GithubMultiOrgEntityProvider}.
@@ -101,10 +110,15 @@ export interface GithubMultiOrgEntityProviderOptions {
   githubUrl: string;
 
   /**
-   * The list of the GitHub orgs to consume. By default will consume all accessible
+   * The list of the GitHub orgs to consume. By default, it will consume all accessible
    * orgs on the given GitHub instance (support for GitHub App integration only).
    */
   orgs?: string[];
+
+  /**
+   * Passing the optional EventsService enables event-based delta updates.
+   */
+  events?: EventsService;
 
   /**
    * The refresh schedule to use.
@@ -116,20 +130,29 @@ export interface GithubMultiOrgEntityProviderOptions {
    * manually at some interval.
    *
    * But more commonly you will pass in the result of
-   * {@link @backstage/backend-tasks#PluginTaskScheduler.createScheduledTaskRunner}
+   * {@link @backstage/backend-plugin-api#SchedulerService.createScheduledTaskRunner}
    * to enable automatic scheduling of tasks.
    */
-  schedule?: 'manual' | TaskRunner;
+  schedule?: 'manual' | SchedulerServiceTaskRunner;
 
   /**
    * The logger to use.
    */
-  logger: Logger;
+  logger: LoggerService;
 
   /**
    * Optionally supply a custom credentials provider, replacing the default one.
    */
   githubCredentialsProvider?: GithubCredentialsProvider;
+
+  /**
+   * Use the default namespace for groups. By default, groups will be namespaced according to their GitHub org.
+   *
+   * @remarks
+   *
+   * If set to true, groups with the same name across different orgs will be considered the same group.
+   */
+  alwaysUseDefaultNamespace?: boolean;
 
   /**
    * Optionally include a user transformer for transforming from GitHub users to User Entities
@@ -138,14 +161,9 @@ export interface GithubMultiOrgEntityProviderOptions {
 
   /**
    * Optionally include a team transformer for transforming from GitHub teams to Group Entities.
-   * By default groups will be namespaced according to their GitHub org.
+   * By default, groups will be namespaced according to their GitHub org.
    */
   teamTransformer?: TeamTransformer;
-
-  /**
-   * An EventBroker to subscribe this provider to GitHub events to trigger delta mutations
-   */
-  eventBroker?: EventBroker;
 }
 
 type CreateDeltaOperation = (entities: Entity[]) => {
@@ -190,30 +208,27 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
       orgs: options.orgs,
       userTransformer: options.userTransformer,
       teamTransformer: options.teamTransformer,
+      events: options.events,
+      alwaysUseDefaultNamespace: options.alwaysUseDefaultNamespace,
     });
 
     provider.schedule(options.schedule);
-
-    if (options.eventBroker) {
-      options.eventBroker.subscribe({
-        supportsEventTopics: provider.supportsEventTopics.bind(provider),
-        onEvent: provider.onEvent.bind(provider),
-      });
-    }
 
     return provider;
   }
 
   constructor(
     private readonly options: {
+      events?: EventsService;
       id: string;
       gitHubConfig: GithubIntegrationConfig;
       githubCredentialsProvider: GithubCredentialsProvider;
       githubUrl: string;
-      logger: Logger;
+      logger: LoggerService;
       orgs?: string[];
       userTransformer?: UserTransformer;
       teamTransformer?: TeamTransformer;
+      alwaysUseDefaultNamespace?: boolean;
     },
   ) {}
 
@@ -225,6 +240,11 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
   /** {@inheritdoc @backstage/plugin-catalog-backend#EntityProvider.connect} */
   async connect(connection: EntityProviderConnection) {
     this.connection = connection;
+    await this.options.events?.subscribe({
+      id: this.getProviderName(),
+      topics: EVENT_TOPICS,
+      onEvent: params => this.onEvent(params),
+    });
     await this.scheduleFn?.();
   }
 
@@ -232,7 +252,7 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
    * Runs one single complete ingestion. This is only necessary if you use
    * manual scheduling.
    */
-  async read(options?: { logger?: Logger }) {
+  async read(options?: { logger?: LoggerService }) {
     if (!this.connection) {
       throw new Error('Not initialized');
     }
@@ -248,53 +268,49 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
       : await this.getAllOrgs(this.options.gitHubConfig);
 
     for (const org of orgsToProcess) {
-      try {
-        const { headers, type: tokenType } =
-          await this.options.githubCredentialsProvider.getCredentials({
-            url: `${this.options.githubUrl}/${org}`,
-          });
-        const client = graphql.defaults({
-          baseUrl: this.options.gitHubConfig.apiBaseUrl,
-          headers,
+      const { headers, type: tokenType } =
+        await this.options.githubCredentialsProvider.getCredentials({
+          url: `${this.options.githubUrl}/${org}`,
         });
+      const client = graphql.defaults({
+        baseUrl: this.options.gitHubConfig.apiBaseUrl,
+        headers,
+      });
 
-        logger.info(`Reading GitHub users and teams for org: ${org}`);
+      logger.info(`Reading GitHub users and teams for org: ${org}`);
 
-        const { users } = await getOrganizationUsers(
-          client,
-          org,
-          tokenType,
-          this.options.userTransformer,
-        );
+      const { users } = await getOrganizationUsers(
+        client,
+        org,
+        tokenType,
+        this.options.userTransformer,
+      );
 
-        const { teams } = await getOrganizationTeams(
-          client,
-          org,
-          this.defaultMultiOrgTeamTransformer.bind(this),
-        );
+      const { teams } = await getOrganizationTeams(
+        client,
+        org,
+        this.defaultMultiOrgTeamTransformer.bind(this),
+      );
 
-        // Grab current users from `allUsersMap` if they already exist in our
-        // pending users so we can append to their group membership relations
-        const pendingUsers = users.map(u => {
-          const userRef = stringifyEntityRef(u);
-          if (!allUsersMap.has(userRef)) {
-            allUsersMap.set(userRef, u);
-          }
-
-          return allUsersMap.get(userRef);
-        });
-
-        if (areGroupEntities(teams)) {
-          buildOrgHierarchy(teams);
-          if (areUserEntities(pendingUsers)) {
-            assignGroupsToUsers(pendingUsers, teams);
-          }
+      // Grab current users from `allUsersMap` if they already exist in our
+      // pending users so we can append to their group membership relations
+      const pendingUsers = users.map(u => {
+        const userRef = stringifyEntityRef(u);
+        if (!allUsersMap.has(userRef)) {
+          allUsersMap.set(userRef, u);
         }
 
-        allTeams.push(...teams);
-      } catch (e) {
-        logger.error(`Failed to read GitHub org data for ${org}: ${e}`);
+        return allUsersMap.get(userRef);
+      });
+
+      if (areGroupEntities(teams)) {
+        buildOrgHierarchy(teams);
+        if (areUserEntities(pendingUsers)) {
+          assignGroupsToUsers(pendingUsers, teams);
+        }
       }
+
+      allTeams.push(...teams);
     }
 
     const allUsers = Array.from(allUsersMap.values());
@@ -313,15 +329,6 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
     });
 
     markCommitComplete();
-  }
-
-  private supportsEventTopics(): string[] {
-    return [
-      'github.installation',
-      'github.organization',
-      'github.team',
-      'github.membership',
-    ];
   }
 
   private async onEvent(params: EventParams): Promise<void> {
@@ -595,7 +602,9 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
         editTeamUrl: `${url}/edit`,
         combinedSlug: `${org}/${slug}`,
         description: description ?? undefined,
-        parentTeam: { slug: event.team?.parent?.slug || '' } as GithubTeam,
+        parentTeam: event.team?.parent?.slug
+          ? ({ slug: event.team.parent.slug } as GithubTeam)
+          : undefined,
         // entity will be removed or is new
         members: [],
       },
@@ -698,7 +707,9 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
         slug: oldSlug,
         combinedSlug: `${org}/${oldSlug}`,
         description: event.changes.description?.from,
-        parentTeam: { slug: event.team?.parent?.slug || '' } as GithubTeam,
+        parentTeam: event.team?.parent?.slug
+          ? ({ slug: event.team.parent.slug } as GithubTeam)
+          : undefined,
         // entity will be removed
         members: [],
       },
@@ -852,7 +863,10 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
     const result = await defaultOrganizationTeamTransformer(team, ctx);
 
     if (result && result.spec) {
-      result.metadata.namespace = ctx.org.toLocaleLowerCase('en-US');
+      if (!this.options.alwaysUseDefaultNamespace) {
+        result.metadata.namespace = ctx.org.toLocaleLowerCase('en-US');
+      }
+
       // Group `spec.members` inherits the namespace of it's group so need to explicitly specify refs here
       result.spec.members = team.members.map(
         user => `${DEFAULT_NAMESPACE}/${user.login}`,
@@ -909,7 +923,7 @@ export class GithubMultiOrgEntityProvider implements EntityProvider {
 }
 
 // Helps wrap the timing and logging behaviors
-function trackProgress(logger: Logger) {
+function trackProgress(logger: LoggerService) {
   let timestamp = Date.now();
   let summary: string;
 

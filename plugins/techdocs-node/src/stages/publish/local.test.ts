@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  getVoidLogger,
-  PluginEndpointDiscovery,
-} from '@backstage/backend-common';
-import { overridePackagePathResolution } from '@backstage/backend-common/testUtils';
+
+import { overridePackagePathResolution } from '@backstage/backend-plugin-api/testUtils';
 import { ConfigReader } from '@backstage/config';
 import express from 'express';
 import request from 'supertest';
 import * as os from 'os';
 import { LocalPublish } from './local';
 import path from 'path';
-import { createMockDirectory } from '@backstage/backend-test-utils';
+import {
+  createMockDirectory,
+  mockServices,
+} from '@backstage/backend-test-utils';
 
 const createMockEntity = (annotations = {}, lowerCase = false) => {
   return {
@@ -39,10 +39,9 @@ const createMockEntity = (annotations = {}, lowerCase = false) => {
   };
 };
 
-const testDiscovery: jest.Mocked<PluginEndpointDiscovery> = {
-  getBaseUrl: jest.fn().mockResolvedValue('http://localhost:7007/api/techdocs'),
-  getExternalBaseUrl: jest.fn(),
-};
+const testDiscovery = mockServices.discovery.mock({
+  getBaseUrl: async () => 'http://localhost:7007/api/techdocs',
+});
 
 const mockPublishDir = createMockDirectory();
 
@@ -53,7 +52,7 @@ overridePackagePathResolution({
   },
 });
 
-const logger = getVoidLogger();
+const logger = mockServices.logger.mock();
 
 describe('local publisher', () => {
   const mockDir = createMockDirectory();

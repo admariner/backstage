@@ -19,18 +19,16 @@ import {
   IconComponent,
   useApi,
 } from '@backstage/core-plugin-api';
-import {
-  Card,
-  List,
-  ListItemIcon,
-  ListItemSecondaryAction,
-  ListItemText,
-  makeStyles,
-  MenuItem,
-  Typography,
-} from '@material-ui/core';
+import Card from '@material-ui/core/Card';
+import List from '@material-ui/core/List';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuItem from '@material-ui/core/MenuItem';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 import SettingsIcon from '@material-ui/icons/Settings';
-import StarIcon from '@material-ui/icons/Star';
+import { StarIcon } from '@backstage/core-components';
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 import { EntityUserFilter } from '../../filters';
 import { useEntityList } from '../../hooks';
@@ -38,6 +36,11 @@ import { UserListFilterKind } from '../../types';
 import { useOwnedEntitiesCount } from './useOwnedEntitiesCount';
 import { useAllEntitiesCount } from './useAllEntitiesCount';
 import { useStarredEntitiesCount } from './useStarredEntitiesCount';
+import {
+  TranslationFunction,
+  useTranslationRef,
+} from '@backstage/core-plugin-api/alpha';
+import { catalogReactTranslationRef } from '../../translation';
 
 /** @public */
 export type CatalogReactUserListPickerClassKey =
@@ -71,9 +74,7 @@ const useStyles = makeStyles(
       margin: theme.spacing(1, 1, 2, 1),
     },
   }),
-  {
-    name: 'CatalogReactUserListPicker',
-  },
+  { name: 'CatalogReactUserListPicker' },
 );
 
 export type ButtonGroup = {
@@ -85,29 +86,32 @@ export type ButtonGroup = {
   }[];
 };
 
-function getFilterGroups(orgName: string | undefined): ButtonGroup[] {
+function getFilterGroups(
+  orgName: string,
+  t: TranslationFunction<typeof catalogReactTranslationRef.T>,
+): ButtonGroup[] {
   return [
     {
-      name: 'Personal',
+      name: t('userListPicker.personalFilter.title'),
       items: [
         {
           id: 'owned',
-          label: 'Owned',
+          label: t('userListPicker.personalFilter.ownedLabel'),
           icon: SettingsIcon,
         },
         {
           id: 'starred',
-          label: 'Starred',
+          label: t('userListPicker.personalFilter.starredLabel'),
           icon: StarIcon,
         },
       ],
     },
     {
-      name: orgName ?? 'Company',
+      name: orgName,
       items: [
         {
           id: 'all',
-          label: 'All',
+          label: t('userListPicker.orgFilterAllLabel'),
         },
       ],
     },
@@ -125,7 +129,10 @@ export const UserListPicker = (props: UserListPickerProps) => {
   const { initialFilter, availableFilters } = props;
   const classes = useStyles();
   const configApi = useApi(configApiRef);
-  const orgName = configApi.getOptionalString('organization.name') ?? 'Company';
+  const { t } = useTranslationRef(catalogReactTranslationRef);
+  const orgName =
+    configApi.getOptionalString('organization.name') ??
+    t('userListPicker.defaultOrgName');
   const {
     filters,
     updateFilters,
@@ -135,7 +142,7 @@ export const UserListPicker = (props: UserListPickerProps) => {
   // Remove group items that aren't in availableFilters and exclude
   // any now-empty groups.
   const userAndGroupFilterIds = ['starred', 'all'];
-  const filterGroups = getFilterGroups(orgName)
+  const filterGroups = getFilterGroups(orgName, t)
     .map(filterGroup => ({
       ...filterGroup,
       items: filterGroup.items.filter(({ id }) =>
@@ -238,11 +245,11 @@ export const UserListPicker = (props: UserListPickerProps) => {
           </Typography>
           <Card className={classes.groupWrapper}>
             <List disablePadding dense role="menu" aria-label={group.name}>
-              {group.items.map(item => (
+              {group.items.map((item, index) => (
                 <MenuItem
                   role="none presentation"
                   key={item.id}
-                  divider
+                  divider={index !== group.items.length - 1}
                   onClick={() => setSelectedUserFilter(item.id)}
                   selected={item.id === filters.user?.value}
                   className={classes.menuItem}

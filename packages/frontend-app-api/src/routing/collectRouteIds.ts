@@ -18,12 +18,18 @@ import {
   RouteRef,
   SubRouteRef,
   ExternalRouteRef,
-  FrontendFeature,
 } from '@backstage/frontend-plugin-api';
 // eslint-disable-next-line @backstage/no-relative-monorepo-imports
-import { toInternalRouteRef } from '../../../frontend-plugin-api/src/routing/RouteRef';
+import {
+  isRouteRef,
+  toInternalRouteRef,
+} from '../../../frontend-plugin-api/src/routing/RouteRef';
 // eslint-disable-next-line @backstage/no-relative-monorepo-imports
 import { toInternalExternalRouteRef } from '../../../frontend-plugin-api/src/routing/ExternalRouteRef';
+// eslint-disable-next-line @backstage/no-relative-monorepo-imports
+import { toInternalSubRouteRef } from '../../../frontend-plugin-api/src/routing/SubRouteRef';
+import { OpaqueFrontendPlugin } from '@internal/frontend';
+import { FrontendFeature } from '../wiring';
 
 /** @internal */
 export interface RouteRefsById {
@@ -37,22 +43,27 @@ export function collectRouteIds(features: FrontendFeature[]): RouteRefsById {
   const externalRoutesById = new Map<string, ExternalRouteRef>();
 
   for (const feature of features) {
-    if (feature.$$type !== '@backstage/BackstagePlugin') {
+    if (!OpaqueFrontendPlugin.isType(feature)) {
       continue;
     }
 
     for (const [name, ref] of Object.entries(feature.routes)) {
-      const refId = `plugin.${feature.id}.routes.${name}`;
+      const refId = `${feature.id}.${name}`;
       if (routesById.has(refId)) {
         throw new Error(`Unexpected duplicate route '${refId}'`);
       }
 
-      const internalRef = toInternalRouteRef(ref);
-      internalRef.setId(refId);
-      routesById.set(refId, ref);
+      if (isRouteRef(ref)) {
+        const internalRef = toInternalRouteRef(ref);
+        internalRef.setId(refId);
+        routesById.set(refId, ref);
+      } else {
+        const internalRef = toInternalSubRouteRef(ref);
+        routesById.set(refId, internalRef);
+      }
     }
     for (const [name, ref] of Object.entries(feature.externalRoutes)) {
-      const refId = `plugin.${feature.id}.externalRoutes.${name}`;
+      const refId = `${feature.id}.${name}`;
       if (externalRoutesById.has(refId)) {
         throw new Error(`Unexpected duplicate external route '${refId}'`);
       }

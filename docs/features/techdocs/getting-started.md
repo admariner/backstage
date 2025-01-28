@@ -21,9 +21,8 @@ The first step is to add the TechDocs plugin to your Backstage application.
 Navigate to your new Backstage application directory. And then to your
 `packages/app` directory, and install the `@backstage/plugin-techdocs` package.
 
-```bash
-# From your Backstage root directory
-yarn add --cwd packages/app @backstage/plugin-techdocs
+```bash title="From your Backstage root directory"
+yarn --cwd packages/app add @backstage/plugin-techdocs
 ```
 
 Once the package has been installed, you need to import the plugin in your app.
@@ -106,9 +105,8 @@ That's it! Now, we need the TechDocs Backend plugin for the frontend to work.
 Navigate to `packages/backend` of your Backstage app, and install the
 `@backstage/plugin-techdocs-backend` package.
 
-```bash
-# From your Backstage root directory
-yarn add --cwd packages/backend @backstage/plugin-techdocs-backend
+```bash title="From your Backstage root directory"
+yarn --cwd packages/backend add @backstage/plugin-techdocs-backend
 ```
 
 Create a file called `techdocs.ts` inside `packages/backend/src/plugins/` and
@@ -142,7 +140,6 @@ export default async function createPlugin(
   // Generators are used for generating documentation sites.
   const generators = await Generators.fromConfig(env.config, {
     logger: env.logger,
-    containerRunner,
   });
 
   // Publisher is used for
@@ -193,6 +190,36 @@ async function main() {
 
 That's it! TechDocs frontend and backend have now been added to your Backstage
 app. Now let us tweak some configurations to suit your needs.
+
+### New Backend System
+
+To install TechDocs when using the New Backend system you will need to do the following.
+
+Navigate to `packages/backend` of your Backstage app, and install the `@backstage/plugin-techdocs-backend` package.
+
+```bash title="From your Backstage root directory"
+yarn --cwd packages/backend add @backstage/plugin-techdocs-backend
+```
+
+Then in your backend `index.ts` you will add the following line.
+
+```ts title="packages/backend/src/index.ts"
+const backend = createBackend();
+
+// Other plugins...
+
+/* highlight-add-start */
+backend.add(import('@backstage/plugin-techdocs-backend'));
+/* highlight-add-end */
+
+backend.start();
+```
+
+:::note Note
+
+The above is a very simplified example, you may have more content then this in your version.
+
+:::
 
 ## Setting the configuration
 
@@ -270,7 +297,9 @@ You can do so by including the following lines right above `USER node` of your
 `Dockerfile`:
 
 ```Dockerfile
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip python3-venv && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV

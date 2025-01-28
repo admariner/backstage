@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 import {
-  TaskRunner,
-  readTaskScheduleDefinitionFromConfig,
-} from '@backstage/backend-tasks';
-import {
   DeferredEntity,
   EntityProvider,
   EntityProviderConnection,
 } from '@backstage/plugin-catalog-node';
-
-import { Logger } from 'winston';
 import * as container from '@google-cloud/container';
 import {
   ANNOTATION_KUBERNETES_API_SERVER,
@@ -33,7 +27,12 @@ import {
   ANNOTATION_KUBERNETES_DASHBOARD_PARAMETERS,
 } from '@backstage/plugin-kubernetes-common';
 import { Config } from '@backstage/config';
-import { SchedulerService } from '@backstage/backend-plugin-api';
+import {
+  LoggerService,
+  SchedulerService,
+  SchedulerServiceTaskRunner,
+  readSchedulerServiceTaskScheduleDefinitionFromConfig,
+} from '@backstage/backend-plugin-api';
 import {
   ANNOTATION_LOCATION,
   ANNOTATION_ORIGIN_LOCATION,
@@ -45,15 +44,15 @@ import {
  * @public
  */
 export class GkeEntityProvider implements EntityProvider {
-  private readonly logger: Logger;
+  private readonly logger: LoggerService;
   private readonly scheduleFn: () => Promise<void>;
   private readonly gkeParents: string[];
   private readonly clusterManagerClient: container.v1.ClusterManagerClient;
   private connection?: EntityProviderConnection;
 
   private constructor(
-    logger: Logger,
-    taskRunner: TaskRunner,
+    logger: LoggerService,
+    taskRunner: SchedulerServiceTaskRunner,
     gkeParents: string[],
     clusterManagerClient: container.v1.ClusterManagerClient,
   ) {
@@ -68,7 +67,7 @@ export class GkeEntityProvider implements EntityProvider {
     scheduler,
     config,
   }: {
-    logger: Logger;
+    logger: LoggerService;
     scheduler: SchedulerService;
     config: Config;
   }) {
@@ -86,13 +85,13 @@ export class GkeEntityProvider implements EntityProvider {
     config,
     clusterManagerClient,
   }: {
-    logger: Logger;
+    logger: LoggerService;
     scheduler: SchedulerService;
     config: Config;
     clusterManagerClient: container.v1.ClusterManagerClient;
   }) {
     const gkeProviderConfig = config.getConfig('catalog.providers.gcp.gke');
-    const schedule = readTaskScheduleDefinitionFromConfig(
+    const schedule = readSchedulerServiceTaskScheduleDefinitionFromConfig(
       gkeProviderConfig.getConfig('schedule'),
     );
     return new GkeEntityProvider(
@@ -174,7 +173,9 @@ export class GkeEntityProvider implements EntityProvider {
     };
   }
 
-  private createScheduleFn(taskRunner: TaskRunner): () => Promise<void> {
+  private createScheduleFn(
+    taskRunner: SchedulerServiceTaskRunner,
+  ): () => Promise<void> {
     return async () => {
       const taskId = `${this.getProviderName()}:refresh`;
       return taskRunner.run({

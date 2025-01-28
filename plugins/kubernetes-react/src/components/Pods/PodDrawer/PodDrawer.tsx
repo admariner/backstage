@@ -17,13 +17,9 @@
 import React from 'react';
 
 import { ItemCardGrid } from '@backstage/core-components';
-import {
-  createStyles,
-  makeStyles,
-  Theme,
-  Grid,
-  Typography,
-} from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 
 import { Pod } from 'kubernetes-models/v1';
 
@@ -31,11 +27,13 @@ import { ContainerCard } from './ContainerCard';
 
 import { PodAndErrors } from '../types';
 import { KubernetesDrawer } from '../../KubernetesDrawer';
+import { PodDeleteButton } from '../PodDelete/PodDeleteButton';
 import { PendingPodContent } from './PendingPodContent';
 import { ErrorList } from '../ErrorList';
 import { usePodMetrics } from '../../../hooks/usePodMetrics';
 import { ResourceUtilization } from '../../ResourceUtilization';
 import { bytesToMiB, formatMillicores } from '../../../utils/resources';
+import { useIsPodDeleteEnabled } from '../../../hooks';
 
 const useDrawerContentStyles = makeStyles((_theme: Theme) =>
   createStyles({
@@ -79,7 +77,8 @@ export interface PodDrawerProps {
  */
 export const PodDrawer = ({ podAndErrors, open }: PodDrawerProps) => {
   const classes = useDrawerContentStyles();
-  const podMetrics = usePodMetrics(podAndErrors.clusterName, podAndErrors.pod);
+  const podMetrics = usePodMetrics(podAndErrors.cluster.name, podAndErrors.pod);
+  const isPodDeleteEnabled = useIsPodDeleteEnabled();
 
   return (
     <KubernetesDrawer
@@ -99,6 +98,15 @@ export const PodDrawer = ({ podAndErrors, open }: PodDrawerProps) => {
       }
     >
       <div className={classes.content}>
+        {isPodDeleteEnabled && (
+          <PodDeleteButton
+            podScope={{
+              podName: podAndErrors.pod.metadata?.name ?? 'unknown',
+              podNamespace: podAndErrors.pod.metadata?.namespace ?? 'default',
+              cluster: podAndErrors.cluster,
+            }}
+          />
+        )}
         {podMetrics && (
           <Grid container item xs={12}>
             <Grid item xs={12}>
@@ -129,7 +137,7 @@ export const PodDrawer = ({ podAndErrors, open }: PodDrawerProps) => {
                 title="Memory limits"
                 usage={podMetrics.memory.currentUsage}
                 total={podMetrics.memory.limitTotal}
-                totalFormatted={bytesToMiB(podMetrics.memory.requestTotal)}
+                totalFormatted={bytesToMiB(podMetrics.memory.limitTotal)}
               />
             </Grid>
           </Grid>
@@ -161,7 +169,7 @@ export const PodDrawer = ({ podAndErrors, open }: PodDrawerProps) => {
                           podName: podAndErrors.pod.metadata?.name ?? 'unknown',
                           podNamespace:
                             podAndErrors.pod.metadata?.namespace ?? 'unknown',
-                          clusterName: podAndErrors.clusterName,
+                          cluster: podAndErrors.cluster,
                         }}
                         containerSpec={containerSpec}
                         containerStatus={containerStatus}

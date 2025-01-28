@@ -24,7 +24,6 @@ import {
   S3Client,
   UploadPartCommand,
 } from '@aws-sdk/client-s3';
-import { getVoidLogger } from '@backstage/backend-common';
 import { Entity, DEFAULT_NAMESPACE } from '@backstage/catalog-model';
 import { ConfigReader } from '@backstage/config';
 import {
@@ -39,7 +38,10 @@ import path from 'path';
 import fs from 'fs-extra';
 import { AwsS3Publish } from './awsS3';
 import { Readable } from 'stream';
-import { createMockDirectory } from '@backstage/backend-test-utils';
+import {
+  createMockDirectory,
+  mockServices,
+} from '@backstage/backend-test-utils';
 
 const env = process.env;
 let s3Mock: AwsClientStub<S3Client>;
@@ -87,7 +89,7 @@ class ErrorReadable extends Readable {
   }
 }
 
-const logger = getVoidLogger();
+const logger = mockServices.logger.mock();
 const loggerInfoSpy = jest.spyOn(logger, 'info');
 const loggerErrorSpy = jest.spyOn(logger, 'error');
 

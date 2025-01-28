@@ -41,6 +41,43 @@ import { toInternalSubRouteRef } from '../../frontend-plugin-api/src/routing/Sub
 import { toInternalExternalRouteRef } from '../../frontend-plugin-api/src/routing/ExternalRouteRef';
 
 /**
+ * Converts a legacy route ref type to the new system.
+ *
+ * @public
+ */
+export type ToNewRouteRef<
+  T extends LegacyRouteRef | LegacySubRouteRef | LegacyExternalRouteRef,
+> = T extends LegacyRouteRef<infer IParams>
+  ? RouteRef<IParams>
+  : T extends LegacySubRouteRef<infer IParams>
+  ? SubRouteRef<IParams>
+  : T extends LegacyExternalRouteRef<infer IParams>
+  ? ExternalRouteRef<IParams>
+  : never;
+
+/**
+ * Converts a collection of legacy route refs to the new system.
+ * This is particularly useful when defining plugin `routes` and `externalRoutes`.
+ *
+ * @public
+ */
+export function convertLegacyRouteRefs<
+  TRefs extends {
+    [name in string]:
+      | LegacyRouteRef
+      | LegacySubRouteRef
+      | LegacyExternalRouteRef;
+  },
+>(refs: TRefs): { [KName in keyof TRefs]: ToNewRouteRef<TRefs[KName]> } {
+  return Object.fromEntries(
+    Object.entries(refs).map(([name, ref]) => [
+      name,
+      convertLegacyRouteRef(ref as LegacyRouteRef),
+    ]),
+  ) as { [KName in keyof TRefs]: ToNewRouteRef<TRefs[KName]> };
+}
+
+/**
  * A temporary helper to convert a legacy route ref to the new system.
  *
  * @public
@@ -72,23 +109,115 @@ export function convertLegacyRouteRef<TParams extends AnyRouteRefParams>(
  *
  * In the future the legacy createExternalRouteRef will instead create refs compatible with both systems.
  */
-export function convertLegacyRouteRef<
-  TParams extends AnyRouteRefParams,
-  TOptional extends boolean,
->(
-  ref: LegacyExternalRouteRef<TParams, TOptional>,
-): ExternalRouteRef<TParams, TOptional>;
+export function convertLegacyRouteRef<TParams extends AnyRouteRefParams>(
+  ref: LegacyExternalRouteRef<TParams>,
+): ExternalRouteRef<TParams>;
 
+/**
+ * A temporary helper to convert a new route ref to the legacy system.
+ *
+ * @public
+ * @remarks
+ *
+ * In the future the legacy createRouteRef will instead create refs compatible with both systems.
+ */
+export function convertLegacyRouteRef<TParams extends AnyRouteRefParams>(
+  ref: RouteRef<TParams>,
+): LegacyRouteRef<TParams>;
+
+/**
+ * A temporary helper to convert a new sub route ref to the legacy system.
+ *
+ * @public
+ * @remarks
+ *
+ * In the future the legacy createSubRouteRef will instead create refs compatible with both systems.
+ */
+export function convertLegacyRouteRef<TParams extends AnyRouteRefParams>(
+  ref: SubRouteRef<TParams>,
+): LegacySubRouteRef<TParams>;
+
+/**
+ * A temporary helper to convert a new external route ref to the legacy system.
+ *
+ * @public
+ * @remarks
+ *
+ * In the future the legacy createExternalRouteRef will instead create refs compatible with both systems.
+ */
+export function convertLegacyRouteRef<TParams extends AnyRouteRefParams>(
+  ref: ExternalRouteRef<TParams>,
+): LegacyExternalRouteRef<TParams, true>;
 export function convertLegacyRouteRef(
-  ref: LegacyRouteRef | LegacySubRouteRef | LegacyExternalRouteRef,
-): RouteRef | SubRouteRef | ExternalRouteRef {
+  ref:
+    | LegacyRouteRef
+    | LegacySubRouteRef
+    | LegacyExternalRouteRef
+    | RouteRef
+    | SubRouteRef
+    | ExternalRouteRef,
+):
+  | RouteRef
+  | SubRouteRef
+  | ExternalRouteRef
+  | LegacyRouteRef
+  | LegacySubRouteRef
+  | LegacyExternalRouteRef {
+  const isNew = '$$type' in ref;
+  const oldType = (ref as unknown as { [routeRefType]: unknown })[routeRefType];
+
   // Ref has already been converted
-  if ('$$type' in ref) {
-    return ref as unknown as RouteRef | SubRouteRef | ExternalRouteRef;
+  if (isNew && oldType) {
+    return ref as any;
   }
 
-  const type = (ref as unknown as { [routeRefType]: unknown })[routeRefType];
+  if (isNew) {
+    return convertNewToOld(
+      ref as unknown as RouteRef | SubRouteRef | ExternalRouteRef,
+    );
+  }
 
+  return convertOldToNew(ref, oldType);
+}
+
+function convertNewToOld(
+  ref: RouteRef | SubRouteRef | ExternalRouteRef,
+): LegacyRouteRef | LegacySubRouteRef | LegacyExternalRouteRef {
+  if (ref.$$type === '@backstage/RouteRef') {
+    const newRef = toInternalRouteRef(ref);
+    return Object.assign(ref, {
+      [routeRefType]: 'absolute',
+      params: newRef.getParams(),
+      title: newRef.getDescription(),
+    } as Omit<LegacyRouteRef, '$$routeRefType'>) as unknown as LegacyRouteRef;
+  }
+  if (ref.$$type === '@backstage/SubRouteRef') {
+    const newRef = toInternalSubRouteRef(ref);
+    return Object.assign(ref, {
+      [routeRefType]: 'sub',
+      parent: convertLegacyRouteRef(newRef.getParent()),
+      params: newRef.getParams(),
+    } as Omit<LegacySubRouteRef, '$$routeRefType' | 'path'>) as unknown as LegacySubRouteRef;
+  }
+  if (ref.$$type === '@backstage/ExternalRouteRef') {
+    const newRef = toInternalExternalRouteRef(ref);
+    return Object.assign(ref, {
+      [routeRefType]: 'external',
+      optional: true,
+      params: newRef.getParams(),
+      defaultTarget: newRef.getDefaultTarget(),
+    } as Omit<LegacyExternalRouteRef, '$$routeRefType' | 'optional'>) as unknown as LegacyExternalRouteRef;
+  }
+
+  throw new Error(
+    `Failed to convert route ref, unknown type '${(ref as any).$$type}'`,
+  );
+}
+
+function convertOldToNew(
+  ref: LegacyRouteRef | LegacySubRouteRef | LegacyExternalRouteRef,
+  type: unknown,
+): RouteRef | SubRouteRef | ExternalRouteRef {
   if (type === 'absolute') {
     const legacyRef = ref as LegacyRouteRef;
     const legacyRefStr = String(legacyRef);
@@ -148,19 +277,25 @@ export function convertLegacyRouteRef(
     const newRef = toInternalExternalRouteRef(
       createExternalRouteRef<{ [key in string]: string }>({
         params: legacyRef.params as string[],
-        optional: legacyRef.optional,
+        defaultTarget:
+          'getDefaultTarget' in legacyRef
+            ? (legacyRef.getDefaultTarget as () => string | undefined)()
+            : undefined,
       }),
     );
     return Object.assign(legacyRef, {
       $$type: '@backstage/ExternalRouteRef' as const,
       version: 'v1',
       T: newRef.T,
-      optional: newRef.optional,
       getParams() {
         return newRef.getParams();
       },
       getDescription() {
         return legacyRefStr;
+      },
+      // This might already be implemented in the legacy ref, but we override it just to be sure
+      getDefaultTarget() {
+        return newRef.getDefaultTarget();
       },
       setId(id: string) {
         newRef.setId(id);

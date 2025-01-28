@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-import {
-  CatalogApi,
-  QueryEntitiesInitialRequest,
-} from '@backstage/catalog-client';
+import { QueryEntitiesInitialRequest } from '@backstage/catalog-client';
 import { RELATION_OWNED_BY } from '@backstage/catalog-model';
 import { TableColumn, TableProps } from '@backstage/core-components';
-import {
-  IdentityApi,
-  identityApiRef,
-  ProfileInfo,
-  storageApiRef,
-} from '@backstage/core-plugin-api';
+import { identityApiRef, storageApiRef } from '@backstage/core-plugin-api';
 import {
   catalogApiRef,
   entityRouteRef,
@@ -34,9 +26,8 @@ import {
 } from '@backstage/plugin-catalog-react';
 import { mockBreakpoint } from '@backstage/core-components/testUtils';
 import {
-  MockPermissionApi,
-  MockStorageApi,
   TestApiProvider,
+  mockApis,
   renderInTestApp,
 } from '@backstage/test-utils';
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -48,6 +39,7 @@ import { DefaultCatalogPage } from './DefaultCatalogPage';
 
 import { CatalogTableColumnsFunc } from '../CatalogTable/types';
 import { permissionApiRef } from '@backstage/plugin-permission-react';
+import { catalogApiMock } from '@backstage/plugin-catalog-react/testUtils';
 
 describe('DefaultCatalogPage', () => {
   const origReplaceState = window.history.replaceState;
@@ -56,11 +48,10 @@ describe('DefaultCatalogPage', () => {
   });
   afterEach(() => {
     window.history.replaceState = origReplaceState;
-
     jest.clearAllMocks();
   });
 
-  const catalogApi: jest.Mocked<Partial<CatalogApi>> = {
+  const catalogApi = catalogApiMock.mock({
     getEntities: jest.fn().mockImplementation(() =>
       Promise.resolve({
         items: [
@@ -121,6 +112,26 @@ describe('DefaultCatalogPage', () => {
         ],
       },
     })),
+    getEntitiesByRefs: jest.fn().mockImplementation(async () => ({
+      items: [
+        {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'Group',
+          metadata: {
+            name: 'not-tools',
+            namespace: 'default',
+          },
+        },
+        {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'Group',
+          metadata: {
+            name: 'tools',
+            namespace: 'default',
+          },
+        },
+      ],
+    })),
     queryEntities: jest
       .fn()
       .mockImplementation(async (request: QueryEntitiesInitialRequest) => {
@@ -146,21 +157,13 @@ describe('DefaultCatalogPage', () => {
         // all items
         return { items: [], totalItems: 2, pageInfo: {} };
       }),
-  };
+  });
 
-  const testProfile: Partial<ProfileInfo> = {
+  const identityApi = mockApis.identity({
+    userEntityRef: 'user:default/guest',
+    ownershipEntityRefs: ['user:default/guest', 'group:default/tools'],
     displayName: 'Display Name',
-  };
-  const identityApi: Partial<IdentityApi> = {
-    getBackstageIdentity: async () => ({
-      type: 'user',
-      userEntityRef: 'user:default/guest',
-      ownershipEntityRefs: ['user:default/guest', 'group:default/tools'],
-    }),
-    getCredentials: async () => ({ token: undefined }),
-    getProfileInfo: async () => testProfile,
-  };
-  const storageApi = MockStorageApi.create();
+  });
 
   const renderWrapped = (children: React.ReactNode) =>
     renderInTestApp(
@@ -168,9 +171,9 @@ describe('DefaultCatalogPage', () => {
         apis={[
           [catalogApiRef, catalogApi],
           [identityApiRef, identityApi],
-          [storageApiRef, storageApi],
+          [storageApiRef, mockApis.storage()],
           [starredEntitiesApiRef, new MockStarredEntitiesApi()],
-          [permissionApiRef, new MockPermissionApi()],
+          [permissionApiRef, mockApis.permission()],
         ]}
       >
         {children}

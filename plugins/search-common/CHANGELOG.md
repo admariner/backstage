@@ -1,5 +1,131 @@
 # @backstage/plugin-search-common
 
+## 1.2.17
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.1
+  - @backstage/plugin-permission-common@0.8.4
+
+## 1.2.17-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.1-next.0
+  - @backstage/plugin-permission-common@0.8.4-next.0
+
+## 1.2.16
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.0
+  - @backstage/plugin-permission-common@0.8.3
+
+## 1.2.16-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.0
+  - @backstage/plugin-permission-common@0.8.3-next.0
+
+## 1.2.15
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/types@1.2.0
+  - @backstage/plugin-permission-common@0.8.2
+
+## 1.2.14
+
+### Patch Changes
+
+- 3123c16: Fix package metadata
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.1
+  - @backstage/types@1.1.1
+
+## 1.2.14-next.1
+
+### Patch Changes
+
+- 3123c16: Fix package metadata
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.1-next.1
+  - @backstage/types@1.1.1
+
+## 1.2.14-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.1-next.0
+  - @backstage/types@1.1.1
+
+## 1.2.13
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.8.0
+  - @backstage/types@1.1.1
+
+## 1.2.12
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.14
+  - @backstage/types@1.1.1
+
+## 1.2.12-next.0
+
+### Patch Changes
+
+- d44a20a: Added additional plugin metadata to `package.json`.
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.14-next.0
+  - @backstage/types@1.1.1
+
+## 1.2.11
+
+### Patch Changes
+
+- 744c0cb: Deprecate `QueryTranslator`, `QueryRequestOptions` and `SearchEngine` in favor of the types exported from `@backstage/plugin-search-backend-node`.
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.13
+  - @backstage/types@1.1.1
+
+## 1.2.11-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.13-next.1
+  - @backstage/types@1.1.1
+
+## 1.2.11-next.0
+
+### Patch Changes
+
+- 744c0cb: Deprecate `QueryTranslator`, `QueryRequestOptions` and `SearchEngine` in favor of the types exported from `@backstage/plugin-search-backend-node`.
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.13-next.0
+  - @backstage/types@1.1.1
+
+## 1.2.10
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.12
+  - @backstage/types@1.1.1
+
 ## 1.2.9
 
 ### Patch Changes

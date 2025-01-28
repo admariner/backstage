@@ -29,6 +29,17 @@ export interface Config {
           authServerId?: string;
           idp?: string;
           callbackUrl?: string;
+          additionalScopes?: string | string[];
+          signIn?: {
+            resolvers: Array<
+              | { resolver: 'emailMatchingUserEntityAnnotation' }
+              | {
+                  resolver: 'emailLocalPartMatchingUserEntityName';
+                  allowedDomains?: string[];
+                }
+              | { resolver: 'emailMatchingUserEntityProfileEmail' }
+            >;
+          };
         };
       };
     };

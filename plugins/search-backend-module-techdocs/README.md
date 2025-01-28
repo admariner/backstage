@@ -8,7 +8,7 @@ Add the module package as a dependency:
 
 ```bash
 # From your Backstage root directory
-yarn add --cwd packages/backend @backstage/plugin-search-backend-module-techdocs
+yarn --cwd packages/backend add @backstage/plugin-search-backend-module-techdocs
 ```
 
 Add the collator to your backend instance, along with the search plugin itself:
@@ -16,12 +16,10 @@ Add the collator to your backend instance, along with the search plugin itself:
 ```tsx
 // packages/backend/src/index.ts
 import { createBackend } from '@backstage/backend-defaults';
-import { searchPlugin } from '@backstage/plugin-search-backend/alpha';
-import { searchModuleTechDocsCollator } from '@backstage/plugin-search-backend-module-techdocs/alpha';
 
 const backend = createBackend();
-backend.add(searchPlugin());
-backend.add(searchModuleTechDocsCollator());
+backend.add(import('@backstage/plugin-search-backend'));
+backend.add(import('@backstage/plugin-search-backend-module-techdocs'));
 backend.start();
 ```
 

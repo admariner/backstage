@@ -15,7 +15,8 @@
  */
 import React, { useState } from 'react';
 
-import { Button, Grid } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -32,6 +33,8 @@ import { DetectedError } from '@backstage/plugin-kubernetes-common';
 import { PodLogs } from '../PodLogs';
 import { Events } from '../Events';
 import { LinkButton } from '@backstage/core-components';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -95,17 +98,15 @@ export const FixDialog: React.FC<FixDialogProps> = ({
         </Grid>
         <Grid item xs={12}>
           <Typography variant="h6">Fix:</Typography>
-          <Typography>
-            <ul>
-              {(error.proposedFix?.actions ?? []).map((fix, i) => {
-                return (
-                  <li key={`${pod.metadata?.name ?? 'unknown'}-pf-${i}`}>
-                    {fix}
-                  </li>
-                );
-              })}
-            </ul>
-          </Typography>
+          <List>
+            {(error.proposedFix?.actions ?? []).map((fix, i) => {
+              return (
+                <ListItem key={`${pod.metadata?.name ?? 'unknown'}-pf-${i}`}>
+                  {fix}
+                </ListItem>
+              );
+            })}
+          </List>
         </Grid>
 
         {pf && pf.type === 'logs' && (
@@ -119,7 +120,7 @@ export const FixDialog: React.FC<FixDialogProps> = ({
                 containerScope={{
                   podName: pod.metadata?.name ?? 'unknown',
                   podNamespace: pod.metadata?.namespace ?? 'unknown',
-                  clusterName: clusterName,
+                  cluster: { name: clusterName },
                   containerName: pf.container,
                 }}
               />

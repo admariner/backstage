@@ -8,7 +8,7 @@ description: Details of the new backend system
 
 The new backend system is released and ready for production use, and many plugins and modules have already been migrated. We recommend all plugins and deployments to migrate to the new system.
 
-You can find an example backend setup in [the backend-next package](https://github.com/backstage/backstage/tree/master/packages/backend-next).
+You can find an example backend setup in [the backend package](https://github.com/backstage/backstage/tree/master/packages/backend).
 
 ## Overview
 
@@ -26,7 +26,7 @@ const backend = createBackend();
 backend.add(import('@backstage/plugin-catalog-backend'));
 
 // Start up the backend
-await backend.start();
+backend.start();
 ```
 
 One notable change that helped achieve this much slimmer backend setup is the introduction of a system for dependency injection, which is very similar to the one in the Backstage frontend.
@@ -101,7 +101,7 @@ export const examplePlugin = createBackendPlugin({
 The plugin can then be installed in the backend using the returned plugin factory function:
 
 ```ts
-backend.add(examplePlugin());
+backend.add(examplePlugin);
 ```
 
 If we wanted our plugin to accept options as well, we'd accept the options as the second parameter of the register method:
@@ -266,7 +266,7 @@ class GoogleCloudLogger implements LoggerService {
 const backend = createBackend();
 
 // supplies additional or replacement services to the backend
-backend.add(GoogleCloudLogger.factory());
+backend.add(GoogleCloudLogger.factory);
 ```
 
 ## Testing

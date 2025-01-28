@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PassThrough } from 'stream';
 import { createConfluenceToMarkdownAction } from './confluenceToMarkdown';
-import { getVoidLogger } from '@backstage/backend-common';
-import { UrlReader } from '@backstage/backend-common';
+import { loggerToWinstonLogger } from '@backstage/backend-common';
 import { ConfigReader } from '@backstage/config';
 import { ScmIntegrations } from '@backstage/integration';
 import {
   createMockDirectory,
-  setupRequestMockHandlers,
+  mockServices,
+  registerMswTestHooks,
 } from '@backstage/backend-test-utils';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { examples } from './confluenceToMarkdown.examples';
 import yaml from 'yaml';
 import { ActionContext } from '@backstage/plugin-scaffolder-node';
+import { createMockActionContext } from '@backstage/plugin-scaffolder-node-test-utils';
+import { UrlReaderService } from '@backstage/backend-plugin-api';
 
 describe('confluence:transform:markdown examples', () => {
   const baseUrl = `https://confluence.example.com`;
   const worker = setupServer();
-  setupRequestMockHandlers(worker);
+  registerMswTestHooks(worker);
 
   const config = new ConfigReader({
     confluence: {
@@ -51,13 +52,13 @@ describe('confluence:transform:markdown examples', () => {
     }),
   );
 
-  let reader: UrlReader;
+  let reader: UrlReaderService;
   let mockContext: ActionContext<{
     confluenceUrls: string[];
     repoUrl: string;
   }>;
 
-  const logger = getVoidLogger();
+  const logger = loggerToWinstonLogger(mockServices.logger.mock());
   jest.spyOn(logger, 'info');
 
   const mockDir = createMockDirectory();
@@ -71,14 +72,11 @@ describe('confluence:transform:markdown examples', () => {
       }),
       search: jest.fn(),
     };
-    mockContext = {
+    mockContext = createMockActionContext({
       input: yaml.parse(examples[0].example).steps[0].input,
       workspacePath,
       logger,
-      logStream: new PassThrough(),
-      output: jest.fn(),
-      createTemporaryDirectory: jest.fn(),
-    };
+    });
 
     mockDir.setContent({ 'workspace/mkdocs.yml': 'File contents' });
   });

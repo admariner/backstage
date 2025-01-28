@@ -1,5 +1,124 @@
 # @backstage/theme
 
+## 0.6.3
+
+### Patch Changes
+
+- 5f04976: Fixed a bug that caused missing code in published packages.
+
+## 0.6.3-next.0
+
+### Patch Changes
+
+- 5f04976: Fixed a bug that caused missing code in published packages.
+
+## 0.6.1
+
+### Patch Changes
+
+- ea75c37: Internal refactor to avoid top-level imports from MUI.
+
+## 0.6.1-next.0
+
+### Patch Changes
+
+- ea75c37: Internal refactor to avoid top-level imports from MUI.
+
+## 0.6.0
+
+### Minor Changes
+
+- e77ff3d: Adds support for custom background colors in code blocks and inline code within TechDocs.
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+
+## 0.6.0-next.1
+
+### Minor Changes
+
+- e77ff3d: Adds support for custom background colors in code blocks and inline code within TechDocs.
+
+## 0.5.8-next.0
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+
+## 0.5.7
+
+### Patch Changes
+
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+
+## 0.5.7-next.0
+
+### Patch Changes
+
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+
+## 0.5.6
+
+### Patch Changes
+
+- 702fa7d: Internal refactor to fix an issue where the MUI 5 `v5-` class prefixing gets removed by tree shaking.
+
+## 0.5.6-next.0
+
+### Patch Changes
+
+- 702fa7d: Internal refactor to fix an issue where the MUI 5 `v5-` class prefixing gets removed by tree shaking.
+
+## 0.5.4
+
+### Patch Changes
+
+- f1462df: Fixed bug where scrollbars don't pick up the theme when in dark mode
+
+## 0.5.4-next.0
+
+### Patch Changes
+
+- f1462df: Fixed bug where scrollbars don't pick up the theme when in dark mode
+
+## 0.5.3
+
+### Patch Changes
+
+- abfbcfc: Updated dependency `@testing-library/react` to `^15.0.0`.
+
+## 0.5.2
+
+### Patch Changes
+
+- 6f4d2a0: Exported `defaultTypography` to make adjusting these values in a custom theme easier
+
+## 0.5.2-next.0
+
+### Patch Changes
+
+- 6f4d2a0: Exported `defaultTypography` to make adjusting these values in a custom theme easier
+
+## 0.5.1
+
+### Patch Changes
+
+- dd5d7cc: Fixed missing extra variables like `applyDarkStyles` in Mui V5 theme after calling `createUnifiedThemeFromV4` function
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+
+## 0.5.1-next.1
+
+### Patch Changes
+
+- dd5d7cc: Fixed missing extra variables like `applyDarkStyles` in Mui V5 theme after calling `createUnifiedThemeFromV4` function
+
+## 0.5.1-next.0
+
+### Patch Changes
+
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+
 ## 0.5.0
 
 ### Minor Changes

@@ -19,18 +19,29 @@ import {
   getCompoundEntityRef,
   parseEntityRef,
 } from '@backstage/catalog-model';
+import { TECHDOCS_EXTERNAL_ANNOTATION } from '@backstage/plugin-techdocs-common';
 
 import React from 'react';
 import { TechDocsReaderPage } from './plugin';
 import { TechDocsReaderPageContent } from './reader/components/TechDocsReaderPageContent';
 import { TechDocsReaderPageSubheader } from './reader/components/TechDocsReaderPageSubheader';
+import { useEntityPageTechDocsRedirect } from './search/hooks/useTechDocsLocation';
 
-const TECHDOCS_EXTERNAL_ANNOTATION = 'backstage.io/techdocs-entity';
+type EntityPageDocsProps = {
+  entity: Entity;
+  /**
+   * Show or hide the content search bar, defaults to true.
+   */
+  withSearch?: boolean;
+};
 
-type EntityPageDocsProps = { entity: Entity };
-
-export const EntityPageDocs = ({ entity }: EntityPageDocsProps) => {
+export const EntityPageDocs = ({
+  entity,
+  withSearch = true,
+}: EntityPageDocsProps) => {
   let entityRef = getCompoundEntityRef(entity);
+
+  const searchResultUrlMapper = useEntityPageTechDocsRedirect(entityRef);
 
   if (entity.metadata.annotations?.[TECHDOCS_EXTERNAL_ANNOTATION]) {
     try {
@@ -45,7 +56,10 @@ export const EntityPageDocs = ({ entity }: EntityPageDocsProps) => {
   return (
     <TechDocsReaderPage entityRef={entityRef}>
       <TechDocsReaderPageSubheader />
-      <TechDocsReaderPageContent withSearch={false} />
+      <TechDocsReaderPageContent
+        withSearch={withSearch}
+        searchResultUrlMapper={searchResultUrlMapper}
+      />
     </TechDocsReaderPage>
   );
 };

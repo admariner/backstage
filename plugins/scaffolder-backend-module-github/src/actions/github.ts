@@ -86,6 +86,7 @@ export function createPublishGithubAction(options: {
     requiredStatusCheckContexts?: string[];
     requireBranchesToBeUpToDate?: boolean;
     requiredConversationResolution?: boolean;
+    requireLastPushApproval?: boolean;
     repoVisibility?: 'private' | 'internal' | 'public';
     collaborators?: Array<
       | {
@@ -109,7 +110,14 @@ export function createPublishGithubAction(options: {
     topics?: string[];
     repoVariables?: { [key: string]: string };
     secrets?: { [key: string]: string };
+    oidcCustomization?: {
+      useDefault: boolean;
+      includeClaimKeys?: string[];
+    };
     requiredCommitSigning?: boolean;
+    requiredLinearHistory?: boolean;
+    customProperties?: { [key: string]: string };
+    subscribe?: boolean;
   }>({
     id: 'publish:github',
     description:
@@ -133,6 +141,7 @@ export function createPublishGithubAction(options: {
           requireBranchesToBeUpToDate: inputProps.requireBranchesToBeUpToDate,
           requiredConversationResolution:
             inputProps.requiredConversationResolution,
+          requireLastPushApproval: inputProps.requireLastPushApproval,
           repoVisibility: inputProps.repoVisibility,
           defaultBranch: inputProps.defaultBranch,
           protectDefaultBranch: inputProps.protectDefaultBranch,
@@ -156,7 +165,11 @@ export function createPublishGithubAction(options: {
           topics: inputProps.topics,
           repoVariables: inputProps.repoVariables,
           secrets: inputProps.secrets,
+          oidcCustomization: inputProps.oidcCustomization,
           requiredCommitSigning: inputProps.requiredCommitSigning,
+          requiredLinearHistory: inputProps.requiredLinearHistory,
+          customProperties: inputProps.customProperties,
+          subscribe: inputProps.subscribe,
         },
       },
       output: {
@@ -182,6 +195,7 @@ export function createPublishGithubAction(options: {
         requiredStatusCheckContexts = [],
         requireBranchesToBeUpToDate = true,
         requiredConversationResolution = false,
+        requireLastPushApproval = false,
         repoVisibility = 'private',
         defaultBranch = 'master',
         protectDefaultBranch = true,
@@ -203,8 +217,12 @@ export function createPublishGithubAction(options: {
         topics,
         repoVariables,
         secrets,
+        oidcCustomization,
         token: providedToken,
+        customProperties,
+        subscribe = false,
         requiredCommitSigning = false,
+        requiredLinearHistory = false,
       } = ctx.input;
 
       const octokitOptions = await getOctokitOptions({
@@ -243,6 +261,9 @@ export function createPublishGithubAction(options: {
         topics,
         repoVariables,
         secrets,
+        oidcCustomization,
+        customProperties,
+        subscribe,
         ctx.logger,
       );
 
@@ -267,6 +288,7 @@ export function createPublishGithubAction(options: {
         requiredStatusCheckContexts,
         requireBranchesToBeUpToDate,
         requiredConversationResolution,
+        requireLastPushApproval,
         config,
         ctx.logger,
         gitCommitMessage,
@@ -274,6 +296,7 @@ export function createPublishGithubAction(options: {
         gitAuthorEmail,
         dismissStaleReviews,
         requiredCommitSigning,
+        requiredLinearHistory,
       );
 
       ctx.output('commitHash', commitResult?.commitHash);

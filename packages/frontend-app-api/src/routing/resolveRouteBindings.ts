@@ -22,6 +22,8 @@ import {
 import { RouteRefsById } from './collectRouteIds';
 import { Config } from '@backstage/config';
 import { JsonObject } from '@backstage/types';
+// eslint-disable-next-line @backstage/no-relative-monorepo-imports
+import { toInternalExternalRouteRef } from '../../../frontend-plugin-api/src/routing/ExternalRouteRef';
 
 /**
  * Extracts a union of the keys in a map whose value extends the given type
@@ -51,16 +53,15 @@ type TargetRouteMap<
   ExternalRoutes extends { [name: string]: ExternalRouteRef },
 > = {
   [name in keyof ExternalRoutes]: ExternalRoutes[name] extends ExternalRouteRef<
-    infer Params,
-    any
+    infer Params
   >
-    ? RouteRef<Params> | SubRouteRef<Params>
+    ? RouteRef<Params> | SubRouteRef<Params> | false
     : never;
 };
 
 /**
  * A function that can bind from external routes of a given plugin, to concrete
- * routes of other plugins. See {@link createApp}.
+ * routes of other plugins. See {@link @backstage/frontend-defaults#createApp}.
  *
  * @public
  */
@@ -70,7 +71,7 @@ export type CreateAppRouteBinder = <
   externalRoutes: TExternalRoutes,
   targetRoutes: PartialKeys<
     TargetRouteMap<TExternalRoutes>,
-    KeysWithType<TExternalRoutes, ExternalRouteRef<any, true>>
+    KeysWithType<TExternalRoutes, ExternalRouteRef<any>>
   >,
 ) => void;
 
@@ -81,7 +82,9 @@ export function resolveRouteBindings(
   routesById: RouteRefsById,
 ): Map<ExternalRouteRef, RouteRef | SubRouteRef> {
   const result = new Map<ExternalRouteRef, RouteRef | SubRouteRef>();
+  const disabledExternalRefs = new Set<ExternalRouteRef>();
 
+  // Perform callback bindings first with highest priority
   if (bindRoutes) {
     const bind: CreateAppRouteBinder = (
       externalRoutes,
@@ -92,51 +95,80 @@ export function resolveRouteBindings(
         if (!externalRoute) {
           throw new Error(`Key ${key} is not an existing external route`);
         }
-        if (!value && !externalRoute.optional) {
-          throw new Error(
-            `External route ${key} is required but was undefined`,
-          );
-        }
         if (value) {
           result.set(externalRoute, value);
+        } else if (value === false) {
+          disabledExternalRefs.add(externalRoute);
         }
       }
     };
     bindRoutes({ bind });
   }
 
-  const bindingsConfig = config.getOptionalConfig('app.routes.bindings');
-  if (!bindingsConfig) {
-    return result;
+  // Then perform config based bindings with lower priority
+  const bindings = config
+    .getOptionalConfig('app.routes.bindings')
+    ?.get<JsonObject>();
+  if (bindings) {
+    for (const [externalRefId, targetRefId] of Object.entries(bindings)) {
+      if (!isValidTargetRefId(targetRefId)) {
+        throw new Error(
+          `Invalid config at app.routes.bindings['${externalRefId}'], value must be a non-empty string or false`,
+        );
+      }
+
+      const externalRef = routesById.externalRoutes.get(externalRefId);
+      if (!externalRef) {
+        throw new Error(
+          `Invalid config at app.routes.bindings, '${externalRefId}' is not a valid external route`,
+        );
+      }
+
+      // Skip if binding was already defined in code
+      if (result.has(externalRef) || disabledExternalRefs.has(externalRef)) {
+        continue;
+      }
+
+      if (targetRefId === false) {
+        disabledExternalRefs.add(externalRef);
+      } else {
+        const targetRef = routesById.routes.get(targetRefId);
+        if (!targetRef) {
+          throw new Error(
+            `Invalid config at app.routes.bindings['${externalRefId}'], '${targetRefId}' is not a valid route`,
+          );
+        }
+
+        result.set(externalRef, targetRef);
+      }
+    }
   }
 
-  const bindings = bindingsConfig.get<JsonObject>();
-  for (const [externalRefId, targetRefId] of Object.entries(bindings)) {
-    if (typeof targetRefId !== 'string' || targetRefId === '') {
-      throw new Error(
-        `Invalid config at app.routes.bindings['${externalRefId}'], value must be a non-empty string`,
-      );
+  // Finally fall back to attempting to map defaults, at lowest priority
+  for (const externalRef of routesById.externalRoutes.values()) {
+    if (!result.has(externalRef) && !disabledExternalRefs.has(externalRef)) {
+      const defaultRefId =
+        toInternalExternalRouteRef(externalRef).getDefaultTarget();
+      if (defaultRefId) {
+        const defaultRef = routesById.routes.get(defaultRefId);
+        if (defaultRef) {
+          result.set(externalRef, defaultRef);
+        }
+      }
     }
-
-    const externalRef = routesById.externalRoutes.get(externalRefId);
-    if (!externalRef) {
-      throw new Error(
-        `Invalid config at app.routes.bindings, '${externalRefId}' is not a valid external route`,
-      );
-    }
-    // Route bindings defined in config have lower priority than those defined in code
-    if (result.has(externalRef)) {
-      continue;
-    }
-    const targetRef = routesById.routes.get(targetRefId);
-    if (!targetRef) {
-      throw new Error(
-        `Invalid config at app.routes.bindings['${externalRefId}'], '${targetRefId}' is not a valid route`,
-      );
-    }
-
-    result.set(externalRef, targetRef);
   }
 
   return result;
+}
+
+function isValidTargetRefId(value: unknown): value is string | false {
+  if (value === false) {
+    return true;
+  }
+
+  if (typeof value === 'string' && value) {
+    return true;
+  }
+
+  return false;
 }

@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 import React from 'react';
-import { useTemplateSecrets } from '@backstage/plugin-scaffolder-react';
 import { ScaffolderRJSFFieldProps } from '@backstage/plugin-scaffolder-react';
-import { ScaffolderField } from '@backstage/plugin-scaffolder-react/alpha';
-import { Input, InputLabel } from '@material-ui/core';
+import {
+  ScaffolderField,
+  SecretWidget,
+} from '@backstage/plugin-scaffolder-react/alpha';
 
 export const SecretInput = (props: ScaffolderRJSFFieldProps) => {
-  const { setSecrets, secrets } = useTemplateSecrets();
   const {
-    name,
-    onChange,
-    schema: { title, description },
+    schema: { description },
     rawErrors,
     disabled,
     errors,
@@ -39,18 +37,7 @@ export const SecretInput = (props: ScaffolderRJSFFieldProps) => {
       errors={errors}
       required={required}
     >
-      <InputLabel htmlFor={title}>{title}</InputLabel>
-      <Input
-        id={title}
-        aria-describedby={title}
-        onChange={e => {
-          onChange(Array(e.target?.value.length).fill('*').join(''));
-          setSecrets({ [name]: e.target?.value });
-        }}
-        value={secrets[name] ?? ''}
-        type="password"
-        autoComplete="off"
-      />
+      <SecretWidget {...props} />
     </ScaffolderField>
   );
 };

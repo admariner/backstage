@@ -29,7 +29,7 @@ import { useMatchingErrors } from '../../hooks/useMatchingErrors';
 import { Pod } from 'kubernetes-models/v1/Pod';
 import { V1Pod } from '@kubernetes/client-node';
 import { usePodMetrics } from '../../hooks/usePodMetrics';
-import { Typography } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
 
 /**
  *
@@ -80,7 +80,6 @@ const READY: TableColumn<Pod>[] = [
 ];
 
 const PodDrawerTrigger = ({ pod }: { pod: Pod }) => {
-  const cluster = useContext(ClusterContext);
   const errors = useMatchingErrors({
     kind: 'Pod',
     apiVersion: 'v1',
@@ -90,7 +89,7 @@ const PodDrawerTrigger = ({ pod }: { pod: Pod }) => {
     <PodDrawer
       podAndErrors={{
         pod: pod as any,
-        clusterName: cluster.name,
+        cluster: useContext(ClusterContext),
         errors: errors,
       }}
     />

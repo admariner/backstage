@@ -15,6 +15,7 @@
  */
 
 import { TemplateAction } from '@backstage/plugin-scaffolder-node';
+import { createMockActionContext } from '@backstage/plugin-scaffolder-node-test-utils';
 
 jest.mock('./gitHelpers', () => {
   return {
@@ -23,15 +24,12 @@ jest.mock('./gitHelpers', () => {
   };
 });
 
-import { getVoidLogger } from '@backstage/backend-common';
 import { ConfigReader } from '@backstage/config';
 import {
   DefaultGithubCredentialsProvider,
   GithubCredentialsProvider,
   ScmIntegrations,
 } from '@backstage/integration';
-import { when } from 'jest-when';
-import { PassThrough } from 'stream';
 import { createGithubRepoCreateAction } from './githubRepoCreate';
 import { entityRefToName } from './gitHelpers';
 
@@ -57,7 +55,11 @@ const mockOctokit = {
       createOrUpdateRepoSecret: jest.fn(),
       getRepoPublicKey: jest.fn(),
     },
+    activity: {
+      setRepoSubscription: jest.fn(),
+    },
   },
+  request: jest.fn(),
 };
 jest.mock('octokit', () => ({
   Octokit: class {
@@ -81,19 +83,14 @@ describe('github:repo:create', () => {
   let githubCredentialsProvider: GithubCredentialsProvider;
   let action: TemplateAction<any>;
 
-  const mockContext = {
+  const mockContext = createMockActionContext({
     input: {
       repoUrl: 'github.com?repo=repo&owner=owner',
       description: 'description',
       repoVisibility: 'private' as const,
       access: 'owner/blam',
     },
-    workspacePath: 'lol',
-    logger: getVoidLogger(),
-    logStream: new PassThrough(),
-    output: jest.fn(),
-    createTemporaryDirectory: jest.fn(),
-  };
+  });
 
   beforeEach(() => {
     githubCredentialsProvider =
@@ -241,6 +238,36 @@ describe('github:repo:create', () => {
       has_projects: false,
       has_issues: false,
     });
+
+    await action.handler({
+      ...mockContext,
+      input: {
+        ...mockContext.input,
+        customProperties: {
+          foo: 'bar',
+          foo2: 'bar2',
+        },
+      },
+    });
+
+    expect(mockOctokit.rest.repos.createInOrg).toHaveBeenCalledWith({
+      description: 'description',
+      name: 'repo',
+      org: 'owner',
+      private: true,
+      delete_branch_on_merge: false,
+      allow_squash_merge: true,
+      squash_merge_commit_title: 'COMMIT_OR_PR_TITLE',
+      squash_merge_commit_message: 'COMMIT_MESSAGES',
+      allow_merge_commit: true,
+      allow_rebase_merge: true,
+      allow_auto_merge: false,
+      visibility: 'private',
+      custom_properties: {
+        foo: 'bar',
+        foo2: 'bar2',
+      },
+    });
   });
 
   it('should call the githubApis with the correct values for createForAuthenticatedUser', async () => {
@@ -366,6 +393,33 @@ describe('github:repo:create', () => {
       has_projects: false,
       has_issues: false,
     });
+
+    // Custom properties on user repos should be ignored
+    await action.handler({
+      ...mockContext,
+      input: {
+        ...mockContext.input,
+        customProperties: {
+          foo: 'bar',
+          foo2: 'bar2',
+        },
+      },
+    });
+
+    expect(
+      mockOctokit.rest.repos.createForAuthenticatedUser,
+    ).toHaveBeenCalledWith({
+      description: 'description',
+      name: 'repo',
+      private: true,
+      delete_branch_on_merge: false,
+      allow_squash_merge: true,
+      squash_merge_commit_title: 'COMMIT_OR_PR_TITLE',
+      squash_merge_commit_message: 'COMMIT_MESSAGES',
+      allow_merge_commit: true,
+      allow_rebase_merge: true,
+      allow_auto_merge: false,
+    });
   });
 
   it('should add access for the team when it starts with the owner', async () => {
@@ -483,15 +537,13 @@ describe('github:repo:create', () => {
       },
     });
 
-    when(mockOctokit.rest.teams.addOrUpdateRepoPermissionsInOrg)
-      .calledWith({
-        org: 'owner',
-        owner: 'owner',
-        repo: 'repo',
-        team_slug: 'robot-1',
-        permission: 'pull',
-      })
-      .mockRejectedValueOnce(new Error('Something bad happened') as never);
+    mockOctokit.rest.teams.addOrUpdateRepoPermissionsInOrg.mockImplementation(
+      async opts => {
+        if (opts.team_slug === 'robot-1') {
+          throw Error('Something bad happened');
+        }
+      },
+    );
 
     await action.handler({
       ...mockContext,
@@ -652,6 +704,40 @@ describe('github:repo:create', () => {
     });
   });
 
+  it('should configure oidc customizations when provided', async () => {
+    mockOctokit.rest.users.getByUsername.mockResolvedValue({
+      data: { type: 'User' },
+    });
+
+    mockOctokit.rest.repos.createForAuthenticatedUser.mockResolvedValue({
+      data: {
+        clone_url: 'https://github.com/clone/url.git',
+        html_url: 'https://github.com/html/url',
+      },
+    });
+
+    await action.handler({
+      ...mockContext,
+      input: {
+        ...mockContext.input,
+        oidcCustomization: {
+          useDefault: false,
+          includeClaimKeys: ['foo', 'bar'],
+        },
+      },
+    });
+
+    expect(mockOctokit.request).toHaveBeenCalledWith(
+      'PUT /repos/{owner}/{repo}/actions/oidc/customization/sub',
+      {
+        include_claim_keys: ['foo', 'bar'],
+        owner: 'owner',
+        repo: 'repo',
+        use_default: false,
+      },
+    );
+  });
+
   it('should call output with the remoteUrl', async () => {
     mockOctokit.rest.users.getByUsername.mockResolvedValue({
       data: { type: 'User' },
@@ -670,5 +756,27 @@ describe('github:repo:create', () => {
       'remoteUrl',
       'https://github.com/clone/url.git',
     );
+  });
+
+  it('should subscribe user to repository', async () => {
+    mockOctokit.rest.users.getByUsername.mockResolvedValue({
+      data: { type: 'Organization' },
+    });
+    mockOctokit.rest.repos.createInOrg.mockResolvedValue({ data: {} });
+
+    await action.handler({
+      ...mockContext,
+      input: {
+        ...mockContext.input,
+        subscribe: true,
+      },
+    });
+
+    expect(mockOctokit.rest.activity.setRepoSubscription).toHaveBeenCalledWith({
+      owner: 'owner',
+      repo: 'repo',
+      subscribed: true,
+      ignored: false,
+    });
   });
 });

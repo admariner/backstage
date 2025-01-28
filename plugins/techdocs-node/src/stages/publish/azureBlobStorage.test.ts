@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { getVoidLogger } from '@backstage/backend-common';
 import { Entity, DEFAULT_NAMESPACE } from '@backstage/catalog-model';
 import { ConfigReader } from '@backstage/config';
 import express from 'express';
@@ -27,7 +26,10 @@ import {
   BlobUploadCommonResponse,
   ContainerGetPropertiesResponse,
 } from '@azure/storage-blob';
-import { createMockDirectory } from '@backstage/backend-test-utils';
+import {
+  createMockDirectory,
+  mockServices,
+} from '@backstage/backend-test-utils';
 
 const mockDir = createMockDirectory();
 
@@ -221,8 +223,7 @@ const getEntityRootDir = (entity: Entity) => {
   return mockDir.resolve(namespace || DEFAULT_NAMESPACE, kind, name);
 };
 
-const logger = getVoidLogger();
-jest.spyOn(logger, 'error').mockReturnValue(logger);
+const logger = mockServices.logger.mock();
 
 const createPublisherFromConfig = ({
   accountName = 'accountName',

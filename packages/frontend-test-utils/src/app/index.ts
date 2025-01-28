@@ -17,6 +17,7 @@
 export {
   createExtensionTester,
   type ExtensionTester,
+  type ExtensionQuery,
 } from './createExtensionTester';
 
-export { renderInTestApp } from './renderInTestApp';
+export { renderInTestApp, type TestAppOptions } from './renderInTestApp';

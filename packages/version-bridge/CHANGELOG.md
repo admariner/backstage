@@ -1,5 +1,35 @@
 # @backstage/version-bridge
 
+## 1.0.10
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+
+## 1.0.10-next.0
+
+### Patch Changes
+
+- e969dc7: Move `@types/react` to a peer dependency.
+
+## 1.0.9
+
+### Patch Changes
+
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+
+## 1.0.9-next.0
+
+### Patch Changes
+
+- 836127c: Updated dependency `@testing-library/react` to `^16.0.0`.
+
+## 1.0.8
+
+### Patch Changes
+
+- abfbcfc: Updated dependency `@testing-library/react` to `^15.0.0`.
+
 ## 1.0.7
 
 ### Patch Changes

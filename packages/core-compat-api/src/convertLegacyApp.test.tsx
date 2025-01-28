@@ -15,8 +15,8 @@
  */
 
 import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
-import { PuppetDbPage } from '@backstage/plugin-puppetdb';
-import { StackstormPage } from '@backstage/plugin-stackstorm';
+import { PuppetDbPage } from '@backstage-community/plugin-puppetdb';
+import { StackstormPage } from '@backstage-community/plugin-stackstorm';
 import { ScoreBoardPage } from '@oriflame/backstage-plugin-score-card';
 import React, { ReactNode } from 'react';
 import { Route } from 'react-router-dom';
@@ -62,11 +62,11 @@ describe('convertLegacyApp', () => {
             id: 'page:score-card',
             attachTo: { id: 'app/routes', input: 'routes' },
             disabled: false,
-            defaultConfig: { path: 'score-board' },
+            defaultConfig: {},
           },
           {
-            id: 'api:plugin.scoringdata.service',
-            attachTo: { id: 'app', input: 'apis' },
+            id: 'api:score-card/plugin.scoringdata.service',
+            attachTo: { id: 'root', input: 'apis' },
             disabled: false,
           },
         ],
@@ -78,11 +78,11 @@ describe('convertLegacyApp', () => {
             id: 'page:stackstorm',
             attachTo: { id: 'app/routes', input: 'routes' },
             disabled: false,
-            defaultConfig: { path: 'stackstorm' },
+            defaultConfig: {},
           },
           {
-            id: 'api:plugin.stackstorm.service',
-            attachTo: { id: 'app', input: 'apis' },
+            id: 'api:stackstorm/plugin.stackstorm.service',
+            attachTo: { id: 'root', input: 'apis' },
             disabled: false,
           },
         ],
@@ -94,17 +94,17 @@ describe('convertLegacyApp', () => {
             id: 'page:puppetDb',
             attachTo: { id: 'app/routes', input: 'routes' },
             disabled: false,
-            defaultConfig: { path: 'puppetdb' },
+            defaultConfig: {},
           },
           {
             id: 'page:puppetDb/1',
             attachTo: { id: 'app/routes', input: 'routes' },
             disabled: false,
-            defaultConfig: { path: 'puppetdb' },
+            defaultConfig: {},
           },
           {
-            id: 'api:plugin.puppetdb.service',
-            attachTo: { id: 'app', input: 'apis' },
+            id: 'api:puppetDb/plugin.puppetdb.service',
+            attachTo: { id: 'root', input: 'apis' },
             disabled: false,
           },
         ],
